@@ -1,5 +1,5 @@
 
-build:
+uild:
 	git submodule init
 	git submodule update
-	cd peos && make && make install
+	cd peos && make && sudo make install
