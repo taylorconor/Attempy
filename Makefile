@@ -1,6 +1,9 @@
 
 build:
+	# build pmlcheck in peos/pml/check/pmlcheck	
 	git submodule init
 	git submodule update
 	cd peos && make && sudo make install
-	# pmlcheck is now built in peos/pml/check/pmlcheck
+	
+	# install python modules from requirements file
+	sudo pip install -r requirements
