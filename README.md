@@ -6,15 +6,10 @@ The purpose of this is to have all dependencies set up so that the project can b
 
 The project is designed to be run on Ubuntu 14.04
 
-To build the project:
+#Installation instructions
 <pre>
-apt-get install tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip
-make
+sudo apt-get install git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip
+sudo make
 </pre>
 
-#Installation Instructions
-
-pip install -r requirements
-
-#Feature List
-
+Attempy can then be started by running: `python runserver.py`.
