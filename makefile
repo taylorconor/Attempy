@@ -1,4 +1,3 @@
-
 build:  
 	@echo "Fetching pmlcheck"
 	git submodule init
@@ -8,9 +7,16 @@ build:
 	cd peos && make && sudo make install
 	
 	@echo "installing additional python requirements"
-	sudo pip install -r requirements
+	pip install -r requirements
+
+	@echo "installing qunit for javascript unit testing"
+	npm install qunit
 
 test:
+	@echo "Running Javascript unit tests"
+	qunit -c ./app/static/js/tests/tests.js -t ./app/static/js/tests/tests.js
+	@echo "Running Python unit tests"
+	python ./app/tests.py
 
 install:
 
@@ -25,6 +31,12 @@ endif
 	@echo "verification passed"
 
 clean:
+	@echo "Cleaning"
+	find . -name "*.pyc" -type f -delete
+	@echo "Finished cleaning"
+	pip uninstall -y -r requirements 
+	cd peos && make clean && cd ..
 
 distclean:
-
+	make clean
+	git submodule deinit -f .
