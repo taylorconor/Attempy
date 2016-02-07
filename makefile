@@ -8,7 +8,7 @@ build:
 	cd peos && make && sudo make install
 	
 	@echo "installing additional python requirements"
-	sudo pip install -r requirements
+	pip install -r requirements
 
 test:
 
@@ -25,6 +25,12 @@ endif
 	@echo "verification passed"
 
 clean:
+	@echo "Cleaning"
+	find . -name "*.pyc" -type f -delete
+	@echo "Finished cleaning"
+	pip uninstall -y -r requirements 
+	cd peos && make clean && cd ..
 
 distclean:
-
+	make clean
+	git submodule deinit -f .
