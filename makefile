@@ -9,12 +9,7 @@ build:
 	@echo "installing additional python requirements"
 	pip install -r requirements
 
-	@echo "installing qunit for javascript unit testing"
-	npm install qunit
-
 test:
-	@echo "Running Javascript unit tests"
-	node_modules/.bin/qunit  -c ./app/static/js/tests/tests.js -t ./app/static/js/tests/tests.js
 	@echo "Running Python unit tests"
 	python ./app/tests.py
 
