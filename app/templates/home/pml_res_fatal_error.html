@@ -5,8 +5,11 @@
 {% endblock %}
 
 {% block content %}
-    <p>fatal error encountered while trying to execute pmlcheck:</p>
-    <p>
-        <pre>{{error}}</pre>
-    </p>
+    <div class="container-fluid">
+        <p class="lead">fatal error encountered while trying to execute pmlcheck:</p>
+        <p>
+            <samp>{{error}}</samp>
+        </p>
+    </div>
 {% endblock %}
+

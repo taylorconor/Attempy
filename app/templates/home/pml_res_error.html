@@ -5,8 +5,11 @@
 {% endblock %}
 
 {% block content %}
-    <p>pmlcheck completed with the following errors:</p>
-    <p>
-        <pre>{{error}}</pre>
-    </p>
+    <div class="container-fluid">
+        <p class="lead">pmlcheck completed with the following errors:</p>
+        <p>
+            <samp>{{error}}</samp>
+        </p>
+    </div>
 {% endblock %}
+

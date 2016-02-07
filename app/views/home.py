@@ -1,5 +1,4 @@
 from flask import Blueprint, Flask, render_template, request, redirect
-from app import app
 from subprocess import Popen, PIPE
 
 home = Blueprint('home', __name__)
