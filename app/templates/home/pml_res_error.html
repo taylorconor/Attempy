@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+	pmlcheck output
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <p class="lead">pmlcheck completed with the following errors:</p>
+        <p>
+            <samp>{{error}}</samp>
+        </p>
+    </div>
+{% endblock %}
+

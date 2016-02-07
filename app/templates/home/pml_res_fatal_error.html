@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+    fatal error
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <p class="lead">fatal error encountered while trying to execute pmlcheck:</p>
+        <p>
+            <samp>{{error}}</samp>
+        </p>
+    </div>
+{% endblock %}
+
