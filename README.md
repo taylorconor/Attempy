@@ -1,6 +1,6 @@
 # Attempy
 
-The purpose of this is to have all dependencies set up so that the project can be more easily developed in the upcoming sprints. This README will inform the user of the software that is required to run this project as well as a list of features and test for the project.
+This project so far allows you to enter PML code wich will be parsed and the results passed out to the user. 
 
 ##Pre-Requisites
 
@@ -15,3 +15,7 @@ sudo apt-get install build-essential git tcl-dev flex bison byacc check expect n
 1. Execute the makefile by running `sudo make` in the project's root directory.
 2. Start Attempy by running: `python runserver.py`.
 3. The web application can then be accessed at `localhost:5000`.
+
+##Feature List
+
+A text input and code parsing. 
