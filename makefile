@@ -14,7 +14,7 @@ build:
 
 test:
 	@echo "Running Javascript unit tests"
-	qunit -c ./app/static/js/tests/tests.js -t ./app/static/js/tests/tests.js
+	node_modules/.bin/qunit  -c ./app/static/js/tests/tests.js -t ./app/static/js/tests/tests.js
 	@echo "Running Python unit tests"
 	python ./app/tests.py
 
