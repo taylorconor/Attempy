@@ -9,6 +9,9 @@ build:
 	@echo "installing additional python requirements"
 	pip install -r requirements
 
+	@echo "building ace"
+	cd app/static/ace && npm install && node ./Makefile.dryice.js
+
 test:
 	@echo "Running Python unit tests"
 	python ./app/tests.py
