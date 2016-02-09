@@ -1,3 +1,6 @@
 [submodule "peos"]
 	path = peos
 	url = https://github.com/jnoll/peos
+[submodule "app/static/ace"]
+	path = app/static/ace
+	url = https://github.com/taylorconor/ace.git
