@@ -1,19 +1,37 @@
-{% extends "base.html" %}
-{% block content %}
-    <div class="container-fluid">
-        <div class="jumbotron">
-            <form class="form-horizontal" action="pml_source_submit" method="post" id="pml_source_form">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Editor</title>
+<style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+</style>
+</head>
+<body>
 
-                <div class="form-group">
-                    <label for="pml_source">PML Code input</label>
-                    <textarea name="pml_source" id="pml_source" class="form-control" form="pml_source_form"></textarea>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-default">Submit</button>
-                </div>
+<div id="editor"></div>
 
-            </form>
-        </div>
-    </div>
-{% endblock %}
-
+<script src="{{ url_for('static', filename='ace-builds/src-noconflict/ace.js') }}"
+        type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    // dark theme
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+    // keybindings for search and replace (win == linux)
+    editor.commands.addCommand({
+        name: 'replace',
+        bindKey: {win: 'Ctrl-R', mac: 'Command-alt-F'},
+        exec: function(editor) {
+            ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+        },
+        readOnly: true
+    });
+</script>
+</body>
+</html>
