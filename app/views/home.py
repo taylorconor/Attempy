@@ -12,7 +12,7 @@ def index():
 def pml_source_submit():
     #TODO: make this temp file user-unique, so users don't overwrite each others tmp files
     tmp_filename = "/tmp/pmlcheck_output"
-    source = request.form["ace_text-input"]
+    source = request.form["pml_source"]
     f = open(tmp_filename, "w")
     f.write(source)
     f.close()
