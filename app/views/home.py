@@ -1,14 +1,18 @@
 from flask import Blueprint, Flask, render_template, request, redirect
 from subprocess import Popen, PIPE
+from flask.ext.login import login_required, current_user
 
 home = Blueprint('home', __name__)
 
 #routes for home
 @home.route('/')
+@login_required
 def index():
     return render_template("home/index.html")
 
+
 @home.route('/pml_source_submit', methods=['POST'])
+@login_required
 def pml_source_submit():
     #TODO: make this temp file user-unique, so users don't overwrite each others tmp files
     tmp_filename = "/tmp/pmlcheck_output"
