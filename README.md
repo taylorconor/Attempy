@@ -9,7 +9,7 @@ The project is designed to be run on Ubuntu 14.04
 A number of supporting packages are required before installation. These can be installed by running:
 <pre>
 sudo apt-get update
-sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs libxslt-dev python-dev python-virtualenv happy alex ghc 
+sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs npm libxslt-dev python-dev python-virtualenv happy alex ghc 
 </pre>
 
 ##Installation instructions
