@@ -12,12 +12,12 @@ def index():
 def pml_source_submit():
     #TODO: make this temp file user-unique, so users don't overwrite each others tmp files
     tmp_filename = "/tmp/pmlcheck_output"
-    source = request.form["pml_source"]
+    source = request.form["ace_text-input"]
     f = open(tmp_filename, "w")
     f.write(source)
     f.close()
-    try: 
-        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    try:
+            p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
         return render_template("home/pml_res_fatal_error.html", error = e)
 
