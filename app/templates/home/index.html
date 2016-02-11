@@ -24,19 +24,45 @@ Editor
     <div class="container-fluid">
         <div class="jumbotron">
             <div id="editor"></div>
-            <form class="form-horizontal" action="pml_source_submit" method="post" id="pml_source_form">
+            <!-- <form class="form-horizontal" action="pml_source_submit" method="post" id="pml_source_form"> -->
             
                 <div class="form-group">
                     <!-- <label for="pml_source">PML Code input</label> -->
                     <textarea name="pml_source" id="pml_source" class="form-control" form="pml_source_form"></textarea>
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-default">Check Syntax</button>
+                    <button type="submit" id="check_syn" class="btn btn-default">Check Syntax</button>
                 </div>
 
-            </form>
+            <!-- </form> -->
+
+            <div id="error">
+                <label for="pml_error">Syntax Errors</label>
+                <textarea name="pml_error" id="pml_error" >{{output}} </textarea>
+            </div>
+          <!--   <div id="output">
+                <label for="pml_outpur">PML Output</label>
+                <textarea name="pml_output" id="pml_output" > {{output}}</textarea>
+            </div> -->
         </div>
     </div>
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#check_syn').on('click', function() {
+            $.ajax({
+                url: "{{ url_for('home.pml_source_submit') }}",
+                method: "POST",
+                data: {
+                    data: $('#pml_source').val()
+                },
+                success: function(data) {
+                    $('#pml_error').html(data.output);
+                }
+            });
+        });
+    });
+</script>
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"
         type="text/javascript" charset="utf-8"></script>
