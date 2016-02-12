@@ -2,4 +2,3 @@ venv/
 *.pyc
 .idea
 node_modules/
-*.db

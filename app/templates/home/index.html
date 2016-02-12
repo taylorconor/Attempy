@@ -1,7 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>Editor</title>
+{% extends "base.html" %}
+
+{% block head %}
 <style type="text/css" media="screen">
     #editor {
         position: absolute;
@@ -11,10 +10,23 @@
         left: 0;
     }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<div id="editor"></div>
+{% block content %}
+    <div class="container-fluid">
+        <div class="jumbotron">
+            <form class="form-horizontal" action="pml_source_submit" method="post" id="pml_source_form">
+
+                <div class="form-group">
+                    <div id="editor"></div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"
         type="text/javascript" charset="utf-8"></script>
@@ -33,5 +45,4 @@
         readOnly: true
     });
 </script>
-</body>
-</html>
+{% endblock %}
