@@ -22,10 +22,9 @@
 	type="text/javascript" charset="utf-8"></script>
 <script>
 
-	// 1. a partial xml grammar in simple JSON format
+	// create AceGrammar partial JSON grammar for PML
 	var xml_grammar = {
 			
-		// prefix ID for regular expressions used in the grammar
 		"RegExpID"                          : "RE::",
 		
 		"Extra"                             : {
@@ -83,7 +82,7 @@
 						    ]}
 		},
 
-		// Syntax model (optional)
+		// Syntax model
 		"Syntax"                            : {
 		    
 		    "dot_property"                  : {"sequence":[".", "property"]}
@@ -96,24 +95,25 @@
 
 	};
 
-	// 2. parse the grammar into an ACE syntax-highlight mode
+	// parse the grammar into an ACE syntax-highlight mode
 	var xml_mode = AceGrammar.getMode( xml_grammar );
 
-	// enable user-defined code folding in the specification (new feature)
+	// enable code-folding
 	xml_mode.supportCodeFolding = true;
 
 	// enable syntax lint-like validation in the grammar
 	xml_mode.supportGrammarAnnotations = true;
 
-	// enable user-defined autocompletion (if defined)
+	// enable user-defined autocompletion (TODO)
 	xml_mode.supportAutoCompletion = true;
 	xml_mode.autocompleter.options = {prefixMatch:true, caseInsensitiveMatch:false};
 	
+	// define the editor
 	var editor = ace.edit("editor");
 
 	// dark theme
 	editor.setTheme("ace/theme/monokai");
-	//editor.getSession().setMode("ace/mode/javascript");
+	// use our custom highlighting mode
 	editor.getSession().setMode( xml_mode );
 	// keybindings for search and replace (win == linux)
 	editor.commands.addCommand({
