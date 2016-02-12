@@ -1,13 +1,36 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
-        {% block head %}
             <link rel="stylesheet" href="{{ url_for('static', filename='css/base_style.css') }}">
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-combined.min.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-social.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+            <script src="{{ url_for('static', filename='js/jquery.min.js') }}" type="text/javascript" charset="utf-8"></script>
+            <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"
+            type="text/javascript" charset="utf-8"></script>
             <title>{% block title %}Title{% endblock %}</title>
+        {% block head %}
+    
         {% endblock %}
     </head>
     <body>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class=flashes>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        {% if current_user.is_authenticated %}
+          <p> Hi {{ current_user.name }} </p>
+          <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
+        {% else %}
+          <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+        {% endif %}
         <div id="content">{% block content %}{% endblock %}</div>
+        }
     </body>
 </html>
