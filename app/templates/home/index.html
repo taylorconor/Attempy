@@ -18,20 +18,112 @@
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"
         type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"
+	type="text/javascript" charset="utf-8"></script>
 <script>
-    var editor = ace.edit("editor");
-    // dark theme
-    editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/javascript");
-    // keybindings for search and replace (win == linux)
-    editor.commands.addCommand({
-        name: 'replace',
-        bindKey: {win: 'Ctrl-R', mac: 'Command-alt-F'},
-        exec: function(editor) {
-            ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
-        },
-        readOnly: true
-    });
+
+	// 1. a partial xml grammar in simple JSON format
+	var xml_grammar = {
+			
+		// prefix ID for regular expressions used in the grammar
+		"RegExpID"                          : "RE::",
+		
+		"Extra"                             : {
+
+		    "fold"                          : "brace"
+
+		},
+		    
+		// Style model
+		"Style"                             : {
+		    
+		     "comment"                      : "comment"
+		    ,"keyword"                      : "keyword"
+		    ,"operator"                     : "operator"
+		    ,"identifier"                   : "identifier"
+		    ,"property"                     : "constant.support"
+		    ,"number"                       : "constant.numeric"
+		    ,"string"                       : "string"
+		    
+		},
+
+		// Lexical model
+		"Lex"                               : {
+		    
+		     "comment"                      : {"type":"comment","tokens":[
+						    [  "/*",   "*/" ]
+						    ]}
+		    ,"identifier"                   : "RE::/[_A-Za-z$][_A-Za-z0-9$]*/"
+		    ,"property"                     : "RE::/[_A-Za-z$][_A-Za-z0-9$]*/"
+		    ,"number"                       : [
+						    // floats
+						    "RE::/\\d*\\.\\d+(e[\\+\\-]?\\d+)?/",
+						    "RE::/\\d+\\.\\d*/",
+						    "RE::/\\.\\d+/",
+						    // integers
+						    "RE::/[1-9]\\d*(e[\\+\\-]?\\d+)?L?/",
+						    // just zero
+						    "RE::/0(?![\\dx])/"
+						    ]
+		    ,"string"                       : {"type":"escaped-block","escape":"\\","tokens":
+						    // start, end of string (can be the matched regex group ie. 1 )
+						    [ "RE::/(['\"])/",   1 ]
+						    }
+		    ,"operator"                     : {"tokens":[
+						    "&&", "||", "<=", ">=", "==", "!=", "<", ">", "!", "."
+						    ]}
+		    ,"delimiter"                    : {"tokens": [
+						    "(", ")", "[", "]", "{", "}", ",", "=", ";", "?", ":",
+						    "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "++", "--",
+						    ">>=", "<<="
+						    ]}
+		    ,"keyword"                      : {"autocomplete":true,"tokens":[ 
+						    "action", "agent", "branch", "executable", "iteration", "manual", "process",
+						    "provides", "requires", "script", "selection", "select", "sequence", "task", "tool"
+						    ]}
+		},
+
+		// Syntax model (optional)
+		"Syntax"                            : {
+		    
+		    "dot_property"                  : {"sequence":[".", "property"]}
+		    ,"pml"                           : "comment | number | string | keyword | operator | (('}' | ')' | identifier | dot_property) dot_property*)"
+
+		},
+
+		// what to parse and in what order
+		"Parser"                            : [ ["pml"] ]
+
+	};
+
+	// 2. parse the grammar into an ACE syntax-highlight mode
+	var xml_mode = AceGrammar.getMode( xml_grammar );
+
+	// enable user-defined code folding in the specification (new feature)
+	xml_mode.supportCodeFolding = true;
+
+	// enable syntax lint-like validation in the grammar
+	xml_mode.supportGrammarAnnotations = true;
+
+	// enable user-defined autocompletion (if defined)
+	xml_mode.supportAutoCompletion = true;
+	xml_mode.autocompleter.options = {prefixMatch:true, caseInsensitiveMatch:false};
+	
+	var editor = ace.edit("editor");
+
+	// dark theme
+	editor.setTheme("ace/theme/monokai");
+	//editor.getSession().setMode("ace/mode/javascript");
+	editor.getSession().setMode( xml_mode );
+	// keybindings for search and replace (win == linux)
+	editor.commands.addCommand({
+		name: 'replace',
+		bindKey: {win: 'Ctrl-R', mac: 'Command-alt-F'},
+		exec: function(editor) {
+			ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+		},
+		readOnly: true
+	});
 </script>
 </body>
 </html>

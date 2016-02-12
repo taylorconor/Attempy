@@ -4,3 +4,6 @@
 [submodule "app/static/ace"]
 	path = app/static/ace
 	url = https://github.com/taylorconor/ace.git
+[submodule "app/static/ace-grammar"]
+	path = app/static/ace-grammar
+	url = https://github.com/foo123/ace-grammar.git
