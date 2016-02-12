@@ -124,6 +124,19 @@
 		},
 		readOnly: true
 	});
+	
+	prev = "";
+	editor.getSession().on('change', function(data) {
+		if (data.lines[0] == "" && data.lines[1] == "" && prev == "{") {
+			var session = editor.session;
+			session.insert({
+				row: data.end.row,
+				column: data.end.column
+			}, "\n}");
+		} else {
+			prev = data.lines[0];
+		}
+	});
 </script>
 </body>
 </html>
