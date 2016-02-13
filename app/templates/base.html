@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
             <link rel="stylesheet" href="{{ url_for('static', filename='css/base_style.css') }}">
-            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-cyborg.min.css') }}">
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-social.css') }}">
             <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
             
@@ -30,6 +30,6 @@
           <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
         {% endif %}
         <div id="content">{% block content %}{% endblock %}</div>
-        }
+        
     </body>
 </html>

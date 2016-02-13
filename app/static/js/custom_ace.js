@@ -104,7 +104,7 @@ editor.commands.addCommand({
 	readOnly: true
 });
 
-prev = "";
+var prev = "";
 editor.getSession().on('change', function(data) {
 	if (data.lines[0] == "" && data.lines[1] == "" && prev == "{") {
 		var session = editor.session;
@@ -131,3 +131,5 @@ langTools.addCompleter(
 		}
 	)
 );
+
+$('#editor').data('editor', editor);

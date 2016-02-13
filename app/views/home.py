@@ -25,11 +25,5 @@ def pml_source_submit():
     except OSError as e:
         return render_template("home/pml_res_fatal_error.html", error = e)
 
-    prog_out, err = p.communicate()
-    if p.returncode > 0:
-        return jsonify(output = err)
-        # return render_template("home/index.html", error = err)
-        # return render_template("home/pml_res_error.html", error = err)
-    return jsonify(output = prog_out)
-    # return render_template("home/index.html", output = prog_out)
-    # return render_template("home/pml_res.html", output = prog_out)
+    prog_out, error = p.communicate()
+    return jsonify( {"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
