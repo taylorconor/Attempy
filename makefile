@@ -10,11 +10,17 @@ build:
 	pip install -r requirements
 
 	@echo "building ace"
-	cd app/static/ace && npm install && node ./Makefile.dryice.js
+	cd app/static/ace && npm install && node ./Makefile.dryice.js 
+	cd ../../..
+
+	npm install qunit
 
 test:
 	@echo "Running Python unit tests"
 	python ./app/tests.py
+
+	@echo "Running Javascript unit tests"
+	./node_modules/.bin/qunit -c app/static/js/tests/tests.js -t app/static/js/tests/tests.js
 
 install:
 
