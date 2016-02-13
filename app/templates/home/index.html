@@ -64,10 +64,11 @@ Editor
     });
 </script>
 
-<script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"
-        type="text/javascript" charset="utf-8"></script>
-<script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"
-	type="text/javascript" charset="utf-8"></script>
+
+<script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
+<script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"></script>
+<script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
+
 <script>
 	// create AceGrammar partial JSON grammar for PML
 	var xml_grammar = {
@@ -123,7 +124,7 @@ Editor
 						    "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "++", "--",
 						    ">>=", "<<="
 						    ]}
-		    ,"keyword"                      : {"autocomplete":true,"tokens":[ 
+		    ,"keyword"                      : {"autocomplete":true, "tokens":[ 
 						    "action", "agent", "branch", "executable", "iteration", "manual", "process",
 						    "provides", "requires", "script", "selection", "select", "sequence", "task", "tool"
 						    ]}
@@ -157,6 +158,17 @@ Editor
 	
 	// define the editor
 	var editor = ace.edit("editor");
+	var langTools = ace.require("ace/ext/language_tools");
+
+    // keybindings for search and replace (win == linux)
+    editor.commands.addCommand({
+        name: 'replace',
+        bindKey: {win: 'Ctrl-R', mac: 'Command-alt-F'},
+        exec: function(editor) {
+            ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+        },
+        readOnly: true
+    });
 
 	// dark theme
 	editor.setTheme("ace/theme/monokai");
@@ -184,5 +196,23 @@ Editor
 			prev = data.lines[0];
 		}
 	});
-</script>
-{% endblock %}
+
+	 editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: true
+    });
+
+    
+    langTools.addCompleter(
+    	xml_grammar.Lex.keyword.tokens.map(
+			function(keyword) {
+				return {name: keyword, value: keyword, score: 1, meta: "keyword"};
+			}
+		)
+	);
+
+	</script>
+	 {% endblock %}
+
+
