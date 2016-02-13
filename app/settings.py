@@ -3,8 +3,8 @@ SECRET_KEY='I_AM_A_V3RY_S3CRET_KEY'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 OAUTH_CREDENTIALS = {
 	'facebook': {
-		'id': '201581150196693',
-		'secret': '91750e2a0d97f178c3cce7faa7e8e40e'
+		'id': '201578426863632',
+		'secret': '8f84150c4a72127916e8232cee292572'
 	},
 	'github': {
 		'id': '9884f7cd2c66429de2d7',
