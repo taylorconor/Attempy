@@ -1,20 +1,29 @@
 import unittest
-from flask import Flask
+from flask import Flask, g
+from flask.ext import login
+from flask.ext.sqlalchemy import SQLAlchemy
 
-app = Flask(__name__, static_folder='static')
-app.config['SECRET_KEY'] = 'I_AM_A_V3RY_S3CRET_KEY'
+app = Flask(__name__, static_url_path='/static')
+app.config.from_object('app.settings')
 
-app.config.update(
-    DEBUG=True
-    #put any additional config settings in here, or else make a config file
-)
+
+login_manager = login.LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+
+db = SQLAlchemy(app)
 
 #import views to register blueprints
-from views.home import home
+from .views.home import home
+from .views.auth import auth
+from app.models import User
+from app.database import db_session
+from app.database import init_db
 
-#register blueprints
+init_db()
+
 app.register_blueprint(home)
-
+app.register_blueprint(auth)
 
 class SimplepagesTestCase(unittest.TestCase):
     def setUp(self):
