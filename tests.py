@@ -2,8 +2,8 @@ import unittest
 from flask import Flask, g
 from flask.ext import login
 from flask.ext.sqlalchemy import SQLAlchemy
+from app import app
 
-app = Flask(__name__, static_url_path='/static')
 app.config.from_object('app.settings')
 
 
@@ -14,8 +14,8 @@ login_manager.login_view = 'auth.login'
 db = SQLAlchemy(app)
 
 #import views to register blueprints
-from .views.home import home
-from .views.auth import auth
+from app.views.home import home
+from app.views.auth import auth
 from app.models import User
 from app.database import db_session
 from app.database import init_db
