@@ -4,10 +4,10 @@ build:
 	git submodule update
 
 	@echo "Compiling pmlcheck"
-	cd peos && make && sudo make install
+	cd peos && make
 	
 	@echo "installing additional python requirements"
-	pip install -r requirements
+	sudo pip install -r requirements
 
 	@echo "building ace"
 	cd app/static/ace && npm install && node ./Makefile.dryice.js
