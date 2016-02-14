@@ -25,12 +25,12 @@ def login():
     user = User.query.filter_by(email=email).first()
     print user
     if not user or user.password_hash == None: #user doesn't exist
-        flash("No user with that email or user uses third party login")
+        flash("No user with that email or user uses third party login", "danger")
         return redirect(url_for("auth.login"))
 
     if user.check_password(password) == True: #password correct
         login_user(user, remember=remember)
-        flash("Logged in")
+        flash("Logged in", "success")
         return redirect(request.args.get('next') or url_for('home.index'))
 
 
@@ -45,13 +45,13 @@ def register():
     #Perform other validation
     user = User.query.filter_by(email=request.form["email"]).first()
     if user:
-        flash("User already registered with that email")
+        flash("User already registered with that email", "warning")
         return redirect(url_for('auth.register'))
 
     user = User(email=request.form['email'], password=request.form["password"], name=request.form["name"])
     db_session.add(user)
     db_session.commit()
-    flash('User successfully registered')
+    flash('User successfully registered', "success")
     return redirect(url_for('auth.login'))
     
 
@@ -76,7 +76,7 @@ def oauth_callback(provider):
     oauth = OAuthSignIn.get_provider(provider)
     res = oauth.callback()
     if res["social_id"] is None:
-        flash("Auth failed")
+        flash("Auth failed", "danger")
         return redirect(url_for('home.index'))
     user = User.query.filter_by(social_id=res["social_id"]).first()
 
@@ -85,7 +85,7 @@ def oauth_callback(provider):
         #ie check if the user registered using another account
         exists = User.query.filter_by(email=res["email"]).first()
         if exists:
-            flash("User already exists with that email, please login using the account you registered it with")
+            flash("User already exists with that email, please login using the account you registered it with", "info")
             return redirect(url_for('auth.login'))
         #user does not exist, proceed to create an account
         user = User(social_id=res["social_id"], name=res["name"], email=res["email"])
