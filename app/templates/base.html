@@ -6,6 +6,7 @@
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-social.css') }}">
             <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
             <script src="{{ url_for('static', filename='js/libraries/jquery-2.2.0.min.js') }}"></script>
+
             <title>{% block title %}Title{% endblock %}</title>
         {% block head %}
     
@@ -22,12 +23,6 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
-        {% if current_user.is_authenticated %}
-          <p> Hi {{ current_user.name }} </p>
-          <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
-        {% else %}
-          <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
-        {% endif %}
         <div id="content">{% block content %}{% endblock %}</div>
         <script src="{{ url_for('static', filename='js/libraries/bootstrap.min.js') }}"></script>
     </body>
