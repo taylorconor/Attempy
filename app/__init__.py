@@ -1,7 +1,7 @@
 from flask import Flask, g
 from flask.ext import login
 from flask.ext.sqlalchemy import SQLAlchemy
-
+import os
 app = Flask(__name__, static_url_path='/static')
 app.config.from_object('app.settings')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 #max file uploads size of 16mb

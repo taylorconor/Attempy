@@ -41,6 +41,7 @@ def pml_source_submit():
 @login_required
 def pml_save_file():
     file_name = request.form["data"]
+    print('Data: ' + file_name, file=sys.stderr)
     tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
     if (not os.path.exists('.' + FILE_LOCATIONS)):
         os.mkdir('.' + FILE_LOCATIONS)
@@ -52,10 +53,36 @@ def pml_save_file():
     f.close()
     return jsonify(output = 'Success')
 
-@home.route(FILE_LOCATIONS + '<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
+@home.route('/pml_load_file', methods=['POST'])
+@login_required
+def pml_load_file():
+    file_name = request.form["data"]
+    print('Data: ' + file_name, file=sys.stderr)
+    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+    if (not os.path.exists('.' + FILE_LOCATIONS)):
+        os.mkdir('.' + FILE_LOCATIONS)
+    if (not os.path.exists('.' + FILE_LOCATIONS + '/' + current_user.get_id())):
+        os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id())
+    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    f = open(tmp_filename, "r")
+    contents = f.read()
+    f.close()
+    return jsonify(output = contents)
+
+@home.route('/createFile', methods=['POST'])
+@login_required
+def createFile():
+    file_name = request.form["data"]
+    print('Data: ' + file_name, file=sys.stderr)
+    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+    if (not os.path.exists('.' + FILE_LOCATIONS)):
+        os.mkdir('.' + FILE_LOCATIONS)
+    if (not os.path.exists('.' + FILE_LOCATIONS + '/' + current_user.get_id())):
+        os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id())
+    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    f = open(tmp_filename, "w")
+    f.close()
+    return jsonify(output = 'Success')
 
 @home.route('/pml_load_file_sidebar', methods=['GET'])
 @login_required
@@ -68,7 +95,7 @@ def pml_load_file_sidebar():
     path = '.' + FILE_LOCATIONS + '/' + current_user.get_id()
     html = ''
     html += '<ul class="nav nav-list">'
-    html += '<li><label class="tree-toggle nav-header">Your Files</label>'
+    html += '<li><label class="tree-toggle nav-header" style="display: inline-block">Your Files</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#getNewFileName" style="display: inline-block; margin-left: 5px"></i>'
     html += '<ul class="nav nav-list tree">'
     html += make_tree(path)
     html += '</ul>'
@@ -76,6 +103,8 @@ def pml_load_file_sidebar():
     html += '</ul>'
     print('Tree: ' + str(html), file=sys.stderr)
     return jsonify(output = html)
+
+
 
 def make_tree(path):
     html = ''
@@ -85,21 +114,16 @@ def make_tree(path):
         pass #ignore errors
     else:
         if len(lst) == 0:
-            print('--------------- Empty Directory --------------', file=sys.stderr)
             return ''
         for name in lst:
             fn = os.path.join(path, name)
+            html += '<li>'
             if os.path.isdir(fn):
-                html += '<li>'
-                html += '<label class="tree-toggle nav-header">'+str(name)+'</label>'
+                html += '<label class="tree-toggle nav-header" style="display: inline-block">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#getNewFileName" style="display: inline-block; margin-left: 5px"></i>'
                 html += '<ul class="nav nav-list tree">'
                 html += make_tree(fn)
                 html += '</ul>'
-                html += '</li>'
-            else:
-                if(name is not None):
-                    html += '<li>'
-                    html += '<a href="#">' + str(name) + '</a>'
-                    html += '</li>'
-    # print('Tree: ' + str(html), file=sys.stderr)
+            else:    
+                html += '<a href="#">' + str(name) + '</a>'
+            html += '</li>'
     return html
