@@ -36,16 +36,14 @@ Editor
                         <label for="file"> File upload </label>
                         <input style="display:none" type="file" name="file" id="file" /><br/>
                         </form>
-                        <script type="text/javascript">
+                        <script>
                             window.onload = function(){
-                                console.log("Working..");
                                 $('#file').change(function(){
                                     $('#upload').submit();
                                 });
                                 {% if source is not none %}
                                 var editor = ace.edit("editor");
                                 editor.setValue("{{source}}");
-                                console.log("{{source}}");
                                 {% endif %}
                             }
                         </script>
