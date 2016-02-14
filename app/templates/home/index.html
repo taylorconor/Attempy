@@ -21,6 +21,54 @@ Editor
 {% endblock %}
 
 {% block content %}
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav1">
+          <ul class="nav navbar-nav">
+            <li><a href="{{url_for('home.index')}}">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                    <a href="#">
+                        <form id="upload" action="" method="post" enctype="multipart/form-data">
+                        <label for="file"> File upload </label>
+                        <input style="display:none" type="file" name="file" id="file" /><br/>
+                        </form>
+                        <script type="text/javascript">
+                            window.onload = function(){
+                                console.log("Working..");
+                                $('#file').change(function(){
+                                    $('#upload').submit();
+                                });
+                                {% if source is not none %}
+                                var editor = ace.edit("editor");
+                                editor.setValue("{{source}}");
+                                console.log("{{source}}");
+                                {% endif %}
+                            }
+                        </script>
+
+                    </a>
+                </li>
+
+
+              </ul>
+            </li>
+          </ul>
+ 
+          <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+            {% else %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+            {% endif %}
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
     <div class="container-fluid">
         <div class="jumbotron">
             <div id="editor"></div>
@@ -41,7 +89,8 @@ Editor
 <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
 <script src="{{ url_for('static', filename='js/submit_pml.js') }}"></script>
-		
+
+
 {% endblock %}
 
 

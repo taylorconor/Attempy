@@ -7,6 +7,8 @@
             <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
             
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+            <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+
 
             <title>{% block title %}Title{% endblock %}</title>
         {% block head %}
@@ -23,12 +25,6 @@
             </ul>
           {% endif %}
         {% endwith %}
-        {% if current_user.is_authenticated %}
-          <p> Hi {{ current_user.name }} </p>
-          <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
-        {% else %}
-          <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
-        {% endif %}
         <div id="content">{% block content %}{% endblock %}</div>
         
     </body>
