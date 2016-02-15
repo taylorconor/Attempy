@@ -19,13 +19,12 @@ def index():
             file_path = os.path.join(app.config['UPLOAD_DIR'], filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
-            with io.open(file_path, 'r', encoding='utf-8') as f:
+            with io.open(file_path, 'r', encoding='utf8') as f:
                 source = f.read()
                 #escape things so that special characters aren't escaped, but quotes are
                 source = source.replace("\n","\\n")
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
-                print source
                 return render_template("home/index.html", source=source)
 
     return render_template("home/index.html")
@@ -37,9 +36,8 @@ def pml_source_submit():
     #TODO: make this temp file user-unique, so users don't overwrite each others tmp files
     tmp_filename = "/tmp/pmlcheck_output"
     source = request.form["data"]
-    f = open(tmp_filename, "w")
-    f.write(source)
-    f.close()
+    with io.open(tmp_filename,'w',encoding='utf8') as f:
+        f.write(source)
     try:
             p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
