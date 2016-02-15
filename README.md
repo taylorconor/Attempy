@@ -13,7 +13,7 @@ sudo apt-get install build-essential git tcl-dev flex bison byacc check expect n
 </pre>
 
 ##Installation instructions
-1. Execute the makefile by running `sudo make` in the project's root directory.
+1. Execute the makefile by running `make` in the project's root directory.
 2. Start Attempy by running: `python runserver.py`.
 3. The web application can then be accessed at `lvh.me:5000`.
 
