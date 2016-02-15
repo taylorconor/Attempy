@@ -19,9 +19,10 @@ Editor
         border-radius: 0px !important;
     }
 
-    #folder-sidebar .nav-header{
+    #folder-sidebar i{
         cursor: pointer;
     }
+
 </style>
 {% endblock %}
 
@@ -49,7 +50,8 @@ Editor
         <input type="text" class="form-control" id="newFileName" >
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" id="createNewFile" class="btn btn-default" data-dismiss="modal">Submit</button>
         </div>
       </div>
     </div>
@@ -83,9 +85,11 @@ function loadSideBar(){
             $('.tree-toggle').click(function () {
                 $(this).parent().children('ul.tree').toggle(200);
             });
+
             var fileName = $('#current_file_name').val();
             var currentFile = $("#folder-sidebar a:contains('"+ fileName +"')");
             currentFile.css( "color", "black" );
+
             $('#folder-sidebar a').click(function () {
                 var filename = $(this).text();
                 $.ajax({
@@ -101,7 +105,41 @@ function loadSideBar(){
                     }
                 });
             });
-            
+
+            $('#folder-sidebar .fa-plus-circle').click(function () {
+                var path = '';
+                var current_folder = $(this).prev();
+                var parents = current_folder.parents('#folder-sidebar ul');
+                parents.splice(-1,1);
+                if(parents.length > 0){
+                    parents.splice(-1,1);
+                    path += current_folder.text();
+                    parents.each(function() {
+                        path = $(this).prev().prev().text() + '/' + path;
+                    });
+                }
+                $('#createNewFile').attr( 'folderPath', path );
+            });
+
+            $('#createNewFile').click(function () {
+                path = $(this).attr('folderPath');
+                if (typeof path === typeof undefined || path === false) {
+                    path = '';
+                }
+                path += '/' + $('#newFileName').val();
+                $.ajax({
+                    url: "{{ url_for('home.createFile') }}",
+                    method: "POST",
+                    data: {
+                        data: path
+                    },
+                    success: function(data) {
+                        $('#newFileName').val('');
+                        editor.setValue('');
+                        loadSideBar();
+                    }
+                });
+            });
         }
     });
 }
