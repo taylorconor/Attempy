@@ -33,7 +33,7 @@ clean:
 	@echo "Cleaning"
 	find . -name "*.pyc" -type f -delete
 	@echo "Finished cleaning"
-	pip uninstall -y -r requirements 
+	sudo pip uninstall -y -r requirements 
 	cd peos && make clean && cd ..
 
 distclean:

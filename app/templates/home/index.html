@@ -43,7 +43,7 @@ Editor
                                 });
                                 {% if source is not none %}
                                 var editor = ace.edit("editor");
-                                editor.setValue("{{source}}");
+                                editor.setValue("{{source|safe}}");
                                 {% endif %}
                             }
                         </script>

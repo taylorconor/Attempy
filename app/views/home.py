@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
 from app import app
 from werkzeug import secure_filename
-import os
+import os, io
 
 home = Blueprint('home', __name__)
 
@@ -19,9 +19,12 @@ def index():
             file_path = os.path.join(app.config['UPLOAD_DIR'], filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
-            with open(file_path, 'r') as f:
+            with io.open(file_path, 'r', encoding='utf-8') as f:
                 source = f.read()
+                #escape things so that special characters aren't escaped, but quotes are
                 source = source.replace("\n","\\n")
+                source = source.replace("\"","\\\"")
+                source = source.replace("\'","\\\'")
                 print source
                 return render_template("home/index.html", source=source)
 
