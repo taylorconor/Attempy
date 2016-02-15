@@ -12,7 +12,7 @@ build:
 	@echo "building ace"
 	cd app/static/ace && npm install && node ./Makefile.dryice.js
 
-	mkdir uploads
+	# mkdir uploads
 test:
 	@echo "Running Python unit tests"
 	python ./tests.py
