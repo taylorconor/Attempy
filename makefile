@@ -15,7 +15,7 @@ build:
 	mkdir uploads
 test:
 	@echo "Running Python unit tests"
-	python ./tests.py
+	python ./tests/tests.py
 
 install:
 
