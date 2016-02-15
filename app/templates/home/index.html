@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}
-Editor
-{% endblock %}
+
+{% block title %}Editor{% endblock %}
 
 {% block head %}
 <style type="text/css" media="screen">
@@ -27,13 +26,70 @@ Editor
 {% endblock %}
 
 {% block content %}
+
+<nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav1">
+          <ul class="nav navbar-nav">
+            <li><a href="{{url_for('home.index')}}">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                    <a href="#">
+                        <form id="upload" action="" method="post" enctype="multipart/form-data">
+                        <label for="file"> File upload </label>
+                        <input style="display:none" type="file" name="file" id="file" /><br/>
+                        </form>
+                        <script>
+                            window.onload = function(){
+                                $('#file').change(function(){
+                                    $('#upload').submit();
+                                });
+                                {% if source is not none %}
+                                var editor = ace.edit("editor");
+                                editor.setValue("{{source}}");
+                                {% endif %}
+                            }
+                        </script>
+
+                    </a>
+                </li>
+
+
+              </ul>
+            </li>
+          </ul>
+ 
+          <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+            {% else %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+            {% endif %}
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
 <div class="row">
   <div id="folder-sidebar" class="well col-xs-1.5 pull-left"></div>
     <div id="editor" class="col-xs-10 pull-left"></div>
 </div>
 
-<textarea id="current_file_name" style="display:none;">TEMPORARY_FILE_NAME.pml</textarea>
+<textarea id="current_file_name" style="display:none;"></textarea>
 <button type="submit" id="submit_save" class="btn btn-default">Save</button>
+
+<div class="form-group">
+    <button type="submit" id="check_syn" class="btn btn-default" form="pml_source_form">Check Syntax</button>
+
+    <div id="pml-output" role="alert" style="display: none; float: left;">
+      	<span id="pml-output-glyph" aria-hidden="true"></span>
+      	<samp id="pml-output-text"> </samp>
+    </div>
+</div>
+
 
 <!-- Modal -->
 <div class="modal fade" id="getNewFileName" role="dialog">
@@ -43,7 +99,7 @@ Editor
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Modal Header</h4>
+          <h4 class="modal-title">Create New File/Directory</h4>
         </div>
         <div class="modal-body">
           <label for="newFileName">Name:</label>
@@ -57,107 +113,14 @@ Editor
     </div>
   </div>
 
-
+<!--TODO-->
+<script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
+<script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"></script>
+<script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
+<script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/submit_pml.js') }}"></script>
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"
         type="text/javascript" charset="utf-8"></script>
-<script>
-    var editor = ace.edit("editor");
-    // dark theme
-    editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/javascript");
-    // keybindings for search and replace (win == linux)
-    editor.commands.addCommand({
-        name: 'replace',
-        bindKey: {win: 'Ctrl-R', mac: 'Command-alt-F'},
-        exec: function(editor) {
-            ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
-        },
-        readOnly: true
-    });
-</script>
-<script>
-function loadSideBar(){
-    $.ajax({
-        url: "{{ url_for('home.pml_load_file_sidebar') }}",
-        method: "GET",
-        success: function(data) {
-            $('#folder-sidebar').html(data.output);
-            $('.tree-toggle').click(function () {
-                $(this).parent().children('ul.tree').toggle(200);
-            });
+<script src="{{ url_for('static', filename='js/file_management.js') }}"></script>
 
-            var fileName = $('#current_file_name').val();
-            var currentFile = $("#folder-sidebar a:contains('"+ fileName +"')");
-            currentFile.css( "color", "black" );
-
-            $('#folder-sidebar a').click(function () {
-                var filename = $(this).text();
-                $.ajax({
-                    url: "{{ url_for('home.pml_load_file') }}",
-                    method: "POST",
-                    data: {
-                        data: filename
-                    },
-                    success: function(data) {
-                        editor.setValue(data.output);
-                        $('#current_file_name').val(filename);
-                        loadSideBar();
-                    }
-                });
-            });
-
-            $('#folder-sidebar .fa-plus-circle').click(function () {
-                var path = '';
-                var current_folder = $(this).prev();
-                var parents = current_folder.parents('#folder-sidebar ul');
-                parents.splice(-1,1);
-                if(parents.length > 0){
-                    parents.splice(-1,1);
-                    path += current_folder.text();
-                    parents.each(function() {
-                        path = $(this).prev().prev().text() + '/' + path;
-                    });
-                }
-                $('#createNewFile').attr( 'folderPath', path );
-            });
-
-            $('#createNewFile').click(function () {
-                path = $(this).attr('folderPath');
-                if (typeof path === typeof undefined || path === false) {
-                    path = '';
-                }
-                path += '/' + $('#newFileName').val();
-                $.ajax({
-                    url: "{{ url_for('home.createFile') }}",
-                    method: "POST",
-                    data: {
-                        data: path
-                    },
-                    success: function(data) {
-                        $('#newFileName').val('');
-                        editor.setValue('');
-                        loadSideBar();
-                    }
-                });
-            });
-        }
-    });
-}
-$(document).ready(function() {
-    loadSideBar();
-    $('#submit_save').on('click', function() {
-        $.ajax({
-            url: "{{ url_for('home.pml_save_file') }}",
-            method: "POST",
-            data: {
-                data: $('#current_file_name').val()
-            },
-            success: function(data) {
-                
-            }
-        });
-    });
-});
-
-</script>
 {% endblock %}

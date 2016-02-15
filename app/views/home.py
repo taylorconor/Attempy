@@ -3,6 +3,7 @@ import sys
 from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify
 from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
+from app import app
 from werkzeug import secure_filename
 import os
 
@@ -12,9 +13,23 @@ FILE_LOCATIONS = '/uploads'
 
 
 #routes for home
-@home.route('/')
+@home.route('/', methods=["GET", "POST"])
 @login_required
 def index():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            #forbid path traversal attack
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_DIR'], filename)
+            file.save(file_path)
+            #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
+            with open(file_path, 'r') as f:
+                source = f.read()
+                source = source.replace("\n","\\n")
+                # print source
+                return render_template("home/index.html", source=source)
+
     return render_template("home/index.html")
 
 
@@ -22,34 +37,38 @@ def index():
 @login_required
 def pml_source_submit():
     #TODO: make this temp file user-unique, so users don't overwrite each others tmp files
-    tmp_filename = "/tmp/"+  current_user.get_id() + "/pmlcheck_output"
-    source = request.form["ace_text-input"]
-    f = open(tmp_filename, "w")
-    f.write(source)
-    f.close()
-    try:
-            p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    except OSError as e:
-        return render_template("home/pml_res_fatal_error.html", error = e)
-
-    prog_out, err = p.communicate()
-    if p.returncode > 0:
-        return render_template("home/pml_res_error.html", error = err)
-    return render_template("home/pml_res.html", output = prog_out)
-
-@home.route('/pml_save_file', methods=['POST'])
-@login_required
-def pml_save_file():
-    file_name = request.form["data"]
-    print('Data: ' + file_name, file=sys.stderr)
-    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/pmlcheck_output"
     if (not os.path.exists('.' + FILE_LOCATIONS)):
         os.mkdir('.' + FILE_LOCATIONS)
     if (not os.path.exists('.' + FILE_LOCATIONS + '/' + current_user.get_id())):
         os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id())
+    source = request.form["data"]
+    f = open(tmp_filename, "w")
+    f.write(source)
+    f.close()
+    try: 
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    except OSError as e:
+        return render_template("home/pml_res_fatal_error.html", error = e)
+
+    prog_out, error = p.communicate()
+    return jsonify( {"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1] in app.config["ALLOWED_EXTENSIONS"]
+
+
+
+@home.route('/pml_save_file', methods=['POST'])
+@login_required
+def pml_save_file():
+    file_name = request.json["path"]
+    print('Data: ' + file_name, file=sys.stderr)
+    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+    
     print('FilePath: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
-    f.write('hello')
+    f.write(request.json["text"])
     f.close()
     return jsonify(output = 'Success')
 
@@ -73,15 +92,19 @@ def pml_load_file():
 @login_required
 def createFile():
     file_name = request.form["data"]
-    print('Data: ' + file_name, file=sys.stderr)
-    tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+    pieces = file_name.split("/");
     if (not os.path.exists('.' + FILE_LOCATIONS)):
         os.mkdir('.' + FILE_LOCATIONS)
     if (not os.path.exists('.' + FILE_LOCATIONS + '/' + current_user.get_id())):
         os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id())
-    print('FilePath: ' + tmp_filename, file=sys.stderr)
-    f = open(tmp_filename, "w")
-    f.close()
+    if("." not in pieces[len(pieces) - 1]):
+        os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name);
+    else:
+        tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+
+        print('FilePath: ' + tmp_filename, file=sys.stderr)
+        f = open(tmp_filename, "w")
+        f.close()
     return jsonify(output = 'Success')
 
 @home.route('/pml_load_file_sidebar', methods=['GET'])
@@ -92,6 +115,8 @@ def pml_load_file_sidebar():
     if (not os.path.exists('.' + FILE_LOCATIONS + '/' + current_user.get_id())):
         os.mkdir('.' + FILE_LOCATIONS + '/' + current_user.get_id())
         return 'No Files'
+    print('Hello?', file=sys.stderr)
+
     path = '.' + FILE_LOCATIONS + '/' + current_user.get_id()
     html = ''
     html += '<ul class="nav nav-list">'
