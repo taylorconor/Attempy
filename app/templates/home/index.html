@@ -17,6 +17,7 @@ Editor
     #pml_source{
         display: none;
     }
+
 </style>
 {% endblock %}
 
@@ -78,9 +79,12 @@ Editor
 	              	<span id="pml-output-glyph" aria-hidden="true"></span>
 	              	<samp id="pml-output-text"> </samp>
 	            </div>
+
+                <div style="display: none; left: 314px; top: 74px;" class="ace_tooltip">test</div>
             </div>
         </div>
     </div>
+
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
 <script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"></script>
