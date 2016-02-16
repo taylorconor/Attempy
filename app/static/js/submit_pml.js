@@ -56,7 +56,7 @@ $('#check_syn').on('click', function() {
 
                 var start_index = error_line.indexOf(word);
 
-                if (start_index > 0) {
+                if (start_index >= 0) {
                     var end_index = start_index + word.length;
                     erroneousLine = editor.session.addMarker(new Range(line_number, start_index, line_number, end_index), "error_highlight", "text");
                 }
