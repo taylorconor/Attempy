@@ -17,7 +17,6 @@ Editor
     #pml_source{
         display: none;
     }
-
 </style>
 {% endblock %}
 
@@ -29,12 +28,12 @@ Editor
           <ul class="nav navbar-nav">
             <li><a href="{{url_for('home.index')}}">Home</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">File<span class="caret"></span></a>
               <ul class="dropdown-menu">
                 <li>
                     <a href="#">
                         <form id="upload" action="" method="post" enctype="multipart/form-data">
-                        <label for="file"> File upload </label>
+                        <label for="file"> Upload </label>
                         <input style="display:none" type="file" name="file" id="file" /><br/>
                         </form>
                         <script>
@@ -44,17 +43,25 @@ Editor
                                 });
                                 {% if source is not none %}
                                 var editor = ace.edit("editor");
-                                editor.setValue("{{source|safe}}");
+                                editor.setValue("{{source}}");
                                 {% endif %}
                             }
                         </script>
 
                     </a>
-                </li>
-
-
+                </li>	
               </ul>
             </li>
+	    <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+               <ul class="dropdown-menu">
+		<li>
+                    <a href="#" onclick="editor.execCommand('showSettingsMenu')">
+                        <label> Editor Preferences </label>
+                    </a>
+		</li>
+		</ul>
+	    </li>
           </ul>
  
           <ul class="nav navbar-nav navbar-right">
@@ -79,12 +86,9 @@ Editor
 	              	<span id="pml-output-glyph" aria-hidden="true"></span>
 	              	<samp id="pml-output-text"> </samp>
 	            </div>
-
-                <div style="display: none; left: 314px; top: 74px;" class="ace_tooltip">test</div>
             </div>
         </div>
     </div>
-
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
 <script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"></script>
