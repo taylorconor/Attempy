@@ -12,11 +12,27 @@ Editor
         right: 0;
         bottom: 0;
         left: 0;*/
-        height: 500px;
+        display: inline;
+        height: 725px;
     }
     #pml_source{
         display: none;
     }
+    #folder-sidebar{
+        top: 0;
+        left: 0;
+        display: inline;
+        height: 725px;
+        border-radius: 0px !important;
+    }
+
+    #folder-sidebar i{
+        cursor: pointer;
+    }
+
+    #folder-sidebar .nav li+.nav-header{margin-top:9px;}
+    #folder-sidebar .nav-list{padding-left:15px;padding-right:15px;margin-bottom:0;}
+    #folder-sidebar .nav-list a{padding-left:0px;padding-right:0px;margin-bottom:0;}
 
 </style>
 {% endblock %}
@@ -67,30 +83,81 @@ Editor
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
-
     <div class="container-fluid">
-        <div class="jumbotron">
-            <div id="editor"></div>
-            <br>
-            <div class="form-group">
-                <button type="submit" id="check_syn" class="btn btn-default" form="pml_source_form">Check Syntax</button>
-    
-	            <div id="pml-output" role="alert" style="display: none; float: left;">
-	              	<span id="pml-output-glyph" aria-hidden="true"></span>
-	              	<samp id="pml-output-text"> </samp>
-	            </div>
-
-                <div style="display: none; left: 314px; top: 74px;" class="ace_tooltip">test</div>
+    <div class="jumbotron">
+  <div class="row">
+        <div id="folder-sidebar" class="well col-xs-1.5 pull-left"></div>
+        <div id="editor" class="col-xs-10 pull-left"></div>
+    </div>
+    <div class="row">
+        <div class="form-group">
+            <button type="submit" id="submit_save" class="btn btn-default">Save</button>
+            <button type="submit" id="check_syn" class="btn btn-default" form="pml_source_form">Check Syntax</button>
+            <div id="pml-output" role="alert" style="display: none; float: left;">
+                <span id="pml-output-glyph" aria-hidden="true"></span>
+                <samp id="pml-output-text"> </samp>
             </div>
+
+            <div style="display: none; left: 314px; top: 74px;" class="ace_tooltip">test</div>
         </div>
     </div>
+    </div>
+    </div>
+    
+    
+<textarea id="current_file_name" style="display:none;"></textarea>
 
+<!-- New File Or Directory Modal -->
+<div class="modal fade" id="newFileOrDirectory" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Create New File/Directory</h4>
+        </div>
+        <div class="modal-body">
+          <label for="newFileDirectoryName">Name:</label>
+        <input type="text" class="form-control" id="newFileDirectoryName" >
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" id="createNewFile" class="btn btn-default">File</button>
+          <button type="button" id="createNewFolder" class="btn btn-default">Folder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Name Modal -->
+<div class="modal fade" id="getNewFileName" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">File Name</h4>
+        </div>
+        <div class="modal-body">
+          <label for="newFileName">Name:</label>
+        <input type="text" class="form-control" id="newFileName" >
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" id="createNewName" class="btn btn-default">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
 <script src="{{ url_for('static', filename='ace-grammar/build/ace_grammar.min.js') }}"></script>
 <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
 <script src="{{ url_for('static', filename='js/submit_pml.js') }}"></script>
+<script src="{{ url_for('static', filename='js/file_management.js') }}"></script>
 
 
 {% endblock %}
