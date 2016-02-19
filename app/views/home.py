@@ -27,7 +27,7 @@ def index():
                 source = source.replace("\'","\\\'")
                 return render_template("home/index.html", source=source)
 
-    return render_template("home/index.html")
+    return render_template("home/index.html", name = current_user.name)
 
 
 @home.route('/pml_source_submit', methods=['POST'])

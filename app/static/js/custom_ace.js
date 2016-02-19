@@ -117,6 +117,11 @@ editor.getSession().on('change', function(data) {
 	}
 });
 
+editor.getSession().on('keyboardHandlerChanged', function(data) {
+	var newKeyboardHandler = editor.getKeyboardHandler();
+	console.log("newKeyboardHander = "+newKeyboardHandler);
+});
+
 // Enable Options
 editor.setOptions({
     enableBasicAutocompletion: true,
