@@ -15,6 +15,7 @@ db = SQLAlchemy(app)
 #import views to register blueprints
 from .views.home import home
 from .views.auth import auth
+from .views.diagram import diagram
 from app.models import User
 from app.database import db_session
 from app.database import init_db
@@ -23,6 +24,7 @@ init_db()
 
 app.register_blueprint(home)
 app.register_blueprint(auth)
+app.register_blueprint(diagram)
 
 @app.before_request
 def global_user():

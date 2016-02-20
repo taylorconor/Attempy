@@ -55,20 +55,20 @@ def pml_source_submit():
 def pml_save_file():
     path = request.json["path"]
     tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + path
-    print('Save Path: ' + tmp_filename, file=sys.stderr)
+    # print('Save Path: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
     f.write(request.json["text"])
     f.close()
     return jsonify(output = 'Success')
 
-@home.route('/pml_load_file', methods=['POST']) #
+@home.route('/pml_load_file', methods=['POST']) 
 @login_required
 def pml_load_file():
     file_name = request.form["data"]
-    print('Data: ' + file_name, file=sys.stderr)
+    # print('Data: ' + file_name, file=sys.stderr)
     checkIfUserDirectoryExists()
     tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
-    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    # print('FilePath: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "r")
     contents = f.read()
     f.close()
@@ -80,7 +80,7 @@ def createFile():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
     tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
-    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    # print('FilePath: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
     f.close()
     return jsonify(output = 'Success')
@@ -106,7 +106,7 @@ def pml_load_file_sidebar():
     html += '</ul>'
     html += '</li>'
     html += '</ul>'
-    print('Tree: ' + str(html), file=sys.stderr)
+    # print('Tree: ' + str(html), file=sys.stderr)
     return jsonify(output = html)
 
 
@@ -134,7 +134,7 @@ def make_tree(path):
                 html += '</ul>'
             else:    
                 html += '<a href="#" relative=' + os.path.join(relativePath, name) + '>' + str(name) + '</a>'
-                print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
+                # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'
     return html
 
