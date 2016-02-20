@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}
+Diagram
+{% endblock %}
+
+{% block head %}
+<style type="text/css" media="screen">
+
+  .link {
+      fill: white;
+      stroke: #fff;
+      stroke-width: 3px;
+      opacity: 0.7;
+      
+  }
+
+  .label {
+
+      fill: black;
+      font-family: Verdana;
+      font-size: 25px;
+      text-anchor: middle;
+      cursor: move;
+  }
+  #diagram{
+    min-height: 768px;
+  }
+  #controls{
+    background-color: #272822;
+    min-height: 768px;
+  }
+
+  #diagram text{
+    pointer-events: none
+  }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+   <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav1">
+          <ul class="nav navbar-nav">
+            <li><a href="{{url_for('home.index')}}">Home</a></li>
+            <li><a href="{{url_for('diagram.ui')}}">Diagram</a></li>
+          </ul>
+ 
+          <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+    <li><a>{{name}}</a></li>
+                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+            {% else %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+            {% endif %}
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+  <div class="row">
+    <div id="diagram" class="col-xs-10 pull-left"></div>
+    <div id="controls" class="col-xs-2 pull-left well">
+        <div id="selected" style="display:none">-1</div>
+        <button type="submit" id="add_button" class="btn btn-default btn-block">Add</button>
+        <button type="submit" id="remove_button" class="btn btn-default btn-block">Remove</button>
+    </div>
+
+  </div>
+
+
+
+
+
+
+<jsonurl src="{{ url_for('static', filename='fivenodesdisconnected.json') }}"></jsonurl>
+<script src="{{ url_for('static', filename='js/libraries/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libraries/cola.js') }}"></script>
+<script src="{{ url_for('static', filename='js/diagramMenu.js') }}"></script>
+<script src="{{ url_for('static', filename='js/custom_d3.js') }}"></script>
+<script>
+  d3.json("{{ url_for('static', filename='fivenodesdisconnected.json') }}", init);
+</script>
+
+
+{% endblock %}
+
+

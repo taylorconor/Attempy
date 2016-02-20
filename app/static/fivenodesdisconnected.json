@@ -1,0 +1,17 @@
+﻿{
+    "nodes":[
+      {"name":"a","type":"rect","width":60,"height":40,"rotate":0,"color":"lightblue"},
+      {"name":"b","type":"rect","width":60,"height":40,"rotate":0,"color":"lightblue"},
+      {"name":"c","type":"rect","width":60,"height":40,"rotate":0,"color":"lightblue"},
+      {"name":"d","type":"rect","width":60,"height":40,"rotate":0,"color":"lightblue"},
+      {"name":"e","type":"rect","width":60,"height":60,"rotate":45,"color":"lightblue"}
+    ],
+    "links":[
+      {"source":0,"target":1,"linkNum":0,"dotted":false},
+      {"source":1,"target":2,"linkNum":0,"dotted":false},
+      {"source":2,"target":0,"linkNum":0,"dotted":false},
+      {"source":2,"target":3,"linkNum":0,"dotted":false},
+      {"source":4,"target":3,"linkNum":0,"dotted":false},
+      {"source":4,"target":0,"linkNum":1,"dotted":false}
+    ]
+}
