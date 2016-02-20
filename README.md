@@ -10,6 +10,7 @@ A number of supporting packages are required before installation. These can be i
 <pre>
 sudo apt-get update
 sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs npm nodejs-legacy
+sudo pip install virtualenv
 </pre>
 
 ##Installation instructions
