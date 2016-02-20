@@ -29,9 +29,13 @@ editor.setOptions({
     enableSnippets: true
 });
 
+// define keywords
+var pml_keywords = ["action", "agent", "branch", "executable", "iteration", "manual", "process",
+	"provides", "requires", "script", "selection", "select", "sequence", "task", "tool"];
+
 // Add keywords to autocomplete
 langTools.addCompleter(
-	xml_grammar.Lex.keyword.tokens.map(
+	pml_keywords.map(
 		function(keyword) {
 			return { name: keyword, value: keyword, score: 1, meta: "keyword" };
 		}
