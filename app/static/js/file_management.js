@@ -25,7 +25,7 @@ function loadSideBar(){
         url: "/pml_load_file_sidebar",
         method: "GET",
         success: function(data) {
-            $('#folder-sidebar').html(data.output);
+            $('#folder-sidebar').html("<br>"+data.output);
             sortSideBar();
             $('.tree-toggle').click(function () {
                 $(this).parent().children('ul.tree').toggle(200);

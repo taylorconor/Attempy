@@ -7,24 +7,21 @@ Editor
 {% block head %}
 <style type="text/css" media="screen">
     #editor {
-/*        position: absolute;
-        top: 0;
-        right: 0;
+        position: absolute;
         bottom: 0;
-        left: 0;*/
-        display: inline;
-        height: 725px;
+	right: 0;
+	top: 50px;
     }
     #pml_source{
         display: none;
     }
 
     #folder-sidebar{
-        top: 0;
+	position: absolute;
+        top: 50px;
         left: 0;
-        display: inline;
-        height: 725px;
-        border-radius: 0px !important;
+	bottom: 0;
+	background: #111111;
     }
 
     #folder-sidebar i{
@@ -39,7 +36,7 @@ Editor
 {% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar-default" style="margin-bottom:0px;border:0px">
       <div class="container-fluid">
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="nav1">
@@ -99,11 +96,10 @@ Editor
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
-    <div class="container-fluid">
-    <div class="jumbotron">
+<div class="container-fluid">
   <div class="row">
-        <div id="folder-sidebar" class="well col-xs-1.5 pull-left"></div>
-        <div id="editor" class="col-xs-10 pull-left"></div>
+        <div id="folder-sidebar" class="col-md-2 col-sm-3 col-xs-4 pull-left"></div>
+        <div id="editor" class="col-md-10 col-sm-9 col-xs-8 pull-left"></div>
     </div>
     <div class="row">
         <div class="form-group">
@@ -116,9 +112,6 @@ Editor
         </div>
     </div>
     </div>
-    </div>
-    
-    
 <textarea id="current_file_name" style="display:none;"></textarea>
 
 <!-- New File Or Directory Modal -->
