@@ -61,7 +61,7 @@ def pml_save_file():
     f.close()
     return jsonify(output = 'Success')
 
-@home.route('/pml_load_file', methods=['POST'])
+@home.route('/pml_load_file', methods=['POST']) #
 @login_required
 def pml_load_file():
     file_name = request.form["data"]
