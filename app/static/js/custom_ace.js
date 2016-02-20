@@ -20,7 +20,13 @@ editor.commands.addCommand({
 
 editor.getSession().on('keyboardHandlerChanged', function(data) {
 	var newKeyboardHandler = editor.getKeyboardHandler();
-	console.log("newKeyboardHander = "+newKeyboardHandler);
+	$.ajax({
+		type: 'POST',
+		url: 'handler_changed',
+		data: {'handler': newKeyboardHandler},
+		dataType: 'text',
+		crossDomain: 'true'
+	});
 });
 
 // Enable Options

@@ -164,7 +164,13 @@ Editor
 <script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
 <script src="{{ url_for('static', filename='js/submit_pml.js') }}"></script>
 <script src="{{ url_for('static', filename='js/file_management.js') }}"></script>
-
+{% if keyboard_handler is not none and keyboard_handler != "" %}
+<script>
+	var editor = ace.edit("editor");
+	editor.setKeyboardHandler("{{keyboard_handler}}");
+</script>
+{% endif %}
+         
 
 {% endblock %}
 

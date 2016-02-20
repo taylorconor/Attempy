@@ -3,6 +3,8 @@ import sys
 from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify
 from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
+from app.models import User
+from app.database import db_session
 from app import app
 from werkzeug import secure_filename
 import os, io
@@ -30,8 +32,15 @@ def index():
                 source = source.replace("\'","\\\'")
                 return render_template("home/index.html", source=source)
 
-    return render_template("home/index.html", name = current_user.name)
+    return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
+@home.route('/handler_changed', methods=['POST'])
+@login_required
+def handler_changed():
+    new_handler = request.form["handler"]
+    current_user.set_keyboard_handler(new_handler)
+    db_session.commit()
+    return jsonify(output = 'Success')
 
 @home.route('/pml_source_submit', methods=['POST'])
 @login_required
