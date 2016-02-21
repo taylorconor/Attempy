@@ -25,9 +25,40 @@ svg.append("defs").append("marker")
     .append("path")
         .attr("d", "M 0,0 V 4 L12,12 Z"); //this is actual shape for arrowhead
 
+//
+function isEqualGraphs(gr1, gr2){
+    if(!gr1.nodes ||
+        !gr1.links ||
+        !gr2.nodes ||
+        !gr2.links) return false;
+    if(gr1.nodes.length !== gr2.nodes.length) return false;
+    if(gr1.links.length !== gr2.links.length) return false;
 
+    for (var i = gr1.nodes.length - 1; i >= 0; i--) {
+        if ((gr1.nodes[i].name !== gr2.nodes[i].name) ||
+             (gr1.nodes[i].type !== gr2.nodes[i].type) ||
+             (gr1.nodes[i].width !== gr2.nodes[i].width) ||
+             (gr1.nodes[i].height !== gr2.nodes[i].height) ||
+             (gr1.nodes[i].rotate !== gr2.nodes[i].rotate) ||
+             (gr1.nodes[i].color !== gr2.nodes[i].color)) return false;
+    }
+
+    for (var i = gr1.links.length - 1; i >= 0; i--) {
+        if ((gr1.links[i].source.index !== gr2.links[i].source) ||
+             (gr1.links[i].target.index !== gr2.links[i].target) ||
+             (gr1.links[i].linkNum !== gr2.links[i].linkNum) ||
+             (gr1.links[i].dotted !== gr2.links[i].dotted)) return false;
+    }
+    
+    return true;
+}
+
+var oldGraph = [];
 function init(error, graph) {
-
+    if(isEqualGraphs(oldGraph, graph)){
+        return;
+    }
+    oldGraph = graph;
 
     cola
         .nodes(graph.nodes)
@@ -122,3 +153,7 @@ function init(error, graph) {
 
     initMenu();
 }
+
+setInterval(function() {
+        getData();
+    }, 1000);

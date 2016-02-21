@@ -75,13 +75,14 @@ Diagram
 
 
 
-<jsonurl src="{{ url_for('static', filename='fivenodesdisconnected.json') }}"></jsonurl>
 <script src="{{ url_for('static', filename='js/libraries/d3.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/libraries/cola.js') }}"></script>
 <script src="{{ url_for('static', filename='js/diagramMenu.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom_d3.js') }}"></script>
 <script>
-  d3.json("{{ url_for('static', filename='fivenodesdisconnected.json') }}", init);
+  function getData(){
+    d3.json("{{ url_for('static', filename='fivenodesdisconnected.json') }}", init);
+  }
 </script>
 
 
