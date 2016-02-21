@@ -25,9 +25,7 @@ $('#check_syn').on('click', function() {
             editor.session.clearAnnotations();
 
             if (data.return_code > 0) {
-                $("#pml-output").attr("class", "alert alert-danger").attr("style","display: inline;");
-                $("#pml-output-glyph").attr("class", "glyphicon glyphicon-exclamation-sign");
-
+                $('#syn_out_bell').css("color", "red");
                 
                 var err = data.output;
                 //error of the form: tmp/pmlcheck_output:1: syntax error at dsaff 
@@ -62,10 +60,14 @@ $('#check_syn').on('click', function() {
                 }
 
             } else {
-                $("#pml-output").attr("class", "alert alert-success").attr("style","display: inline;");
-                $("#pml-output-glyph").attr("class", "glyphicon glyphicon-exclamation-ok");
+                $('#syn_out_bell').css("color", "green");
             }
-            $("#pml-output-text").html(data.output);
+            var lines = data.output.split("\n");
+            $("#syn_out_text").empty();
+            for (var i = 0; i < lines.length; i++) {
+                $("#syn_out_text").append("<li>" + lines[i] + "</li>");
+            }
+            // $("#syn_out_text").html(data.output);
 
         }
     });
