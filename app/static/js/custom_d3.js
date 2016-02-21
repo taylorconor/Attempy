@@ -23,7 +23,7 @@ svg.append("defs").append("marker")
     .attr("orient", "auto")
     .style("fill", "white")
     .append("path")
-        .attr("d", "M 0,0 V 4 L12,12 Z"); //this is actual shape for arrowhead
+        .attr("d", "M 0,0 V 4 L2,2 Z"); //this is actual shape for arrowhead
 
 //
 function isEqualGraphs(gr1, gr2){
@@ -54,45 +54,65 @@ function isEqualGraphs(gr1, gr2){
 }
 
 var oldGraph = [];
+var link;
+var node;
+var label;
+function updateData(error, graph){
+    if(isEqualGraphs(oldGraph, graph)){
+        return;
+    }
+    oldGraph = graph;
+    cola.stop();
+    init(error, graph);
+
+
+}
 function init(error, graph) {
     if(isEqualGraphs(oldGraph, graph)){
         return;
     }
     oldGraph = graph;
 
-    cola
-        .nodes(graph.nodes)
-        .links(graph.links)
-        .start();
 
-    var link = svg.selectAll(".link")
-        .data(graph.links)
-      .enter().append("line")
+    svg.selectAll("line").remove();
+    svg.selectAll("rect").remove();
+    svg.selectAll("text").remove();
+    link = svg.selectAll(".link")
+        .data(graph.links); 
+
+    link.enter().append("line")
         .attr("class", "link")
         .style("stroke-dasharray", function(d) {
             return d.dotted ? ("3,3"):("0,0");
         })
         .attr("marker-end", "url(#arrowhead)");
+    link.exit().remove();
 
-    var node = svg.selectAll(".node")
-        .data(graph.nodes)
-      .enter().append("rect")
+    node = svg.selectAll(".node")
+        .data(graph.nodes);
+      
+
+    node.enter().append("rect")
         .attr("class", function(d) {return d.type; })
         .attr("width", function (d) { return d.width; })
         .attr("height", function (d) { return d.height; })
         .attr("rx", 5).attr("ry", 5)
         .style("fill", function (d) { return d.color; })
         .call(cola.drag);
+    label = svg.selectAll(".label")
+        .data(graph.nodes);
 
-    var label = svg.selectAll(".label")
-        .data(graph.nodes)
-       .enter().append("text")
+   label.enter().append("text")
         .attr("class", "label")
         .text(function (d) { return d.name; })
         .call(cola.drag);
 
+    label.exit().remove();
+
     node.append("title")
         .text(function (d) { return d.name; });
+
+    node.exit().remove();
 
     cola.on("tick", function () {
         link.attr("x1", function (d) { 
@@ -151,9 +171,17 @@ function init(error, graph) {
             });
     });
 
+
+    cola
+        .linkDistance(120)
+        .avoidOverlaps(true)
+        .size([width, height])
+        .nodes(graph.nodes)
+        .links(graph.links)
+        .start();
     initMenu();
 }
 
 setInterval(function() {
-        getData();
-    }, 1000);
+        getData(false);
+    }, 2500);

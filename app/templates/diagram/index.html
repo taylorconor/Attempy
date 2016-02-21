@@ -76,12 +76,20 @@ Diagram
 
 
 <script src="{{ url_for('static', filename='js/libraries/d3.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/libraries/cola.js') }}"></script>
-<script src="{{ url_for('static', filename='js/diagramMenu.js') }}"></script>
+<script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script><script src="{{ url_for('static', filename='js/diagramMenu.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom_d3.js') }}"></script>
 <script>
-  function getData(){
-    d3.json("{{ url_for('static', filename='fivenodesdisconnected.json') }}", init);
+  function getData(first){
+    $.ajax({
+        url: "/getJSON",
+        method: "POST",
+        data: {
+            data: "fivenodesdisconnected.json"
+        },
+        success: function(data,error) {
+          init(error, data.output);
+        }
+    });
   }
 </script>
 

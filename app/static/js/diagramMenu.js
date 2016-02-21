@@ -1,3 +1,7 @@
+$(document).ready(function (){
+	getData(true);
+});
+
 function initMenu(){
 	$('#diagram rect').on('click', function() {
 		$('rect').css("fill","lightblue");

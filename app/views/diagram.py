@@ -6,12 +6,24 @@ from flask.ext.login import login_required, current_user
 from app import app
 from werkzeug import secure_filename
 import os, io
-
+import simplejson
 diagram = Blueprint('diagram', __name__)
+FILE_LOCATIONS = '/uploads'
 
 #routes for diagram
 @diagram.route('/ui', methods=["GET", "POST"])
 @login_required
 def ui():
-    print('Make Diagram', file=sys.stderr)
     return render_template("diagram/index.html", name = current_user.name)
+
+@diagram.route('/getJSON', methods=["GET", "POST"])
+@login_required
+def getJSON():
+	file_name = request.form["data"]
+	tmp_filename = '.' + FILE_LOCATIONS + '/' + current_user.get_id() + "/" + file_name
+	f = open(tmp_filename, "r")
+	contents = f.read()
+	f.close()
+	joined = "".join(contents.split())
+	# print(joined, file=sys.stderr)
+	return jsonify(output = simplejson.loads(joined))
