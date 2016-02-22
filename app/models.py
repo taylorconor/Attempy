@@ -25,7 +25,7 @@ class User(Base):
             self.set_password(password)
         else:
             password_hash = None
-	self.keyboard_handler = keyboard_handler
+        self.keyboard_handler = keyboard_handler
 
     #methods required for flask login
     def is_authenticated(self):

@@ -14,7 +14,7 @@ build:
 	venv/bin/pip install -r requirements
 
 	@echo "building ace"
-	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
+	cd app/static/ace && sudo npm install --production && node ./Makefile.dryice.js
 
 	mkdir -p uploads
 test:

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        bottom: 0;
+	right: 0;
+	top: 50px;
+    }
+    #pml_source{
+        display: none;
+    }
+
+    #folder-sidebar{
+	position: absolute;
+        top: 50px;
+        left: 0;
+	bottom: 0;
+	background: #111111;
+    }
+
+    #folder-sidebar i{
+        cursor: pointer;
+    }
+
+    #folder-sidebar .nav li+.nav-header{margin-top:9px;}
+    #folder-sidebar .nav-list{padding-left:15px;padding-right:15px;margin-bottom:0;}
+    #folder-sidebar .nav-list a{padding-left:0px;padding-right:0px;margin-bottom:0;}
+    #syn_out_text{
+      min-width: 500px
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+    <nav class="navbar navbar-default" style="margin-bottom:0px;border:0px">
+      <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav1">
+          <ul class="nav navbar-nav">
+            <li><a href="{{url_for('home.index')}}">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">File<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                    <a href="#">
+                        <form id="upload" action="" method="post" enctype="multipart/form-data">
+                        <label for="file"> Upload </label>
+                        <input style="display:none" type="file" name="file" id="file" /><br/>
+                        </form>
+                        <script>
+                            window.onload = function(){
+                                $('#file').change(function(){
+                                    $('#upload').submit();
+                                });
+                                {% if source is not none %}
+                                var editor = ace.edit("editor");
+                                editor.setValue("{{source|safe}}");
+                                {% endif %}
+                            }
+                        </script>
+
+                    </a>
+                </li>	
+          		<li>
+          			<a href="#" id="submit_save"><label>Save</label></a>
+          		</li>
+          		<li>
+          			<a href="#" id="check_syn"><label>Check Syntax</label></a>
+          		</li>
+              </ul>
+            </li>
+	          <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+    		        <li>
+                  <a href="#" onclick="editor.execCommand('showSettingsMenu')">
+                      <label> Editor Preferences </label>
+                  </a>
+    		        </li>
+		          </ul>
+	          </li>
+            
+          </ul>
+ 
+          <ul class="nav navbar-nav navbar-right">
+
+            <!-- bell icon -->
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <i class="fa fa-bell" id="syn_out_bell" ></i>
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" id = "syn_out_text">
+                  <li >
+                      Please Perform Syntax Check to View Output
+                  </li>
+                </ul>
+            </li>
+
+            {% if current_user.is_authenticated %}
+		            <li><a>{{name}}</a></li>
+                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+            {% else %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+            {% endif %}
+
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+{% endblock %}
