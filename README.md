@@ -33,3 +33,12 @@ From the editor, file upload can be accessed from the nav bar at the top, under 
 
 ###Error highlighting
 When a programs syntax is checked, the errors given from pmlcheck will be parsed, and the offending portion of the code will be highlighted
+
+###File Panel
+Allows creation and movement between files and directories.
+
+###Code Completion
+Keyword and variable name completion using "ctrl space"
+
+###Keybinding Emulation
+Accessable via settigns in navigation bar
