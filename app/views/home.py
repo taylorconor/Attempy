@@ -30,7 +30,7 @@ def index():
                 source = source.replace("\n","\\n")
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
-                return render_template("home/index.html", source=source)
+                return render_template("home/index.html", source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
