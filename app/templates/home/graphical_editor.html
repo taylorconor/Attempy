@@ -1,0 +1,92 @@
+{% extends "base_editor.html" %}
+
+{% block title %}
+Editor
+{% endblock %}
+
+{% block head %}
+{{ super() }}    
+<script src="{{ url_for('static', filename='js/go-debug.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    {{ super() }}
+    <div class="container-fluid">
+      <div class="row">
+            <div id="folder-sidebar" class="col-md-2 col-sm-3 col-xs-4 pull-left"></div>
+            <div id="editor" class="col-md-10 col-sm-9 col-xs-8 pull-left"></div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <div id="pml-output" role="alert" style="display: none; float: left;">
+                    <span id="pml-output-glyph" aria-hidden="true"></span>
+                    <samp id="pml-output-text"> </samp>
+                </div>
+
+                <div style="display: none; left: 314px; top: 74px;" class="ace_tooltip">test</div>
+            </div>
+        </div>
+        </div>
+    <textarea id="current_file_name" style="display:none;"></textarea>
+
+    <!-- New File Or Directory Modal -->
+    <div class="modal fade" id="newFileOrDirectory" role="dialog">
+        <div class="modal-dialog">
+        
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Create New File/Directory</h4>
+            </div>
+            <div class="modal-body">
+              <label for="newFileDirectoryName">Name:</label>
+            <input type="text" class="form-control" id="newFileDirectoryName" >
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+              <button type="button" id="createNewFile" class="btn btn-default">File</button>
+              <button type="button" id="createNewFolder" class="btn btn-default">Folder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Name Modal -->
+    <div class="modal fade" id="getNewFileName" role="dialog">
+        <div class="modal-dialog">
+        
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">File Name</h4>
+            </div>
+            <div class="modal-body">
+              <label for="newFileName">Name:</label>
+            <input type="text" class="form-control" id="newFileName" >
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+              <button type="button" id="createNewName" class="btn btn-default">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
+    <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/submit_pml.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/file_management.js') }}"></script>
+    {% if keyboard_handler is not none and keyboard_handler != "" %}
+    <script>
+    	var editor = ace.edit("editor");
+    	editor.setKeyboardHandler("{{keyboard_handler}}");
+    </script>
+    {% endif %}
+           
+
+{% endblock %}
+
+

@@ -34,6 +34,11 @@ def index():
 
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
+@home.route('/graphical_editor')
+@login_required
+def graphical_editor():
+    return render_template("home/graphical_editor.html")
+
 @home.route('/handler_changed', methods=['POST'])
 @login_required
 def handler_changed():
