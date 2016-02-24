@@ -67,6 +67,9 @@ $('#check_syn').on('click', function() {
             for (var i = 0; i < lines.length; i++) {
                 $("#syn_out_text").append("<li>" + lines[i] + "</li>");
             }
+            if(lines.length == 1 && lines[0] ==""){
+                $("#syn_out_text").append("<li> Nothing to say here! </li>");
+            }
             // $("#syn_out_text").html(data.output);
 
         }
