@@ -53,6 +53,23 @@ function loadSideBar(){
                     success: function(data) {
                         ace.edit("editor").setValue(data.output);
                         $('#current_file_name').val(path);
+                        //clear syntax check 
+                        var editor = ace.edit("editor");
+                        var markers = editor.session.$backMarkers;
+                        for(var key in markers){
+                            if (markers.hasOwnProperty(key)) {
+                                if (markers[key].clazz == "error_highlight"){
+                                    editor.session.removeMarker(markers[key].id);
+                                }
+                            }
+                        }
+                        $('#syn_out_bell').css("color", "gray");
+                        $("#syn_out_text").html("<li> Run syntax check to see output! </li>");
+                        var rows = editor.session.getLength();
+                        for (var i = 0; i < rows; i++){
+                            editor.session.removeGutterDecoration(i, 'ace_error');
+                        }
+                        ace.edit("editor").session.clearAnnotations();
                         loadSideBar();
                     }
                 });
