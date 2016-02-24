@@ -37,7 +37,7 @@ def index():
 @home.route('/graphical_editor')
 @login_required
 def graphical_editor():
-    return render_template("home/graphical_editor.html")
+    return render_template("home/graphical_editor.html", name=current_user.name)
 
 @home.route('/handler_changed', methods=['POST'])
 @login_required
