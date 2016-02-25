@@ -1,11 +1,17 @@
 //Submit the pml and display the results
 
 $('#check_syn').on('click', function() {
+    var fileName = $('#current_file_name').val();
+    if(!fileName){
+        $('#getNewFileName').modal('show');
+        return;
+    }
+
     $.ajax({
         url: "/pml_source_submit",
         method: "POST",
         data: {
-            data: ace.edit("editor").getSession().getValue()
+            data: fileName
         },
         success: function(data) {
             var editor = ace.edit("editor");
@@ -67,6 +73,12 @@ $('#check_syn').on('click', function() {
             for (var i = 0; i < lines.length; i++) {
                 $("#syn_out_text").append("<li>" + lines[i] + "</li>");
             }
+            $('#syn_out_text li').click(function() {
+                $(this).css("")
+                var text = $(this).text();
+                var line_number = text.match(":(.*):")[1];
+                editor.gotoLine(line_number, 0, true);
+            });
             // $("#syn_out_text").html(data.output);
 
         }

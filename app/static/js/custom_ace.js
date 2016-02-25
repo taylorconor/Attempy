@@ -49,3 +49,7 @@ langTools.addCompleter(
 );
 
 $('#editor').data('editor', editor);
+
+$(window).load(function(){
+    ace.edit("editor").setValue("");
+});

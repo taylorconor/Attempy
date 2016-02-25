@@ -143,12 +143,10 @@ $('#createNewName').on('click', function() {
     if(!checkIfInputFilled($(this))){
         return;
     }
-    var path = $('#current_file_name').attr('folderPath');
-    if (typeof path === typeof undefined) {
-        path = '';
-    }
+
     var name = $('#newFileName').val();
-    save_file(path + '/' + name);
+    $('#current_file_name').val(name);
+    save_file('/' + name);
 });
 
 
@@ -177,7 +175,10 @@ function save_file(path){
         data: JSON.stringify(info, null, '\t'),
         contentType: 'application/json;charset=UTF-8',
         success: function(data) {
+            var paths = path.split("/");
+            window.location.hash = "#" + path[paths.length - 1];
             loadSideBar();
         }
     });
 }
+
