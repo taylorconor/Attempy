@@ -4,7 +4,6 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__, static_url_path='/static')
 app.config.from_object('app.settings')
-app.debug = True
 
 
 login_manager = login.LoginManager()
