@@ -215,6 +215,7 @@ function new_file(){
 
 window.addEventListener("beforeunload", function (e) {
     if(uploading){
+        uploading = false;
         return;
     }
     if(!file_saved){

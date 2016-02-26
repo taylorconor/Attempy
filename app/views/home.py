@@ -20,6 +20,7 @@ def index():
         if file and allowed_file(file.filename):
             #forbid path traversal attack
             filename = secure_filename(file.filename)
+            print("Caught Insecure Filename", file=sys.stderr )
             file_path = os.path.join('.' + app.config['UPLOAD_DIR'], filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
@@ -45,6 +46,7 @@ def handler_changed():
 @login_required
 def pml_source_submit():
     file_name = request.form["data"]
+    file_name = secure_filename(file_name)
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
     tmp_filename = os.path.join(tmp_filename, file_name)
     checkIfUserDirectoryExists()
@@ -60,8 +62,9 @@ def pml_source_submit():
 @login_required
 def pml_save_file():
     path = request.json["path"]
-    tmp_filename = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id() + path
-    print('Save Path: ' + tmp_filename, file=sys.stderr)
+    path = secure_filename(path)
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
+    print('Saved: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
     f.write(request.json["text"])
     f.close()
@@ -71,10 +74,12 @@ def pml_save_file():
 @login_required
 def pml_load_file():
     file_name = request.form["data"]
-    print('Data: ' + file_name, file=sys.stderr)
+    file_name = secure_filename(file_name)
+    # print('Data: ' + file_name, file=sys.stderr)
     checkIfUserDirectoryExists()
-    tmp_filename = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id() + "/" + file_name
-    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    # print('FilePath: ' + tmp_filename, file=sys.stderr)
+
     f = open(tmp_filename, "r")
     contents = f.read()
     f.close()
@@ -85,8 +90,11 @@ def pml_load_file():
 def createFile():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
-    tmp_filename = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id() + "/" + file_name
-    print('FilePath: ' + tmp_filename, file=sys.stderr)
+    file_name = secure_filename(file_name)
+    # if file_name[0] is "/"
+    #     file_name[1:]
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    # print('FilePath: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
     f.close()
     return jsonify(output = 'Success')
@@ -96,7 +104,10 @@ def createFile():
 def createFolder():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
-    os.mkdir('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id() + file_name);
+    file_name = secure_filename(file_name)
+
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    os.mkdir(tmp_filename);
     return jsonify(output = 'Success')
 
 @home.route('/pml_load_file_sidebar', methods=['GET'])
