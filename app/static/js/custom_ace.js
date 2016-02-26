@@ -76,6 +76,10 @@ langTools.addCompleter(
 	)
 );
 
+editor.on("input", function() {
+    file_saved = false;
+});
+
 $('#editor').data('editor', editor);
 
 $(window).load(function(){

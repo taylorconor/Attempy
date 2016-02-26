@@ -150,6 +150,7 @@ function checkIfInputFilled(but){
     }
     return false;
 }
+var file_saved = true;
 function save_file(path){
     var info = {'path': path, 'text': ace.edit("editor").getSession().getValue()};
     $.ajax({
@@ -158,13 +159,13 @@ function save_file(path){
         data: JSON.stringify(info, null, '\t'),
         contentType: 'application/json;charset=UTF-8',
         success: function(data) {
+            file_saved = true;
             var paths = path.split("/");
             window.location.hash = "#" + paths[paths.length - 1];
             loadSideBar();
         }
     });
 }
-
 function load_file(path){
     $.ajax({
         url: "/pml_load_file",
@@ -193,3 +194,14 @@ function new_file(){
     $('#createNewFile').attr( 'folderPath', "" );
     $('#newFileOrDirectory').modal('show');
 }
+
+window.addEventListener("beforeunload", function (e) {
+    if(!file_saved){
+        var confirmationMessage = 'It looks like you have been editing something. '
+                            + 'If you leave before saving, your changes will be lost.';
+
+        (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+    }
+    
+});
