@@ -91,8 +91,8 @@ def createFile():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
     file_name = secure_filename(file_name)
-    # if file_name[0] is "/"
-    #     file_name[1:]
+    if file_name[0] is "/":
+        file_name[1:]
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
     # print('FilePath: ' + tmp_filename, file=sys.stderr)
     f = open(tmp_filename, "w")
