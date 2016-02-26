@@ -35,7 +35,7 @@ function loadSideBar(){
             if(typeof fileName !== 'undefined'){
                 if(fileName.length > 0){
                     $("#folder-sidebar a[relative='"+ fileName +"']").each( function () {
-                        $(this).css( "color", "blue" );
+                        $(this).css( "color", "#F92672" );
                     });
                 }
             }
