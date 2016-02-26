@@ -36,11 +36,14 @@ Editor
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h4 class="modal-title">Create New File/Directory</h4>
+              <h4 class="modal-title">Create New File</h4>
             </div>
             <div class="modal-body">
               <label for="newFileDirectoryName">Name:</label>
-            <input type="text" class="form-control" id="newFileDirectoryName" >
+              <div class="inner-addon right-addon">
+                <p>.pml</p>
+                <input type="text" class="form-control" id="newFileDirectoryName"/>
+            </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -62,8 +65,11 @@ Editor
               <h4 class="modal-title">File Name</h4>
             </div>
             <div class="modal-body">
-              <label for="newFileName">Name:</label>
-            <input type="text" class="form-control" id="newFileName" >
+            <label for="newFileName">Name:</label>
+            <div class="inner-addon right-addon">
+                <p>.pml</p>
+                <input type="text" class="form-control" id="newFileName"/>
+            </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

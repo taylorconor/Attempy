@@ -42,22 +42,10 @@ function loadSideBar(){
 
 
             $('#folder-sidebar a').click(function () {
-                var filename = $(this).text();
                 var path = $(this).attr('relative');
-                $.ajax({
-                    url: "/pml_load_file",
-                    method: "POST",
-                    data: {
-                        data: $(this).attr('relative')
-                    },
-                    success: function(data) {
-                        ace.edit("editor").setValue(data.output);
-                        $('#current_file_name').val(path);
-                        loadSideBar();
-                    }
-                });
+                load_file(path);
             });
-
+            
             $('#folder-sidebar .fa-plus-circle').click(function () {
                 var path = '';
                 var current_folder = $(this).prev();
@@ -83,25 +71,22 @@ function loadSideBar(){
                 }
                 var name = $('#newFileDirectoryName').val();
 
-                if(name.match(/\.pml$/)){
-                    path += '/' + name;
-                    $.ajax({
-                        url: "/createFile",
-                        method: "POST",
-                        data: {
-                            data: path
-                        },
-                        success: function(data) {
-                            $('#newFileDirectoryName').val('');
-                            editor.setValue('');
-                            loadSideBar();
-                        }
-                    });
+                if(!name.match(/\.pml$/)){
+                    name += ".pml";
                 }
-                else{
-                    //TODO Invalid File Name/Format Notification
-                }
-                
+                path += '/' + name;
+                $.ajax({
+                    url: "/createFile",
+                    method: "POST",
+                    data: {
+                        data: path
+                    },
+                    success: function(data) {
+                        $('#newFileDirectoryName').val('');
+                        editor.setValue('');
+                        loadSideBar();
+                    }
+                });                
             });
             $('#createNewFolder').click(function () {
                 if(!checkIfInputFilled($(this))){
@@ -131,12 +116,7 @@ function loadSideBar(){
 
 loadSideBar();
 $('#submit_save').on('click', function() {
-    var path = '/' + $('#current_file_name').val();
-    if(path === '/'){
-        $('#getNewFileName').modal('show');
-        return;
-    }
-    save_file(path);
+    get_path_save_file();
 });
 
 $('#createNewName').on('click', function() {
@@ -145,6 +125,9 @@ $('#createNewName').on('click', function() {
     }
 
     var name = $('#newFileName').val();
+    if(!name.match(/\.pml$/)){
+        name += ".pml";
+    }
     $('#current_file_name').val(name);
     save_file('/' + name);
 });
@@ -176,9 +159,37 @@ function save_file(path){
         contentType: 'application/json;charset=UTF-8',
         success: function(data) {
             var paths = path.split("/");
-            window.location.hash = "#" + path[paths.length - 1];
+            window.location.hash = "#" + paths[paths.length - 1];
             loadSideBar();
         }
     });
 }
 
+function load_file(path){
+    $.ajax({
+        url: "/pml_load_file",
+        method: "POST",
+        data: {
+            data: path
+        },
+        success: function(data) {
+            ace.edit("editor").setValue(data.output);
+            $('#current_file_name').val(path);
+            loadSideBar();
+        }
+    });
+}
+
+function get_path_save_file(){
+    var path = '/' + $('#current_file_name').val();
+    if(path === '/'){
+        $('#getNewFileName').modal('show');
+        return;
+    }
+    save_file(path);
+}
+
+function new_file(){
+    $('#createNewFile').attr( 'folderPath', "" );
+    $('#newFileOrDirectory').modal('show');
+}

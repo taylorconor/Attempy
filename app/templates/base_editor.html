@@ -35,6 +35,25 @@
       text-decoration: underline;
       cursor: pointer;
     }
+
+    .inner-addon { 
+    position: relative; 
+}
+
+/* style icon */
+.inner-addon p {
+  position: absolute;
+  padding: 10px;
+  pointer-events: none;
+}
+
+/* align icon */
+.left-addon p  { left:  0px;}
+.right-addon p { right: 0px;}
+
+/* add padding  */
+.left-addon input  { padding-left:  30px; }
+.right-addon input { padding-right: 30px; }
 </style>
 {% endblock %}
 

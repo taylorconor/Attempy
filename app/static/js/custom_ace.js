@@ -18,6 +18,34 @@ editor.commands.addCommand({
 	readOnly: true
 });
 
+editor.commands.addCommand({
+	name: 'save',
+	bindKey: { win: 'Ctrl-S', mac: 'Command-alt-S' },
+	exec: function(editor) {
+		get_path_save_file();
+	},
+	readOnly: true
+});
+
+editor.commands.addCommand({
+	name: 'syntaxcheck',
+	bindKey: { win: 'Ctrl-B', mac: 'Command-alt-B' },
+	exec: function(editor) {
+		$('#check_syn').trigger("click");
+	},
+	readOnly: true
+});
+
+editor.commands.addCommand({
+	name: 'new',
+	bindKey: { win: 'Ctrl-N', mac: 'Command-alt-N' },
+	exec: function(editor) {
+		new_file();
+	},
+	readOnly: true
+});
+
+
 editor.getSession().on('keyboardHandlerChanged', function(data) {
 	var newKeyboardHandler = editor.getKeyboardHandler();
 	$.ajax({
@@ -51,5 +79,8 @@ langTools.addCompleter(
 $('#editor').data('editor', editor);
 
 $(window).load(function(){
-    ace.edit("editor").setValue("");
+    // ace.edit("editor").setValue(""); //clears text in editor on load
+    if(window.location.hash.length > 1){
+		load_file(window.location.hash.substring(1));
+    }
 });
