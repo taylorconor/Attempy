@@ -42,6 +42,7 @@ function loadSideBar(){
 
 
             $('#folder-sidebar a').click(function () {
+                var filename = $(this).text();
                 var path = $(this).attr('relative');
                 load_file(path);
             });
@@ -175,6 +176,23 @@ function load_file(path){
         },
         success: function(data) {
             ace.edit("editor").setValue(data.output);
+			//clear syntax check 
+            var editor = ace.edit("editor");
+            var markers = editor.session.$backMarkers;
+            for(var key in markers){
+                if (markers.hasOwnProperty(key)) {
+                    if (markers[key].clazz == "error_highlight"){
+                        editor.session.removeMarker(markers[key].id);
+                    }
+                }
+            }
+            $('#syn_out_bell').css("color", "gray");
+            $("#syn_out_text").html("<li> Run syntax check to see output! </li>");
+            var rows = editor.session.getLength();
+            for (var i = 0; i < rows; i++){
+                editor.session.removeGutterDecoration(i, 'ace_error');
+            }
+            ace.edit("editor").session.clearAnnotations();
             $('#current_file_name').val(path);
             loadSideBar();
         }
@@ -196,6 +214,9 @@ function new_file(){
 }
 
 window.addEventListener("beforeunload", function (e) {
+    if(uploading){
+        return;
+    }
     if(!file_saved){
         var confirmationMessage = 'It looks like you have been editing something. '
                             + 'If you leave before saving, your changes will be lost.';

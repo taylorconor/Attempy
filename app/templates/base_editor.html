@@ -75,8 +75,10 @@
                         <input style="display:none" type="file" name="file" id="file" /><br/>
                         </form>
                         <script>
+                            var uploading;
                             window.onload = function(){
                                 $('#file').change(function(){
+                                    uploading = true;
                                     $('#upload').submit();
                                 });
                                 {% if source is not none %}
