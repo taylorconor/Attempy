@@ -141,6 +141,10 @@ function checkIfInputFilled(but){
         var text = $(this);
         if(text.val() === ''){
             text.fadeTo(1000, 0.5, function() { text.fadeTo(800, 1); });
+            text.attr("placeholder","Name must be entered");
+            mod.on('hidden.bs.modal', function () {
+                text.attr("placeholder","");
+            })
             close = false;
             return;
         }

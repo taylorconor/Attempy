@@ -1,6 +1,6 @@
 from __future__ import print_function # In python 2.7
 import sys
-from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify
+from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify, helpers
 from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
 from app.models import User
@@ -126,8 +126,6 @@ def pml_load_file_sidebar():
     # print('Tree: ' + str(html), file=sys.stderr)
     return jsonify(output = html)
 
-
-
 def make_tree(path):
     relativePaths = path.split('/')
     nth = 3
@@ -166,3 +164,4 @@ def checkIfUserDirectoryExists():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config["ALLOWED_EXTENSIONS"]
+
