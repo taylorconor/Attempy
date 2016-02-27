@@ -45,6 +45,7 @@ Editor
     "nodeDataArray": [
   {"category":"Comment", "loc":"360 -10", "text":"Kookie Brittle", "key":-13},
   {"key":-1, "category":"Start", "loc":"175 0", "text":"Start"},
+  {"key":-1, "category":"Square", "loc":"175 0", "scrpt":"Start", "rsrc":"Start", "agnt":"Start", "pred":"Start", },
   {"key":0, "loc":"0 77", "text":"Preheat oven to 375 F" },
   {"key":1, "loc":"175 100", "text":"In a bowl, blend: 1 cup margarine, 1.5 teaspoon vanilla, 1 teaspoon salt"},
   {"key":2, "loc":"175 190", "text":"Gradually beat in 1 cup sugar and 2 cups sifted flour"},
@@ -206,7 +207,7 @@ Editor
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
-              editable: true}, "Enter Agesnt", new go.Binding("text", "rsrc")),
+              editable: true}, "Enter Agent", new go.Binding("text", "agnt")),
         $(go.TextBlock, { row: 4, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
@@ -218,7 +219,7 @@ Editor
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
-              editable: true}, "Enter Predicates", new go.Binding("text", "rsrc"))
+              editable: true}, "Enter Predicates", new go.Binding("text", "pred"))
         ),
         // four named ports, one on each side:
         makePort("T", go.Spot.Top, false, true),
@@ -386,7 +387,7 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
      myDiagram.isModified = false;
   }
   function load() {
-     myDiagram.model = go.Model.fromJson(document.getElementById("mySavedModel").value);
+     // myDiagram.model = go.Model.fromJson(document.getElementById("mySavedModel").value);
   }
 
   // add an SVG rendering of the diagram at the end of this page
