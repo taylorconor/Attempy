@@ -44,7 +44,7 @@ Editor
     "linkToPortIdProperty": "toPort",
     "nodeDataArray": [
   {"category":"Comment", "loc":"360 -10", "text":"Kookie Brittle", "key":-13},
-  <!-- {"key":-1, "category":"Start", "loc":"175 0", "text":"Start"},
+  {"key":-1, "category":"Start", "loc":"175 0", "text":"Start"},
   {"key":0, "loc":"0 77", "text":"Preheat oven to 375 F" },
   {"key":1, "loc":"175 100", "text":"In a bowl, blend: 1 cup margarine, 1.5 teaspoon vanilla, 1 teaspoon salt"},
   {"key":2, "loc":"175 190", "text":"Gradually beat in 1 cup sugar and 2 cups sifted flour"},
@@ -54,10 +54,10 @@ Editor
   {"key":6, "loc":"175 440", "text":"Sprinkle nuts on top"},
   {"key":7, "loc":"175 500", "text":"Bake for 25 minutes and let cool"},
   {"key":8, "loc":"175 570", "text":"Cut into rectangular grid"},
-  {"key":-2, "category":"End", "loc":"175 640", "text":"Enjoy!"} -->
+  {"key":-2, "category":"End", "loc":"175 640", "text":"Enjoy!"}
    ],
     "linkDataArray": [
-  <!-- {"from":1, "to":2, "fromPort":"B", "toPort":"T"},
+  {"from":1, "to":2, "fromPort":"B", "toPort":"T"},
   {"from":2, "to":3, "fromPort":"B", "toPort":"T"},
   {"from":3, "to":4, "fromPort":"B", "toPort":"T"},
   {"from":4, "to":6, "fromPort":"B", "toPort":"T"},
@@ -68,7 +68,7 @@ Editor
   {"from":-1, "to":1, "fromPort":"B", "toPort":"T"},
   {"from":-1, "to":5, "fromPort":"B", "toPort":"T"},
   {"from":5, "to":4, "fromPort":"B", "toPort":"T"},
-  {"from":0, "to":4, "fromPort":"B", "toPort":"T"} -->
+  {"from":0, "to":4, "fromPort":"B", "toPort":"T"}
    ]}
     </textarea>
     <p>Click the button below to render the current GoJS Diagram into SVG at one-half scale.
@@ -160,7 +160,8 @@ Editor
 
          $(go.Shape,
         { fill: $(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" }),
-          stroke: "#00A9C9", strokeWidth: 2 }),
+          stroke: "#00A9C9", strokeWidth: 2 },
+            new go.Binding("figure", "figure")),
         $(go.Panel, "Table", 
         // { defaultAlignment: go.Spot.Left, margin: 4},
         $(go.TextBlock, { row: 0, column: 0, columnSpan: 2, font: "bold 11pt Helvetica, Arial, sans-serif",
