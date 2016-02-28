@@ -1,15 +1,15 @@
-{% extends "base.html" %}
+{% extends "base_graphical_editor.html" %}
 
 {% block title %}
 Editor
 {% endblock %}
 
 {% block head %}
-{{ super() }}    
-
+{{ super() }}
 {% endblock %}
 
 {% block content %}
+    {{ super() }}
   <div id="sample">
     <div style="width:100%; white-space:nowrap;">
       <span style="display: inline-block; vertical-align: top; padding: 5px; width:200px">
@@ -21,7 +21,7 @@ Editor
       </span>
     </div>
      <p>
-    The FlowChart sample demonstrates several key features of GoJS,
+    <!-- The FlowChart sample demonstrates several key features of GoJS,
     namely <a href="../intro/palette.html">Palette</a>s,
     <a href="../intro/links.html">Linkable nodes</a>, Drag/Drop behavior,
     <a href="../intro/textBlocks.html">Text Editing</a>, and the use of
@@ -77,8 +77,8 @@ Editor
        For more information, see the page on <a href="../intro/makingSVG.html">making SVG</a>.</p>
     <button onclick="makeSVG()">Render as SVG</button>
     <div id="SVGArea"></div>
-  </div>
-    {{ super() }}
+  </div> -->
+
     
    
     <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
@@ -87,10 +87,10 @@ Editor
 <script id="code">
   function init() {
     // if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
-    var $ = go.GraphObject.make;  // for conciseness in defining templates
+    var $$ = go.GraphObject.make;  // for conciseness in defining templates
 
     myDiagram =
-      $(go.Diagram, "myDiagram",  // must name or refer to the DIV HTML element
+      $$(go.Diagram, "myDiagram",  // must name or refer to the DIV HTML element
         {
           initialContentAlignment: go.Spot.Center,
           allowDrop: true,  // must be true to accept drops from the Palette
@@ -139,7 +139,7 @@ Editor
     // control whether the user can draw links from or to the port.
     function makePort(name, spot, output, input) {
       // the port is basically just a small circle that has a white stroke when it is made visible
-      return $(go.Shape, "Circle",
+      return $$(go.Shape, "Circle",
                {
                   fill: "transparent",
                   stroke: null,  // this is changed to "white" in the showPorts function
@@ -157,64 +157,64 @@ Editor
     var lightText = 'whitesmoke';
 
     myDiagram.nodeTemplateMap.add("Square",  // the default category
-      $(go.Node, "Auto",//"Spot", nodeStyle(),
+      $$(go.Node, "Auto",//"Spot", nodeStyle(),
 
-         $(go.Shape,
-        { fill: $(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" }),
+         $$(go.Shape,
+        { fill: $$(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" }),
           stroke: "#00A9C9", strokeWidth: 2 },
             new go.Binding("figure", "figure")),
-        $(go.Panel, "Table", 
+        $$(go.Panel, "Table", 
         // { defaultAlignment: go.Spot.Left, margin: 4},
-        $(go.TextBlock, { row: 0, column: 0, columnSpan: 2, font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 0, column: 0, columnSpan: 2, font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: true},
           new go.Binding("text", "key") ),
-        $(go.TextBlock, { row: 1, column: 0, font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 1, column: 0, font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: false }, "Script:"),
-        $(go.TextBlock, { row: 1, column: 1, font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 1, column: 1, font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: true },"Enter Script", new go.Binding("text", "scpt")),
-        $(go.TextBlock, { row: 2, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 2, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: false}, "Resources:"),
-        $(go.TextBlock, { row: 2, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 2, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: true}, "Enter Resources", new go.Binding("text", "rsrc")),
-        $(go.TextBlock, { row: 3, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 3, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: false}, "Agents:"),
-        $(go.TextBlock, { row: 3, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 3, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: true}, "Enter Agent", new go.Binding("text", "agnt")),
-        $(go.TextBlock, { row: 4, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 4, column: 0 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: false}, "Predicates:"),
-        $(go.TextBlock, { row: 4, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock, { row: 4, column: 1 , font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
               margin: 8,
               maxSize: new go.Size(160, NaN),
@@ -228,13 +228,13 @@ Editor
         makePort("B", go.Spot.Bottom, true, false)
       ));
 myDiagram.nodeTemplateMap.add("Decision",  // the default category
-      $(go.Node, "Spot", nodeStyle(),
+      $$(go.Node, "Spot", nodeStyle(),
         // the main object is a Panel that surrounds a TextBlock with a rectangular Shape
-        $(go.Panel, "Auto",
-          $(go.Shape, "Diamond",
+        $$(go.Panel, "Auto",
+          $$(go.Shape, "Diamond",
             { fill: "#00A9C9", stroke: null },
             new go.Binding("figure", "figure")),
-          $(go.TextBlock,
+          $$(go.TextBlock,
             {
               font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
@@ -253,11 +253,11 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
       ));
 
     myDiagram.nodeTemplateMap.add("Start",
-      $(go.Node, "Spot", nodeStyle(),
-        $(go.Panel, "Auto",
-          $(go.Shape, "Circle",
+      $$(go.Node, "Spot", nodeStyle(),
+        $$(go.Panel, "Auto",
+          $$(go.Shape, "Circle",
             { minSize: new go.Size(40, 40), fill: "#79C900", stroke: null }),
-          $(go.TextBlock, "Start",
+          $$(go.TextBlock, "Start",
             { font: "bold 11pt Helvetica, Arial, sans-serif", stroke: lightText },
             new go.Binding("text"))
         ),
@@ -268,11 +268,11 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
       ));
 
     myDiagram.nodeTemplateMap.add("End",
-      $(go.Node, "Spot", nodeStyle(),
-        $(go.Panel, "Auto",
-          $(go.Shape, "Circle",
+      $$(go.Node, "Spot", nodeStyle(),
+        $$(go.Panel, "Auto",
+          $$(go.Shape, "Circle",
             { minSize: new go.Size(40, 40), fill: "#DC3C00", stroke: null }),
-          $(go.TextBlock, "End",
+          $$(go.TextBlock, "End",
             { font: "bold 11pt Helvetica, Arial, sans-serif", stroke: lightText },
             new go.Binding("text"))
         ),
@@ -283,10 +283,10 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
       ));
 
     myDiagram.nodeTemplateMap.add("Comment",
-      $(go.Node, "Auto", nodeStyle(),
-        $(go.Shape, "File",
+      $$(go.Node, "Auto", nodeStyle(),
+        $$(go.Shape, "File",
           { fill: "#EFFAB4", stroke: null }),
-        $(go.TextBlock,
+        $$(go.TextBlock,
           {
             margin: 5,
             maxSize: new go.Size(200, NaN),
@@ -303,7 +303,7 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
 
     // replace the default Link template in the linkTemplateMap
     myDiagram.linkTemplate =
-      $(go.Link,  // the whole link panel
+      $$(go.Link,  // the whole link panel
         {
           routing: go.Link.AvoidsNodes,
           curve: go.Link.JumpOver,
@@ -317,18 +317,18 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
           mouseLeave: function(e, link) { link.findObject("HIGHLIGHT").stroke = "transparent"; }
         },
         new go.Binding("points").makeTwoWay(),
-        $(go.Shape,  // the highlight shape, normally transparent
+        $$(go.Shape,  // the highlight shape, normally transparent
           { isPanelMain: true, strokeWidth: 8, stroke: "transparent", name: "HIGHLIGHT" }),
-        $(go.Shape,  // the link path shape
+        $$(go.Shape,  // the link path shape
           { isPanelMain: true, stroke: "gray", strokeWidth: 2 }),
-        $(go.Shape,  // the arrowhead
+        $$(go.Shape,  // the arrowhead
           { toArrow: "standard", stroke: null, fill: "gray"}),
-        $(go.Panel, "Auto",  // the link label, normally not visible
+        $$(go.Panel, "Auto",  // the link label, normally not visible
           { visible: false, name: "LABEL", segmentIndex: 2, segmentFraction: 0.5},
           new go.Binding("visible", "visible").makeTwoWay(),
-          $(go.Shape, "RoundedRectangle",  // the label shape
+          $$(go.Shape, "RoundedRectangle",  // the label shape
             { fill: "#F8F8F8", stroke: null }),
-          $(go.TextBlock, "Yes",  // the label
+          $$(go.TextBlock, "Yes",  // the label
             {
               textAlign: "center",
               font: "10pt helvetica, arial, sans-serif",
@@ -354,7 +354,7 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
 
     // initialize the Palette that is on the left side of the page
     myPalette =
-      $(go.Palette, "myPalette",  // must name or refer to the DIV HTML element
+      $$(go.Palette, "myPalette",  // must name or refer to the DIV HTML element
         {
           "animationManager.duration": 800, // slightly longer than default (600ms) animation
           nodeTemplateMap: myDiagram.nodeTemplateMap,  // share the templates used by myDiagram
@@ -403,6 +403,12 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
     }
   }
   init();
+
+  // returns the text for a tooltip, param obj is the text itself
+  function getInfo(model, obj) {
+    return "";
+  }
+
 </script>
 {% endblock %}
 

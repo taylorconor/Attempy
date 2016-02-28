@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        bottom: 0;
+	right: 0;
+	top: 50px;
+    }
+    #pml_source{
+        display: none;
+    }
+
+    #folder-sidebar{
+	position: absolute;
+        top: 50px;
+        left: 0;
+	bottom: 0;
+	background: #111111;
+    }
+
+    #folder-sidebar i{
+        cursor: pointer;
+    }
+
+    #folder-sidebar .nav li+.nav-header{margin-top:9px;}
+    #folder-sidebar .nav-list{padding-left:15px;padding-right:15px;margin-bottom:0;}
+    #folder-sidebar .nav-list a{padding-left:0px;padding-right:0px;margin-bottom:0;}
+    #syn_out_text{
+      min-width: 500px
+    }
+
+    #syn_out_text li:hover{
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .inner-addon { 
+    position: relative; 
+}
+
+/* style icon */
+.inner-addon p {
+  position: absolute;
+  padding: 10px;
+  pointer-events: none;
+}
+
+/* align icon */
+.left-addon p  { left:  0px;}
+.right-addon p { right: 0px;}
+
+/* add padding  */
+.left-addon input  { padding-left:  30px; }
+.right-addon input { padding-right: 30px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+    <nav class="navbar navbar-default" style="margin-bottom:0px;border:0px">
+      <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="nav1">
+          <ul class="nav navbar-nav">
+            <li><a href="{{url_for('home.index')}}">Home</a></li>
+          
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">View<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a href="{{url_for('home.graphical_editor')}}">
+                      <label> Graphical Editor </label>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            
+          </ul>
+ 
+          <ul class="nav navbar-nav navbar-right">
+
+
+            {% if current_user.is_authenticated %}
+		            <li><a>{{name}}</a></li>
+                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+            {% else %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+            {% endif %}
+
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+
+
+{% endblock %}
