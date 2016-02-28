@@ -232,11 +232,19 @@ class GithubSignIn(OAuthSignIn):
 
         })
         me = oauth_session.get('/user').json()
-        print me
+        emails = oauth_session.get('/user/emails').json()
+        email = None
+        for e in emails:
+            if e["primary"] == True:
+                email = e["email"]
+        name = me.get("name")
+        if name == None:
+            name = me.get("login")
+
         return {
             "social_id": 'github$' + str(me['id']),
-            "email": me.get('email'),
-            "name": me.get('name')
+            "email": email,
+            "name": name
         }
 
 # class GoogleSignIn(OAuthSignIn):
