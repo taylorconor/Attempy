@@ -86,7 +86,7 @@ Editor
     <script src="{{ url_for('static', filename='js/go-debug.js') }}"></script>
 <script id="code">
   function init() {
-    // if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
+    //if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
     var $$ = go.GraphObject.make;  // for conciseness in defining templates
 
     myDiagram =
@@ -142,8 +142,8 @@ Editor
       return $$(go.Shape, "Circle",
                {
                   fill: "transparent",
-                  stroke: null,  // this is changed to "white" in the showPorts function
-                  desiredSize: new go.Size(8, 8),
+                  stroke: "green",  // this is changed to "white" in the showPorts function
+                  desiredSize: new go.Size(4, 4),
                   alignment: spot, alignmentFocus: spot,  // align the port on the main Shape
                   portId: name,  // declare this object to be a "port"
                   fromSpot: spot, toSpot: spot,  // declare where links may connect at this port
@@ -156,70 +156,47 @@ Editor
 
     var lightText = 'whitesmoke';
 
-  //   function changeCategory(e, obj) {
-  //   var node = obj.part;
-  //   if (node) {
-  //     var diagram = node.diagram;
-  //     diagram.startTransaction("changeCategory");
-  //     var cat = diagram.model.getCategoryForNodeData(node.data);
-  //     if (cat === "simple")
-  //       cat = "detailed";
-  //     else
-  //       cat = "simple";
-  //     diagram.model.setCategoryForNodeData(node.data, cat);
-  //     diagram.commitTransaction("changeCategory");
-  //   }
-  // }
+    function changeCategory(e, obj) {
+    var node = obj.part;
+    if (node) {
+      var diagram = node.diagram;
+      diagram.startTransaction("changeCategory");
+      var cat = diagram.model.getCategoryForNodeData(node.data);
+      if (cat === "simpleAction")
+        cat = "detailedAction";
+      else
+        cat = "simpleAction";
+      diagram.model.setCategoryForNodeData(node.data, cat);
+      diagram.commitTransaction("changeCategory");
+    }
+  }
 
-  // The "simple" template just shows the key string and the color in the background.
-  // There is a Button to invoke the changeCategory function.
-  // var simpletemplate =
-    myDiagram.nodeTemplateMap.add("simpletemplate",
-    $(go.Node, "Spot",
-      $(go.Panel, "Auto",
-        $(go.Shape, "Ellipse",
+   var simpletemplate =
+    $$(go.Node, "Spot",
+      $$(go.Panel, "Auto",
+        $$(go.Shape, "rectangle",
          { fill: $$(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" })}),
-        $(go.TextBlock,{font: "bold 11pt Helvetica, Arial, sans-serif",
+        $$(go.TextBlock,{font: "bold 11pt Helvetica, Arial, sans-serif",
               stroke: lightText,
-              margin: 8,
-              maxSize: new go.Size(160, NaN),
-              wrap: go.TextBlock.WrapFit,
+             margin: 8,
+             maxSize: new go.Size(160, NaN),
+             wrap: go.TextBlock.WrapFit,
               editable: true}, "Action"
       )
-        //,
-      // $("Button",
-      //   { alignment: go.Spot.TopRight },
-      //   $(go.Shape, "AsteriskLine", { width: 8, height: 8 }),
-      //   { click: changeCategory })
-    )));
+        ,
+      $$("Button",
+        { alignment: go.Spot.TopRight },
+        $$(go.Shape, "AsteriskLine", { width: 8, height: 8 }),
+        { click: changeCategory }),
+      
+        makePort("T", go.Spot.Top, false, true),
+        makePort("L", go.Spot.Left, true, true),
+        makePort("R", go.Spot.Right, true, true),
+        makePort("B", go.Spot.Bottom, true, false)
+    ));
 
-  // The "detailed" template shows all of the information in a Table Panel.
-  // There is a Button to invoke the changeCategory function.
-  // var detailtemplate =
-  //   $(go.Node, "Spot",
-  //     $(go.Panel, "Auto",
-  //       $(go.Shape, "RoundedRectangle",
-  //         new go.Binding("fill", "color")),
-  //       $(go.Panel, "Table",
-  //         { defaultAlignment: go.Spot.Left },
-  //         $(go.TextBlock, { row: 0, column: 0, columnSpan: 2, font: "bold 12pt sans-serif" },
-  //           new go.Binding("text", "key")),
-  //         $(go.TextBlock, { row: 1, column: 0 }, "Description:"),
-  //         $(go.TextBlock, { row: 1, column: 1 }, new go.Binding("text", "desc")),
-  //         $(go.TextBlock, { row: 2, column: 0 }, "Color:"),
-  //         $(go.TextBlock, { row: 2, column: 1 }, new go.Binding("text", "color"))
-  //       )
-  //     ),
-  //     $("Button",
-  //       { alignment: go.Spot.TopRight },
-  //       $(go.Shape, "AsteriskLine", { width: 8, height: 8 }),
-  //       { click: changeCategory })
-  //   );
-
-    myDiagram.nodeTemplateMap.add("detailtemplate",  // the default category
-   // var detailtemplate =
+    var detailtemplate =
       $$(go.Node, "Auto",//"Spot", nodeStyle(),
-
          $$(go.Shape,
         { fill: $$(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" })},
             new go.Binding("figure", "figure")),
@@ -305,25 +282,23 @@ Editor
               maxSize: new go.Size(160, NaN),
               wrap: go.TextBlock.WrapFit,
               editable: true}, "Enter Predicates", new go.Binding("text", "pred"))
-        ),
-        // $("Button",
-        // { alignment: go.Spot.TopRight },
-        // $(go.Shape, "AsteriskLine", { width: 8, height: 8 }),
-        // { click: changeCategory }),
+        // )
+         ),
+        $$("Button",
+        { alignment: go.Spot.TopRight },
+        $$(go.Shape, "AsteriskLine", { width: 8, height: 8 }),
+        { click: changeCategory })
+        ,
         // four named ports, one on each side:
         makePort("T", go.Spot.Top, false, true),
         makePort("L", go.Spot.Left, true, true),
         makePort("R", go.Spot.Right, true, true),
         makePort("B", go.Spot.Bottom, true, false)
-      )
-);
+  );
 
-  // var templmap = new go.Map("string", go.Node);
-  // myDiagram.nodeTemplateMap.add("simpleAction", simpletemplate);
-  // myDiagram.nodeTemplateMap.add("detailedAction", detailtemplate);
-  // diagram.nodeTemplateMap = templmap;
 
-myDiagram.nodeTemplateMap.add("Decision",  // the default category
+// myDiagram.nodeTemplateMap.add("Decision",  // the default category
+var decisionNode =
       $$(go.Node, "Spot", nodeStyle(),
         // the main object is a Panel that surrounds a TextBlock with a rectangular Shape
         $$(go.Panel, "Auto",
@@ -346,9 +321,11 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
         makePort("L", go.Spot.Left, true, true),
         makePort("R", go.Spot.Right, true, true),
         makePort("B", go.Spot.Bottom, true, false)
-      ));
+      // )
+      );
 
-    myDiagram.nodeTemplateMap.add("Start",
+    // myDiagram.nodeTemplateMap.add("Start",
+    var startNode =
       $$(go.Node, "Spot", nodeStyle(),
         $$(go.Panel, "Auto",
           $$(go.Shape, "Circle",
@@ -361,9 +338,11 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
         makePort("L", go.Spot.Left, true, false),
         makePort("R", go.Spot.Right, true, false),
         makePort("B", go.Spot.Bottom, true, false)
-      ));
+      // )
+      );
 
-    myDiagram.nodeTemplateMap.add("End",
+    // myDiagram.nodeTemplateMap.add("End",
+    var endNode =
       $$(go.Node, "Spot", nodeStyle(),
         $$(go.Panel, "Auto",
           $$(go.Shape, "Circle",
@@ -376,9 +355,11 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
         makePort("T", go.Spot.Top, false, true),
         makePort("L", go.Spot.Left, false, true),
         makePort("R", go.Spot.Right, false, true)
-      ));
+      // )
+      );
 
-    myDiagram.nodeTemplateMap.add("Comment",
+    // myDiagram.nodeTemplateMap.add("Comment",
+    var commentNode =
       $$(go.Node, "Auto", nodeStyle(),
         $$(go.Shape, "File",
           { fill: "#EFFAB4", stroke: null }),
@@ -394,7 +375,21 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
           },
           new go.Binding("text").makeTwoWay())
         // no ports, because no links are allowed to connect with a comment
-      ));
+      // )
+      );
+
+
+  var templmap = new go.Map("string", go.Node);
+  templmap.add("Comment", commentNode);
+  templmap.add("End", endNode);
+  templmap.add("Start", startNode);
+  templmap.add("Decision", decisionNode);
+  templmap.add("simpleAction", simpletemplate);
+  templmap.add("detailedAction", detailtemplate);
+  //myDiagram.nodeTemplateMap.add("simpleAction", simpletemplate);
+  // myDiagram.nodeTemplateMap.add("detailedAction", detailtemplate);
+  myDiagram.nodeTemplateMap = templmap;
+  // myDiagram.layout = $$(go.TreeLayout);
 
 
     // replace the default Link template in the linkTemplateMap
