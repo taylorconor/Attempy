@@ -97,7 +97,12 @@ Editor
           "LinkDrawn": showLinkLabel,  // this DiagramEvent listener is defined below
           "LinkRelinked": showLinkLabel,
           "animationManager.duration": 800, // slightly longer than default (600ms) animation
-          "undoManager.isEnabled": true  // enable undo & redo
+          "undoManager.isEnabled": true,  // enable undo & redo
+          mouseDrop: function(e) { finishDrop(e, null); },
+          "commandHandler.archetypeGroupData": { isGroup: true, category: "Groups" }
+           // layout:  // Diagram has simple horizontal layout
+           //   $(go.GridLayout,
+           //     { wrappingWidth: Infinity, alignment: go.GridLayout.Position, cellSize: new go.Size(1, 1) }),
         });
 
     // when the document is modified, add a "*" to the title and enable the "Save" button
@@ -156,8 +161,112 @@ Editor
 
     var lightText = 'whitesmoke';
 
+    // this function is used to highlight a Group that the selection may be dropped into
+    function highlightGroup(e, grp, show) {
+      if (!grp) return;
+      e.handled = true;
+      if (show) {
+        // cannot depend on the grp.diagram.selection in the case of external drag-and-drops;
+        // instead depend on the DraggingTool.draggedParts or .copiedParts
+        var tool = grp.diagram.toolManager.draggingTool;
+        var map = tool.draggedParts || tool.copiedParts;  // this is a Map
+        // now we can check to see if the Group will accept membership of the dragged Parts
+        if (grp.canAddMembers(map.toKeySet())) {
+          grp.isHighlighted = true;
+          return;
+        }
+      }
+      grp.isHighlighted = false;
+    }
+
+    // Make all ports on a node visible when the mouse is over the node
+    function showPorts(node, show) {
+      var diagram = node.diagram;
+      if (!diagram || diagram.isReadOnly || !diagram.allowLink) return;
+      node.ports.each(function(port) {
+          port.stroke = (show ? "white" : null);
+        });
+    }
+
+    // Upon a drop onto a Group, we try to add the selection as members of the Group.
+    // Upon a drop onto the background, or onto a top-level Node, make selection top-level.
+    // If this is OK, we're done; otherwise we cancel the operation to rollback everything.
+    function finishDrop(e, grp) {
+      var ok = (grp !== null
+                ? grp.addMembers(grp.diagram.selection, true)
+                : e.diagram.commandHandler.addTopLevelParts(e.diagram.selection, true));
+      if (!ok) e.diagram.currentTool.doCancel();
+    }
+
+
+    myDiagram.groupTemplateMap.add("Groups",
+      $$(go.Group, nodeStyle(), go.Panel.Auto,
+        {
+          background: "transparent",
+          // highlight when dragging into the Group
+          mouseDragEnter: function(e, grp, prev) { highlightGroup(e, grp, true); },
+          mouseDragLeave: function(e, grp, next) { highlightGroup(e, grp, false); },
+          computesBoundsAfterDrag: true,
+          // when the selection is dropped into a Group, add the selected Parts into that Group;
+          // if it fails, cancel the tool, rolling back any changes
+          mouseDrop: finishDrop,
+          handlesDragDropForMembers: true,  // don't need to define handlers on member Nodes and Links
+          // Groups containing Groups lay out their members horizontally
+          layout:
+            $$(go.GridLayout,
+              { wrappingWidth: Infinity, alignment: go.GridLayout.Position,
+                  cellSize: new go.Size(1, 1), spacing: new go.Size(4, 4) })
+        },
+        new go.Binding("background", "isHighlighted", function(h) { return h ? "rgba(255,0,0,0.2)" : "transparent"; }).ofObject(),
+        $$(go.Shape, "Rectangle",
+          { fill: null, stroke: "#E69900", strokeWidth: 2 }),
+        $$(go.Panel, go.Panel.Vertical,  // title above Placeholder
+          $$(go.Panel, go.Panel.Horizontal,  // button next to TextBlock
+            { stretch: go.GraphObject.Horizontal, background: "#FFDD33", margin: 1 },
+            $$("SubGraphExpanderButton",
+              { alignment: go.Spot.Right, margin: 5 }),
+            $$(go.TextBlock,
+              {
+                alignment: go.Spot.Left,
+                editable: true,
+                margin: 5,
+                font: "bold 18px sans-serif",
+                stroke: "#9A6600"
+              },
+              new go.Binding("text", "text").makeTwoWay())
+          ),  // end Horizontal Panel
+          $$(go.Placeholder,
+            { padding: 5, alignment: go.Spot.TopLeft })
+          // four named ports, one on each side, all input/output:
+          
+        ),  // end Vertical Panel
+        makePort("T", go.Spot.Top, true, true),
+        makePort("L", go.Spot.Left, true, true),
+        makePort("R", go.Spot.Right, true, true),
+        makePort("B", go.Spot.Bottom, true, true)
+      ));  // end Group and call to add to template Map
+
+    // Nodes have a trivial definition
+    myDiagram.nodeTemplate =
+      $$(go.Node, go.Panel.Auto,
+        { // dropping on a Node is the same as dropping on its containing Group, even if it's top-level
+          mouseDrop: function(e, nod) { finishDrop(e, nod.containingGroup); }
+        },
+        $$(go.Shape, "Rectangle",
+          { fill: "#ACE600", stroke: "#558000", strokeWidth: 2 },
+          new go.Binding("fill", "color")),
+        $$(go.TextBlock,
+          {
+            margin: 5,
+            editable: true,
+            font: "bold 13px sans-serif",
+            stroke: "#446700"
+          },
+          new go.Binding("text", "text").makeTwoWay())
+      );
+
     myDiagram.nodeTemplateMap.add("Square",  // the default category
-      $$(go.Node, "Auto",//"Spot", nodeStyle(),
+      $$(go.Node, nodeStyle(), "Auto", //"Spot", nodeStyle(),
 
          $$(go.Shape,
         { fill: $$(go.Brush, "Linear", { 0: "#00A9C9", 1: "#00A9C9" }),
@@ -300,6 +409,40 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
         // no ports, because no links are allowed to connect with a comment
       ));
 
+    myDiagram.groupTemplate =
+     $$(go.Group,
+       { resizable: true, resizeObjectName: "SHAPE"},
+       { // what to do when a drag-over or a drag-drop occurs on a Group
+         mouseDragEnter: function(e, grp, prev) { highlightGroup(grp, true); },
+         mouseDragLeave: function(e, grp, next) { highlightGroup(grp, false); },
+         mouseDrop: function(e, grp) {
+           var ok = grp.addMembers(grp.diagram.selection, true);
+           if (!ok) grp.diagram.currentTool.doCancel();
+         },
+         handlesDragDropForMembers: true  // don't need to define handlers on member Nodes and Links
+       },
+       $$(go.Shape, "Rectangle",  // the rectangular shape around the members
+         { name: "SHAPE",
+           minSize: new go.Size(200, 200)
+         },
+         new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify))
+     );
+
+    myDiagram.groupTemplateMap.add("Group",
+      $$(go.Group, "Vertical" ,
+        $$(go.Panel, 
+          $$(go.Shape, "RoundedRectangle",  // surrounds the Placeholder
+            { parameter1: 14,
+              fill: "rgba(128,128,128,0.33)" }),
+          $$(go.Placeholder,    // represents the area of all member parts,
+            { padding: 5})  // with some extra padding around them
+        ),
+        $$(go.TextBlock,         // group title
+          { alignment: go.Spot.Right, font: "Bold 12pt Sans-Serif" },
+          new go.Binding("text", "key"))
+      )
+    );
+
 
     // replace the default Link template in the linkTemplateMap
     myDiagram.linkTemplate =
@@ -353,11 +496,12 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
     load();  // load an initial diagram from some JSON text
 
     // initialize the Palette that is on the left side of the page
-    myPalette =
+    var myPalette =
       $$(go.Palette, "myPalette",  // must name or refer to the DIV HTML element
         {
           "animationManager.duration": 800, // slightly longer than default (600ms) animation
           nodeTemplateMap: myDiagram.nodeTemplateMap,  // share the templates used by myDiagram
+          groupTemplateMap: myDiagram.groupTemplateMap,
           model: new go.GraphLinksModel([  // specify the contents of the Palette
             { category: "Start", text: "Start" },
             { category: "Square", text: "Action" },
@@ -365,21 +509,14 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
             // { text: "Decision" },
             // { text: "Square", figure: "Diamond" },
             { category: "End", text: "End" },
-            { category: "Comment", text: "Comment" }
+            { category: "Comment", text: "Comment"},
+            {key:1, text:"Iteration", isGroup:true, category:"Groups"},
+            {key:2, text:"Sequence", isGroup:true, category:"Groups"},
+            {key:3, text:"Branch", isGroup:true, category:"Groups"}
           ])
         });
 
   }
-
-  // Make all ports on a node visible when the mouse is over the node
-  function showPorts(node, show) {
-    var diagram = node.diagram;
-    if (!diagram || diagram.isReadOnly || !diagram.allowLink) return;
-    node.ports.each(function(port) {
-        port.stroke = (show ? "white" : null);
-      });
-  }
-
 
   // Show the diagram's model in JSON format that the user may edit
   function save() {
@@ -402,12 +539,23 @@ myDiagram.nodeTemplateMap.add("Decision",  // the default category
       obj.replaceChild(svg, obj.children[0]);
     }
   }
+
+  function expandGroups(g, i, level) {
+    if (!(g instanceof go.Group)) return;
+    g.isSubGraphExpanded = i < level;
+    g.memberParts.each(function(m) {
+      expandGroups(m, i + 1, level);
+    })
+  }
+
+  function reexpand(e) {
+    myDiagram.startTransaction("reexpand");
+    var level = parseInt(document.getElementById("levelSlider").value);
+    myDiagram.findTopLevelGroups().each(function(g) { expandGroups(g, 0, level); })
+    myDiagram.commitTransaction("reexpand");
+  }
   init();
 
-  // returns the text for a tooltip, param obj is the text itself
-  function getInfo(model, obj) {
-    return "";
-  }
 
 </script>
 {% endblock %}
