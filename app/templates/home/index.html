@@ -93,7 +93,7 @@ Editor
         <div class="form-inline" style="width:100%">
           <div class="form-group row" style="width:100%">
             <div class="col-md-5">
-              <label for="keybinding_select">Keybinding Handler</label>
+              <label for="keybinding_select">Keyboard Handler</label>
             </div>
             <div class="col-md-7">
               <select class="form-control" id="keybinding_select" style="width:100%">
@@ -122,6 +122,8 @@ Editor
 <script>
 var editor = ace.edit("editor");
 editor.setKeyboardHandler("{{keyboard_handler}}");
+var select = document.getElementById('keybinding_select');
+select.value = "{{keyboard_handler}}";
 </script>
 {% endif %}
 
