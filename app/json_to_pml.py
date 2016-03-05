@@ -90,7 +90,7 @@ def switchboard(json_obj, indent_amt):
 def json_to_pml(json_str):
     json_obj = json.loads(json_str)
     if not "process" in json_obj:
-        return False, ""
+        return False, "Root object 'process' not found"
     return parse_process(json_obj["process"], 0)
 
 if __name__ == '__main__':
