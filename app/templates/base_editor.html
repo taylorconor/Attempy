@@ -74,20 +74,6 @@
                         <label for="file"> Upload </label>
                         <input style="display:none" type="file" name="file" id="file" /><br/>
                         </form>
-                        <script>
-                            var uploading;
-                            window.onload = function(){
-                                $('#file').change(function(){
-                                    uploading = true;
-                                    $('#upload').submit();
-                                });
-                                {% if source is not none %}
-                                var editor = ace.edit("editor");
-                                editor.setValue("{{source|safe}}");
-                                {% endif %}
-                            }
-                        </script>
-
                     </a>
                 </li>
           		<li>
@@ -150,4 +136,20 @@
 
 
 
+{% endblock %}
+
+{% block javascript %}
+<script>
+    var uploading;
+    window.onload = function(){
+        $('#file').change(function(){
+            uploading = true;
+            $('#upload').submit();
+        });
+        {% if source is not none %}
+        var editor = ace.edit("editor");
+        editor.setValue("{{source|safe}}");
+        {% endif %}
+    }
+</script>
 {% endblock %}
