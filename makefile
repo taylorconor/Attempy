@@ -5,17 +5,21 @@ build:
 
 	@echo "Compiling pmlcheck"
 	cd peos && make
-	
+
+	@echo "Creating virtualenv"
+	virtualenv venv
+	. venv/bin/activate
+
 	@echo "installing additional python requirements"
-	sudo pip install -r requirements
+	venv/bin/pip install -r requirements
 
 	@echo "building ace"
-	cd app/static/ace && npm install && node ./Makefile.dryice.js
+	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
 
-	mkdir uploads
+	mkdir -p uploads
 test:
 	@echo "Running Python unit tests"
-	python ./app/tests.py
+	python ./tests/tests.py
 
 install:
 
@@ -33,9 +37,10 @@ clean:
 	@echo "Cleaning"
 	find . -name "*.pyc" -type f -delete
 	@echo "Finished cleaning"
-	pip uninstall -y -r requirements 
+	venv/bin/pip uninstall -y -r requirements 
 	cd peos && make clean && cd ..
 
 distclean:
 	make clean
+	rm -rf venv
 	git submodule deinit -f .

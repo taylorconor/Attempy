@@ -11,8 +11,9 @@ class User(Base):
     username = Column(String)
     social_id = Column(String)
     password_hash = Column(String)
+    keyboard_handler = Column(String)
 
-    def __init__(self, email, name=None, username=None, social_id=None, password=None):
+    def __init__(self, email, name=None, username=None, social_id=None, password=None, keyboard_handler=None):
         if self.email != None:
             self.email = email.lower()
         else:
@@ -24,6 +25,7 @@ class User(Base):
             self.set_password(password)
         else:
             password_hash = None
+        self.keyboard_handler = keyboard_handler
 
     #methods required for flask login
     def is_authenticated(self):
@@ -44,3 +46,9 @@ class User(Base):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_keyboard_handler(self):
+        return self.keyboard_handler
+
+    def set_keyboard_handler(self, handler):
+        self.keyboard_handler = handler

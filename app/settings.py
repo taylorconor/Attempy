@@ -15,5 +15,5 @@ OAUTH_CREDENTIALS = {
         'secret': '5pouAq0BOY1QBM1cE_bgH4Uq'
     }
 }
-UPLOAD_DIR="uploads"
+UPLOAD_DIR="/uploads"
 ALLOWED_EXTENSIONS=set(["pml"])

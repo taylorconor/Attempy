@@ -1,89 +1,3 @@
-// create AceGrammar partial JSON grammar for PML
-var xml_grammar = {
-		
-	"RegExpID"                          : "RE::",
-	
-	"Extra"                             : {
-
-	    "fold"                          : "brace"
-
-	},
-	    
-	// Style model
-	"Style"                             : {
-	    
-	     "comment"                      : "comment"
-	    ,"keyword"                      : "keyword"
-	    ,"operator"                     : "operator"
-	    ,"identifier"                   : "identifier"
-	    ,"property"                     : "constant.support"
-	    ,"number"                       : "constant.numeric"
-	    ,"string"                       : "string"
-	    
-	},
-
-	// Lexical model
-	"Lex"                               : {
-	    
-	     "comment"                      : {"type":"comment","tokens":[
-					    [  "/*",   "*/" ]
-					    ]}
-	    ,"identifier"                   : "RE::/[_A-Za-z$][_A-Za-z0-9$]*/"
-	    ,"property"                     : "RE::/[_A-Za-z$][_A-Za-z0-9$]*/"
-	    ,"number"                       : [
-					    // floats
-					    "RE::/\\d*\\.\\d+(e[\\+\\-]?\\d+)?/",
-					    "RE::/\\d+\\.\\d*/",
-					    "RE::/\\.\\d+/",
-					    // integers
-					    "RE::/[1-9]\\d*(e[\\+\\-]?\\d+)?L?/",
-					    // just zero
-					    "RE::/0(?![\\dx])/"
-					    ]
-	    ,"string"                       : {"type":"escaped-block","escape":"\\","tokens":
-					    // start, end of string (can be the matched regex group ie. 1 )
-					    [ "RE::/(['\"])/",   1 ]
-					    }
-	    ,"operator"                     : {"tokens":[
-					    "&&", "||", "<=", ">=", "==", "!=", "<", ">", "!", "."
-					    ]}
-	    ,"delimiter"                    : {"tokens": [
-					    "(", ")", "[", "]", "{", "}", ",", "=", ";", "?", ":",
-					    "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "++", "--",
-					    ">>=", "<<="
-					    ]}
-	    ,"keyword"                      : {"autocomplete":true, "tokens":[ 
-					    "action", "agent", "branch", "executable", "iteration", "manual", "process",
-					    "provides", "requires", "script", "selection", "select", "sequence", "task", "tool"
-					    ]}
-	},
-
-	// Syntax model
-	"Syntax"                            : {
-	    
-	    "dot_property"                  : {"sequence":[".", "property"]}
-	    ,"pml"                           : "comment | number | string | keyword | operator | (('}' | ')' | identifier | dot_property) dot_property*)"
-
-	},
-
-	// what to parse and in what order
-	"Parser"                            : [ ["pml"] ]
-
-};
-
-// parse the grammar into an ACE syntax-highlight mode
-var xml_mode = AceGrammar.getMode( xml_grammar );
-
-// enable code-folding
-xml_mode.supportCodeFolding = true;
-
-// enable syntax lint-like validation in the grammar
-xml_mode.supportGrammarAnnotations = true;
-
-// enable user-defined autocompletion (TODO)
-xml_mode.supportAutoCompletion = true;
-xml_mode.autocompleter.options = { prefixMatch:true, caseInsensitiveMatch:false };
-
 // define the editor
 var editor = ace.edit("editor");
 var langTools = ace.require("ace/ext/language_tools");
@@ -92,7 +6,7 @@ var langTools = ace.require("ace/ext/language_tools");
 editor.setTheme("ace/theme/monokai");
 
 // use our custom highlighting mode
-editor.getSession().setMode(xml_mode);
+editor.getSession().setMode('ace/mode/pml');
 
 // keybindings for search and replace (win == linux)
 editor.commands.addCommand({
@@ -104,17 +18,43 @@ editor.commands.addCommand({
 	readOnly: true
 });
 
-var prev = "";
-editor.getSession().on('change', function(data) {
-	if (data.lines[0] == "" && data.lines[1] == "" && prev == "{") {
-		var session = editor.session;
-		session.insert({
-			row: data.end.row,
-			column: data.end.column
-		}, "\n}");
-	} else {
-		prev = data.lines[0];
-	}
+editor.commands.addCommand({
+	name: 'save',
+	bindKey: { win: 'Ctrl-S', mac: 'Command-alt-S' },
+	exec: function(editor) {
+		get_path_save_file();
+	},
+	readOnly: true
+});
+
+editor.commands.addCommand({
+	name: 'syntaxcheck',
+	bindKey: { win: 'Ctrl-B', mac: 'Command-alt-B' },
+	exec: function(editor) {
+		$('#check_syn').trigger("click");
+	},
+	readOnly: true
+});
+
+editor.commands.addCommand({
+	name: 'new',
+	bindKey: { win: 'Ctrl-N', mac: 'Command-alt-N' },
+	exec: function(editor) {
+		new_file();
+	},
+	readOnly: true
+});
+
+
+editor.getSession().on('keyboardHandlerChanged', function(data) {
+	var newKeyboardHandler = editor.getKeyboardHandler();
+	$.ajax({
+		type: 'POST',
+		url: 'handler_changed',
+		data: {'handler': newKeyboardHandler},
+		dataType: 'text',
+		crossDomain: 'true'
+	});
 });
 
 // Enable Options
@@ -123,13 +63,28 @@ editor.setOptions({
     enableSnippets: true
 });
 
+// define keywords
+var pml_keywords = ["action", "agent", "branch", "executable", "iteration", "manual", "process",
+	"provides", "requires", "script", "selection", "select", "sequence", "task", "tool"];
+
 // Add keywords to autocomplete
 langTools.addCompleter(
-	xml_grammar.Lex.keyword.tokens.map(
+	pml_keywords.map(
 		function(keyword) {
 			return { name: keyword, value: keyword, score: 1, meta: "keyword" };
 		}
 	)
 );
 
+editor.on("input", function() {
+    file_saved = false;
+});
+
 $('#editor').data('editor', editor);
+
+$(window).load(function(){
+    // ace.edit("editor").setValue(""); //clears text in editor on load
+    if(window.location.hash.length > 1){
+		load_file(window.location.hash.substring(1));
+    }
+});

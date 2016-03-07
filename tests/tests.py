@@ -2,7 +2,10 @@ import unittest
 from flask import Flask, g
 from flask.ext import login
 from flask.ext.sqlalchemy import SQLAlchemy
-from app import app
+import os, sys
+topdir = os.path.join(os.path.dirname(__file__), "..")
+sys.path.append(topdir)
+from app import app 
 
 app.config.from_object('app.settings')
 
