@@ -40,20 +40,22 @@ class StartingTestCase(unittest.TestCase):
         assert "Login" == self.driver.title or "Editor" == self.driver.title
 
     @print_test_time_elapsed
-    def create_normal_user(self):
+    def test_create_normal_user(self):
         self.driver.get(self.baseURL)
-        login.email = self.driver.find_element_by_css_selector('.form-signin input[type="email"]')
-        login.password = self.driver.find_element_by_css_selector('.form-signin input[type="password"]')
-        login.sign_in = self.driver.find_element_by_css_selector('.form-signin button[type="submit"]')
-        login.register.manual = self.driver.find_element_by_css_selector('.form-signin a[href="/register"]')
-        login.register.google = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/google"]')
-        login.register.facebook = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/facebook"]')
-        login.register.github = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/github"]')
+        
+        email = self.driver.find_element_by_name('email')
+        password = self.driver.find_element_by_css_selector('.form-signin input[type="password"]')
+        sign_in = self.driver.find_element_by_css_selector('.form-signin button[type="submit"]')
+        manual = self.driver.find_element_by_css_selector('.form-signin a[href="/register"]')
+        google = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/google"]')
+        facebook = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/facebook"]')
+        github = self.driver.find_element_by_css_selector('.form-signin a[href="/auth/github"]')
 
         badEmail = "this is not an email"
-        login.email.send_keys(badEmail)
-        assert login.email.text == badEmail
-        login.sign_in.click()
+        email.send_keys(badEmail)
+        print("Email: " + email.text + ".")
+        assert email.text == badEmail
+        sign_in.click()
         assert "Login" == self.driver.title
 
 
