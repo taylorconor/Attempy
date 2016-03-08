@@ -21,7 +21,7 @@ test:
 	@echo "Running Python unit tests"
 	python ./tests/tests_unit.py
 	python runserver.py > /dev/null &\
-	cd ./tests && python tests_phantomJS.py && cd .. &&\
+	cd ./tests && ../venv/bin/python tests_phantomJS.py && cd .. &&\
 	curl --data "" lvh.me:5000/shutdown
 
 install:
