@@ -55,6 +55,9 @@
 .left-addon input  { padding-left:  30px; }
 .right-addon input { padding-right: 30px; }
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/joint.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/graphical_editor.css') }}">
+
 {% endblock %}
 
 {% block content %}
@@ -94,6 +97,13 @@
       </div><!-- /.container-fluid -->
     </nav>
 
-
-
+{% endblock %}
+{% block javascript %}
+  <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
+  <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/underscore.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/backbone.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/lodash.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/joint.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/graphical_editor.js') }}"></script>
 {% endblock %}
