@@ -1,6 +1,6 @@
 from __future__ import print_function # In python 2.7
 import sys
-from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify, helpers
+from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify, helpers, flash
 from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
 from app.models import User
@@ -20,7 +20,6 @@ def index():
         if file and allowed_file(file.filename):
             #forbid path traversal attack
             filename = secure_filename(file.filename)
-            print("Caught Insecure Filename", file=sys.stderr )
             file_path = os.path.join('.' + app.config['UPLOAD_DIR'], filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
@@ -31,6 +30,9 @@ def index():
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
                 return render_template("home/index.html", source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
+
+        elif not allowed_file(file.filename):
+            flash("Uploaded file must have the extension .pml", "warning")
 
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
@@ -153,7 +155,7 @@ def make_tree(path):
                 html += '<ul class="nav nav-list tree">'
                 html += make_tree(fn)
                 html += '</ul>'
-            else:    
+            else:
                 html += '<a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(name) + '</a>'
                 # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'

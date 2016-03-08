@@ -27,7 +27,15 @@
 
         <script src="{{ url_for('static', filename='js/libraries/jquery-2.2.0.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/libraries/bootstrap.min.js') }}"></script>
+        <script>
+            window.setTimeout(function() {
+                $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                    $(this).remove(); 
+                });
+            }, 3000); 
+        </script>
         
-        {% block javascript %}{% endblock %}
+        {% block javascript %}
+        {% endblock %}
     </body>
 </html>
