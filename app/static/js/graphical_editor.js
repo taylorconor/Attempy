@@ -1,9 +1,9 @@
 var graph = new joint.dia.Graph();
 
-var paper = new joint.dia.Paper({
+    var paper = new joint.dia.Paper({
     el: $('#paper'),
-    width: 800,
-    height: 600,
+    width: $('#paper').width(),
+    height: window.innerHeight - $('#nav-bar').height(),
     gridSize: 1,
     model: graph,
     snapLinks: true,
@@ -25,47 +25,6 @@ var connect = function(source, sourcePort, target, targetPort) {
     link.addTo(graph).reparent();
 };
 
-var c1 = new joint.shapes.devs.Coupled({
-    position: { x: 230, y: 150 },
-    size: { width: 300, height: 300 },
-    inPorts: ['in'],
-    outPorts: ['out 1','out 2']
-});
-
-var a1 = new joint.shapes.devs.Atomic({
-    position: { x: 360, y: 360 },
-    inPorts: ['xy'],
-    outPorts: ['x','y']
-});
-
-var a2 = new joint.shapes.devs.Atomic({
-    position: { x: 50, y: 260 },
-    outPorts: ['out']
-});
-
-var a3 = new joint.shapes.devs.Atomic({
-    position: { x: 650, y: 150 },
-    size: { width: 100, height: 300 },
-    inPorts: ['a','b']
-});
-
-graph.addCells([c1, a1, a2, a3]);
-
-c1.embed(a1);
-
-connect(a2,'out',c1,'in');
-connect(c1,'in',a1,'xy');
-connect(a1,'x',c1,'out 1');
-connect(a1,'y',c1,'out 2');
-connect(c1,'out 1',a3,'a');
-connect(c1,'out 2',a3,'b');
-
-/* rounded corners */
-
-_.each([c1,a1,a2,a3], function(element) {
-    element.attr({ '.body': { 'rx': 6, 'ry': 6 }});
-});
-
 /* custom highlighting */
 
 var highlighter = V('circle', {
@@ -76,30 +35,145 @@ var highlighter = V('circle', {
     'pointer-events': 'none'
 });
 
-paper.off('cell:highlight cell:unhighlight').on({
+// First, unembed the cell that has just been grabbed by the user.
+paper.on('cell:pointerdown', function(cellView, evt, x, y) {
     
-    'cell:highlight': function(cellView, el, opt) {
+    var cell = cellView.model;
 
-        if (opt.embedding) {
-            V(el).addClass('highlighted-parent');
-        }
-
-        if (opt.connecting) {
-            var bbox = V(el).bbox(false, paper.viewport);
-            highlighter.translate(bbox.x + 10, bbox.y + 10, { absolute: true });
-            V(paper.viewport).append(highlighter);
-        }
-    },
+    if (!cell.get('embeds') || cell.get('embeds').length === 0) {
+        // Show the dragged element above all the other cells (except when the
+        // element is a parent).
+        cell.toFront();
+    }
     
-    'cell:unhighlight': function(cellView, el, opt) {
+    if (cell.get('parent')) {
+        graph.getCell(cell.get('parent')).unembed(cell);
+    }
+});
 
-        if (opt.embedding) {
-            V(el).removeClass('highlighted-parent');
-        }
+// When the dragged cell is dropped over another cell, let it become a child of the
+// element below.
+paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
-        if (opt.connecting) {
-            highlighter.remove();
+    var cell = cellView.model;
+    var cellViewsBelow = paper.findViewsFromPoint(cell.getBBox().center());
+    if (cellViewsBelow.length) {
+        // Note that the findViewsFromPoint() returns the view for the `cell` itself.
+        var cellViewBelow = _.find(cellViewsBelow, function(c) { return c.model.id !== cell.id });
+    
+        // Prevent recursive embedding.
+        if (cellViewBelow && cellViewBelow.model.get('parent') !== cell.id) {
+            cellViewBelow.model.embed(cell);
         }
     }
 });
+
+
+// paper.off('cell:highlight cell:unhighlight').on({
+    
+//     'cell:highlight': function(cellView, el, opt) {
+//         console.log(arguments);
+//         if (opt.embedding) {
+//             V(el).addClass('highlighted-parent');
+//         }
+
+//         if (opt.connecting) {
+//             var bbox = V(el).bbox(false, paper.viewport);
+//             highlighter.translate(bbox.x + 10, bbox.y + 10, { absolute: true });
+//             V(paper.viewport).append(highlighter);
+//         }
+//     },
+    
+//     'cell:unhighlight': function(cellView, el, opt) {
+
+//         if (opt.embedding) {
+//             V(el).removeClass('highlighted-parent');
+//         }
+
+//         if (opt.connecting) {
+//             highlighter.remove();
+//         }
+//     }
+// });
+
+var elements = [];
+
+var insert = function(type) {
+    type = type || "branch";
+    var el = getElement(type);
+    elements.push(el);
+    graph.addCell(el);  
+}
+
+var getElement = function(type) {
+    type = type || "branch";
+    switch(type) {
+        case "branch": {
+            return new joint.shapes.devs.Coupled({
+                position: { x: 230, y: 150 },
+                size: { width: 300, height: 300 },
+                inPorts: ['in'],
+                outPorts: ['out'],
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "sequence": {
+            return new joint.shapes.devs.Coupled({
+                position: { x: 230, y: 150 },
+                size: { width: 300, height: 300 },
+                inPorts: ['in'],
+                outPorts: ['out'],
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "iteration": {
+            return new joint.shapes.devs.Coupled({
+                position: { x: 230, y: 150 },
+                size: { width: 300, height: 300 },
+                inPorts: ['in'],
+                outPorts: ['out'],
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "agent": {
+            return new joint.shapes.devs.Atomic({
+                position: { x: 50, y: 260 },
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "script": {
+            return new joint.shapes.devs.Atomic({
+                position: { x: 50, y: 260 },
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "provides": {
+            return new joint.shapes.devs.Atomic({
+                position: { x: 50, y: 260 },
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "requires": {
+            return new joint.shapes.devs.Atomic({
+                position: { x: 50, y: 260 },
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "tool": {
+            return new joint.shapes.devs.Atomic({
+                position: { x: 50, y: 260 },
+                attrs: { text: { text: type } }
+            });
+        } break;
+        case "action": {
+            return new joint.shapes.devs.Coupled({
+                position: { x: 230, y: 150 },
+                size: { width: 150, height: 150 },
+                inPorts: ['in'],
+                outPorts: ['out'],
+                attrs: { text: { text: type } }
+            });
+        }
+    }
+}
 

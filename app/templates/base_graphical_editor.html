@@ -62,7 +62,7 @@
 
 {% block content %}
 
-    <nav class="navbar navbar-default" style="margin-bottom:0px;border:0px">
+    <nav id="nav-bar" class="navbar navbar-default" style="margin-bottom:0px;border:0px">
       <div class="container-fluid">
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="nav1">
@@ -75,6 +75,41 @@
                 <li>
                   <a href="{{url_for('home.graphical_editor')}}">
                       <label> Graphical Editor </label>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+             <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Insert<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a onclick="insert('action')">
+                      <label> Action </label>
+                  </a>
+                  <a onclick="insert('branch')">
+                      <label> Branch </label>
+                  </a>
+                  <a onclick="insert('sequence')">
+                      <label> Sequence </label>
+                  </a>
+                  <a onclick="insert('iteration')">
+                      <label> Iteration </label>
+                  </a>
+                  <a onclick="insert('agent')">
+                      <label> Agent </label>
+                  </a>
+                  <a onclick="insert('script')">
+                      <label> Script </label>
+                  </a>
+                  <a onclick="insert('provides')">
+                      <label> Provides </label>
+                  </a>
+                  <a onclick="insert('requires')">
+                      <label> Requires </label>
+                  </a>
+                  <a onclick="insert('tool')">
+                      <label> Tool </label>
                   </a>
                 </li>
               </ul>

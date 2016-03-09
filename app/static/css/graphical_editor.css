@@ -70,3 +70,7 @@
     text-decoration: underline;
 }
 
+#paper {
+    border: 3px solid #DDD;
+}
+
