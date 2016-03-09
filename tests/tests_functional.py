@@ -40,7 +40,14 @@ class StartingTestCase(TestCase):
         self.baseURL = "http://lvh.me:5000/"
         return app
 
+    def login(self, username, password):
+        return self.client.post('/login', data=dict(
+            email=username,
+            password=password        
+        ), follow_redirects=True)
 
+    def logout(self):
+        return self.client.get('/logout', follow_redirects=True)
 
     # --------------------------------------------------------------------------
     # Simple tests to make sure server is UP
@@ -54,16 +61,20 @@ class StartingTestCase(TestCase):
     @print_test_time_elapsed
     def test_login_loads(self):
         rv = self.client.get('/login')
-        print(str(rv.data))
         assert rv.status_code == 200
         assert len(str(rv.data)) > 0
 
     @print_test_time_elapsed
     def test_login(self):
-        post_data = {'email': sample_strings.valid_user, 'password': sample_strings.valid_password}
-        rv = self.client.post('/login', data=post_data, follow_redirects=True)
-        assert rv.status_code == 200
-        assert len(str(rv.data)) > 0
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        print(str(rv.data))
+        assert 'You were logged in' in rv.data
+        rv = self.logout()
+        assert 'You were logged out' in rv.data
+        rv = self.login('adminx', 'default')
+        assert 'Invalid username' in rv.data
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        assert 'Invalid password' in rv.data
     # # --------------------------------------------------------------------------
     # # Testing Views with GET
     # # --------------------------------------------------------------------------
@@ -112,6 +123,7 @@ class StartingTestCase(TestCase):
     #                           follow_redirects=True)
     #     assert rv.status_code == 200
     #     assert b'Todos os direitos reservados' == rv.data
+
 
 
 if __name__ == '__main__':
