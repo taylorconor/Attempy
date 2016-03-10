@@ -30,7 +30,7 @@ function print_update(msg) {
 	console.log("[..] "+msg);
 }
 
-function print_error(msg) {
+function print_error(msg) { 
 	console.log("[!!] "+msg);
 }
 
@@ -48,7 +48,7 @@ function test_title(expected, page) {
 var steps = [
     function() {
         page.open("http://lvh.me:5000");
-	print_update("Testing initial page load...");
+	print_update("Testing landing page...");
     },
     function() {
 	if (!test_title("Login", page)) { return true; }
@@ -56,16 +56,18 @@ var steps = [
 		return document.querySelector(".form-signin");
 	});
 	if (!test_elem) {
-		print_error("Initial page load broken! (could not find element 'test')");
+		print_error("Landing page load broken! (could not find element 'test')");
 		return true;
 	}
+	print_success("Landing page load OK");
     },
     function() {
 	page.open("http://lvh.me:5000/register");
-	print_update("Navigating to registration page...");
+	print_update("Testing registration page...");
     },
     function() {
 	if (!test_title("Register", page)) { return true; }
+	print_success("Registration page load OK");
 	page.evaluate(function() {
 		document.querySelector("input[name=email]").setAttribute("value", "test@test.com");
 		document.querySelector("input[name=name]").setAttribute("value", "Test User");
@@ -75,7 +77,10 @@ var steps = [
 	print_update("Testing user creation...");
     },
     function() {
-	if (!test_title("Login", page)) { return true; }
+	if (!test_title("Login", page)) { 
+		print_error("Are you sure you purged the database before running the tests?");
+		return true;
+	}
 	page.evaluate(function() {
 		document.querySelector("input[name=email]").setAttribute("value", "test@test.com");
 		document.querySelector("input[name=password]").setAttribute("value", "test");
@@ -91,7 +96,7 @@ var steps = [
 		print_error("Registration process broken! (could not log back in with registered details)");
 		return true;
 	}
-	print_success("Registration & login smoke test successful!");
+	print_success("Registration and login successful!");
     }
 ];
 
