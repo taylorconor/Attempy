@@ -41,4 +41,4 @@ Keyword and variable name completion using 'ctrl space'
 
 ###Editor Settings
 Accessible from Edit > Editor settings. Allows control over:
-- Keboard Handler
+- Keyboard Handler
