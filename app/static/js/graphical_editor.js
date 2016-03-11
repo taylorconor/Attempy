@@ -1,6 +1,6 @@
 var graph = new joint.dia.Graph();
 
-    var paper = new joint.dia.Paper({
+var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: $('#paper').width(),
     height: window.innerHeight - $('#nav-bar').height(),
@@ -35,66 +35,34 @@ var highlighter = V('circle', {
     'pointer-events': 'none'
 });
 
-// First, unembed the cell that has just been grabbed by the user.
-paper.on('cell:pointerdown', function(cellView, evt, x, y) {
-    
-    var cell = cellView.model;
 
-    if (!cell.get('embeds') || cell.get('embeds').length === 0) {
-        // Show the dragged element above all the other cells (except when the
-        // element is a parent).
-        cell.toFront();
-    }
-    
-    if (cell.get('parent')) {
-        graph.getCell(cell.get('parent')).unembed(cell);
-    }
-});
 
-// When the dragged cell is dropped over another cell, let it become a child of the
-// element below.
-paper.on('cell:pointerup', function(cellView, evt, x, y) {
-
-    var cell = cellView.model;
-    var cellViewsBelow = paper.findViewsFromPoint(cell.getBBox().center());
-    if (cellViewsBelow.length) {
-        // Note that the findViewsFromPoint() returns the view for the `cell` itself.
-        var cellViewBelow = _.find(cellViewsBelow, function(c) { return c.model.id !== cell.id });
+paper.off('cell:highlight cell:unhighlight').on({
     
-        // Prevent recursive embedding.
-        if (cellViewBelow && cellViewBelow.model.get('parent') !== cell.id) {
-            cellViewBelow.model.embed(cell);
+    'cell:highlight': function(cellView, el, opt) {
+        console.log(arguments);
+        if (opt.embedding) {
+            V(el).addClass('highlighted-parent');
+        }
+
+        if (opt.connecting) {
+            var bbox = V(el).bbox(false, paper.viewport);
+            highlighter.translate(bbox.x + 10, bbox.y + 10, { absolute: true });
+            V(paper.viewport).append(highlighter);
+        }
+    },
+    
+    'cell:unhighlight': function(cellView, el, opt) {
+
+        if (opt.embedding) {
+            V(el).removeClass('highlighted-parent');
+        }
+
+        if (opt.connecting) {
+            highlighter.remove();
         }
     }
 });
-
-
-// paper.off('cell:highlight cell:unhighlight').on({
-    
-//     'cell:highlight': function(cellView, el, opt) {
-//         console.log(arguments);
-//         if (opt.embedding) {
-//             V(el).addClass('highlighted-parent');
-//         }
-
-//         if (opt.connecting) {
-//             var bbox = V(el).bbox(false, paper.viewport);
-//             highlighter.translate(bbox.x + 10, bbox.y + 10, { absolute: true });
-//             V(paper.viewport).append(highlighter);
-//         }
-//     },
-    
-//     'cell:unhighlight': function(cellView, el, opt) {
-
-//         if (opt.embedding) {
-//             V(el).removeClass('highlighted-parent');
-//         }
-
-//         if (opt.connecting) {
-//             highlighter.remove();
-//         }
-//     }
-// });
 
 var elements = [];
 
@@ -137,10 +105,12 @@ var getElement = function(type) {
         } break;
         case "action": {
             return new joint.shapes.html.Element({ 
-                position: { x: 80, y: 80 }, 
+                position: { x: 300, y: 300 }, 
                 size: { width: 170, height: 100 }, 
                 label: 'Action', 
-                select: 'one' 
+                select: 'one',
+                 inPorts: ['in'],
+                outPorts: ['out'], 
             });
         }
     }
