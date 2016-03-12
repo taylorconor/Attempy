@@ -19,8 +19,9 @@ page.onError = function(msg, trace) {
       msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
     });
   }
-  // uncomment to log into the console
-  // console.error(msgStack.join('\n'));
+  if (debug) {
+    console.error(msgStack.join('\n'));
+  }
 };
 
 page.onFilePicker = function(oldFile) {
@@ -89,7 +90,7 @@ function click(el){
 }
 
 var steps = [
-  /* test 1: landing page */
+  // test 1: landing page
   function() {
     page.open("http://lvh.me:5000");
     print_update("Testing landing page...");
@@ -105,8 +106,8 @@ var steps = [
     }
     print_success("Landing page load OK");
   },
-  /* end test 1 */
-  /* test 2: Google OAuth authentication */
+  // end test 1
+  // test 2: Google OAuth authentication
   function() {
     print_update("Testing feature: Authentication (Google OAuth)...");
     page.evaluate(function(click) {
@@ -117,11 +118,11 @@ var steps = [
     if (!test_title("Sign in - Google Accounts", page)) { return true; }
     print_success("Authentication (Google OAuth) working!");
   },
-  /* end test 2 */
+  // end test 2
   function() {
     page.open("http://lvh.me:5000");
   },
-  /* test 3: Facebook OAuth authentication */
+  // test 3: Facebook OAuth authentication
   function() {
     print_update("Testing feature: Authentication (Facebook OAuth)...");
     page.evaluate(function(click) {
@@ -132,11 +133,11 @@ var steps = [
     if (!test_title("Log into Facebook | Facebook", page)) { return true; }
     print_success("Authentication (Facebook OAuth) working!");
   },
-  /* end test 3 */
+  // end test 3
   function() {
     page.open("http://lvh.me:5000");
   },
-  /* test 4: GitHub OAuth authentication */
+  // test 4: GitHub OAuth authentication
   function() {
     print_update("Testing feature: Authentication (GitHub OAuth)...");
     page.evaluate(function(click) {
@@ -147,11 +148,11 @@ var steps = [
     if (!test_title("Sign in to GitHub · GitHub", page)) { return true; }
     print_success("Authentication (GitHub OAuth) working!");
   },
-  /* end test 4 */
+  // end test 4
   function() {
     page.open("http://lvh.me:5000");
   },
-  /* test 5: Local authentication */
+  // test 5: Local authentication
   function() {
     page.open("http://lvh.me:5000/register");
     print_update("Testing feature: Authentication (local)...");
@@ -187,24 +188,27 @@ var steps = [
     }
     print_success("Authentication (local) working!");
   },
-  /* end test 5 */
-  /* test 6: file upload */
+  // end test 5
+  // test 6: file upload
   function() {
-    console.log(fs.workingDirectory+"/testfile.pml");
-    page.uploadFile("input[id=file]", fs.workingDirectory+"/testfile.pml");
-    print_update("Testing feature: File upload");
-  },
-  function() {
+    var filename = fs.workingDirectory+"/testfile.pml";
+    page.uploadFile("input[id=file]", filename);
     page.evaluate(function() {
       document.querySelector("form[id=upload]").submit();
     });
+    print_update("Testing feature: File upload");
   },
   function() {
     var text = page.evaluate(function() {
       return ace.edit("editor").getValue();
     });
-    console.log("text = "+text);
+    if (text) {
+      print_error("File upload returned unexpected result!");
+      return true;
+    }
+    print_success("File upload working!");
   }
+  // end test 6
 ];
 
 interval = setInterval(function() {
