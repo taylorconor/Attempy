@@ -96,7 +96,10 @@ var steps = [
     print_update("Testing landing page...");
   },
   function() {
-    if (!test_title("Login", page)) { return true; }
+    if (!test_title("Login", page)) {
+      print_error("Are you sure the flask server is running?");
+      return true;
+    }
     var test_elem = page.evaluate(function() {
       return document.querySelector(".form-signin");
     });
@@ -207,7 +210,7 @@ var steps = [
       return true;
     }
     print_success("File upload working!");
-  }
+  },
   // end test 6
 ];
 
@@ -224,6 +227,7 @@ interval = setInterval(function() {
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
+    print_success("All tests successful!");
     phantom.exit();
   }
 }, 1500);

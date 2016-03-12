@@ -18,8 +18,11 @@ build:
 
 	mkdir -p uploads
 test:
-	@echo "Running Python unit tests"
-	python ./tests/tests.py
+	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db, *then* start the flask server. If you have done this, hit enter to begin the tests"')
+	#@echo "\nRunning Python unit tests"
+	#python ./tests/tests.py
+	@echo "Running PhantomJS smoke tests"
+	cd tests && phantomjs --ssl-protocol=any smoke_test.js
 
 install:
 
