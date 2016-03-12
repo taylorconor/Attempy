@@ -13,6 +13,7 @@ import sys
 sys.path.append('..')
 import urllib  # cant use urllib2 in python3 :P
 import sample_strings
+from random import randint
 from flask import Flask
 from flask.ext.testing import TestCase
 from app import app, settings
@@ -36,15 +37,25 @@ class StartingTestCase(TestCase):
         This is a requirement for Flask-Testing
         """
         app = Flask(__name__)
-        # app.settings['TESTING'] = True
+        app.config['TESTING'] = True
         self.baseURL = "http://lvh.me:5000/"
         return app
 
-    def login(self, username, password):
-        return self.client.post('/login', data=dict(
-            email=username,
-            password=password        
-        ), follow_redirects=True)
+    def register(self, email, name, password):
+        data = {
+            'email': email,
+            'password': password,
+            'name': name
+        }
+        return self.client.post('/register', data=data, follow_redirects=True)
+
+    def login(self, email, password):
+        data = {
+            'email': email,
+            'password': password,
+            'remember-me': 'y'
+        }
+        return self.client.post('/login', data=data, follow_redirects=True)
 
     def logout(self):
         return self.client.get('/logout', follow_redirects=True)
@@ -59,22 +70,49 @@ class StartingTestCase(TestCase):
         self.assertEqual(response.code, 200)
 
     @print_test_time_elapsed
+    def test_register_loads(self):
+        rv = self.client.get('/register')
+        assert rv.status_code == 200
+        assert len(str(rv.data)) > 0
+
+    @print_test_time_elapsed
+    def test_register(self):
+        rv = self.register(sample_strings.valid_user, sample_strings.valid_name, sample_strings.valid_password)
+        assert rv.status_code == 200
+        rv = self.register(sample_strings.valid_user, sample_strings.valid_name, sample_strings.valid_password)        
+        assert "User already registered with that email" in rv.data
+        rv = self.register(sample_strings.valid_user + str(randint(0,9999999)), sample_strings.valid_password, sample_strings.valid_name)
+        assert "User successfully registered" in rv.data
+
+    @print_test_time_elapsed
     def test_login_loads(self):
         rv = self.client.get('/login')
         assert rv.status_code == 200
         assert len(str(rv.data)) > 0
 
+
     @print_test_time_elapsed
     def test_login(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
-        print(str(rv.data))
-        assert 'You were logged in' in rv.data
+        assert 'Logged in' in rv.data
         rv = self.logout()
-        assert 'You were logged out' in rv.data
-        rv = self.login('adminx', 'default')
-        assert 'Invalid username' in rv.data
+        rv = self.login(sample_strings.valid_user + str(randint(0,9999999)), "fake")
+        assert "No user with that email or user uses third party login" in rv.data
+
+    @print_test_time_elapsed
+    def test_home_loads(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
-        assert 'Invalid password' in rv.data
+        rv = self.client.get('/')
+        print(str(rv.data))
+        assert 'Please log in to access this page.' in rv.data
+        assert 'Logged in' in rv.data
+        rv = self.client.get('/graphical_editor')
+        assert rv.status_code == 200
+        print(str(rv.data))
+        assert 'Please log in to access this page.' in rv.data
+        
+    
+
     # # --------------------------------------------------------------------------
     # # Testing Views with GET
     # # --------------------------------------------------------------------------

@@ -78,12 +78,16 @@
                             var uploading;
                             window.onload = function(){
                                 $('#file').change(function(){
-                                    uploading = true;
                                     $('#upload').submit();
                                 });
                                 {% if source is not none %}
                                 var editor = ace.edit("editor");
                                 editor.setValue("{{source|safe}}");
+                                file_saved = true;
+                                {% endif %}
+                                {% if passed_filename is not none %}
+                                  load_file("{{passed_filename|safe}}");
+                                  window.location.hash = "#" + "{{passed_filename|safe}}";
                                 {% endif %}
                             }
                         </script>

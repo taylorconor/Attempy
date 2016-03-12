@@ -27,9 +27,9 @@ function loadSideBar(){
         success: function(data) {
             $('#folder-sidebar').html("<br>"+data.output);
             sortSideBar();
-            $('.tree-toggle').click(function () {
-                $(this).parent().children('ul.tree').toggle(200);
-            });
+            // $('.tree-toggle').click(function () {
+            //     $(this).parent().children('ul.tree').toggle(200);
+            // });
 
             var fileName = $('#current_file_name').val();
             if(typeof fileName !== 'undefined'){
@@ -218,10 +218,6 @@ function new_file(){
 }
 
 window.addEventListener("beforeunload", function (e) {
-    if(uploading){
-        uploading = false;
-        return;
-    }
     if(!file_saved){
         var confirmationMessage = 'It looks like you have been editing something. '
                             + 'If you leave before saving, your changes will be lost.';

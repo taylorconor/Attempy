@@ -82,6 +82,8 @@ editor.on("input", function() {
 
 $('#editor').data('editor', editor);
 
+
+
 $(window).load(function(){
     // ace.edit("editor").setValue(""); //clears text in editor on load
     if(window.location.hash.length > 1){

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-valid_user = "1@2.3"
-valid_password = "1"
+valid_user = u"""1@2.3"""
+valid_password = u"""1"""
+valid_name = u"""Max"""
 
 large_text = u"""
 Folha de S. Paulo

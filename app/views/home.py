@@ -10,7 +10,7 @@ from werkzeug import secure_filename
 import os, io
 
 home = Blueprint('home', __name__)
-
+    
 #routes for home
 @home.route('/', methods=["GET", "POST"])
 @login_required
@@ -21,7 +21,8 @@ def index():
             #forbid path traversal attack
             filename = secure_filename(file.filename)
             print("Caught Insecure Filename", file=sys.stderr )
-            file_path = os.path.join('.' + app.config['UPLOAD_DIR'], filename)
+            file_path = os.path.join('.' + app.config['UPLOAD_DIR'], current_user.get_id())
+            file_path = os.path.join(file_path, filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
             with io.open(file_path, 'r', encoding='utf8') as f:
@@ -30,7 +31,7 @@ def index():
                 source = source.replace("\n","\\n")
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
-                return render_template("home/index.html", source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
+                return render_template("home/index.html", passed_filename=filename, source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
@@ -122,7 +123,7 @@ def pml_load_file_sidebar():
     path = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id()
     html = ''
     html += '<ul class="nav nav-list">'
-    html += '<li><label class="tree-toggle nav-header" tree="relative" style="display: inline-block">Your Files</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
+    html += '<li><label class="tree-toggle nav-header" tree="relative" style="display: inline-block">Your Files</label><i class="fa fa-file-text-o" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
     html += '<ul class="nav nav-list tree">'
     html += make_tree(path)
     html += '</ul>'

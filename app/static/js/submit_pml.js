@@ -6,7 +6,7 @@ $('#check_syn').on('click', function() {
         $('#getNewFileName').modal('show');
         return;
     }
-
+    save_file('/' + fileName);
     $.ajax({
         url: "/pml_source_submit",
         method: "POST",
