@@ -26,19 +26,19 @@ Note: If the application is not accessed on the domain lvh.me on port 5000, soci
 From the editor, file upload can be accessed from the nav bar at the top, under the file menu. The uploaded file must end in the “.pml” extension. When a file is uploaded it is displayed in the editor. 
 
 ###Syntax analysis
-Interfaces with PEOS to analyse the PML source file. This can be accessed by clicking File > Check Syntax. Results from the syntax analysis can be viewed by clicking on the bell icon in the left of the navigation bar. Ctrl-B or Cmd-B also analysis’s the current file.
+Interfaces with PEOS to analyse the PML source file. This can be accessed by clicking File > Check Syntax. Results from the syntax analysis can be viewed by clicking on the bell icon in the left of the navigation bar. Ctrl-B or Cmd-B also analyses the current file.
 
 ###File save
 Files can be saved under the file menu in the navigation bar at the top of the editor. Files can be accessed using the file panel on the left of the screen. New Files can be created by clicking on the icon in the file panel. Ctrl-S or Cmd-S saves the current file.
 
 ###Code editor
-Includes code folding, line numbers, indentation, bracket matching, and search and replace. All editor features are automatic except for search and replace, which can be invoked by typing Ctrl-F.
+Includes code folding, line numbers, indentation, bracket matching, and search and replace. All editor features are automatic except for search and replace, which can be invoked by typing Ctrl-F or Cmd-F.
 
 ###Syntax highlighting
 PML-specific keywords are highlighted.
 
 ###Code completion
-Suggests PML-specific keywords, as well as resource names. This can be invoked while typing, with the shortcut Ctrl-Space.
+Suggests PML-specific keywords, as well as resource names. This can be invoked while typing, with the shortcut Ctrl-Space or Cmd-Space.
 
 ###Editor keybinding emulation
 Allows Vim and Emacs emulation, as well as plain emulation (mouse-click editing). The emulation can be changed by clicking Edit > Editor Settings. A user’s keybinding settings will be saved, and will persist between their login sessions.
