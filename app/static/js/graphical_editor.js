@@ -138,9 +138,8 @@ var getElement = function(type) {
         case "action": {
             return new joint.shapes.html.Element({ 
                 position: { x: 80, y: 80 }, 
-                size: { width: 170, height: 100 }, 
-                label: 'Action', 
-                select: 'one' 
+                size: { width: 170, height: 100 }, //width:170
+                label: 'Action'
             });
         }
     }
@@ -165,10 +164,17 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         '<div class="html-element">',
         '<button class="delete">x</button>',
-        '<label></label>',
-        '<span></span>', '<br/>',
-        '<select><option>--</option><option>one</option><option>two</option></select>',
-        '<input type="text" value="I\'m HTML input" />',
+        '<label></label><span></span>', 
+        '<input id="name1" type="text" value="Enter Action Name" />',         
+        '<input id = "script" type="text" value="Enter Script" /> ',
+        '<div class="requires"><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
+        '<button class="reqAdd">add</button>',
+        '<div class="provides"><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
+        '<button class="provAdd">add</button>',
+        '<div class="agent"><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
+        '<button class="ageAdd">add</button>',
+        '<div class="tool"><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
+        '<button class="toolAdd">add</button>',
         '</div>'
     ].join(''),
 
@@ -188,6 +194,10 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         }, this));
         this.$box.find('select').val(this.model.get('select'));
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
+        this.$box.find('.reqAdd').on('click', this.addreq);
+        this.$box.find('.provAdd').on('click', this.addpro);
+        this.$box.find('.ageAdd').on('click', this.addact);
+        this.$box.find('.toolAdd').on('click', this.addtool);
         // Update the box position whenever the underlying model changes.
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
@@ -206,11 +216,31 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         var bbox = this.model.getBBox();
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
-        this.$box.find('span').text(this.model.get('select'));
+        this.$box.find('span').text(this.model.get('#name1'));
         this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
         this.$box.remove();
+    }, 
+    addreq: function(){
+        jqueryEle = $(this);
+        jqueryEle.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    }, 
+    addpro: function(){
+        jqueryEle = $(this);
+        jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    }, 
+    addact: function(){
+        jqueryEle = $(this);
+        jqueryEle.siblings('.agent').append('<select><option>||</option><option>&&</option><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    }, 
+    addtool: function(){
+        jqueryEle = $(this);
+        jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
     }
 });
 

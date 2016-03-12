@@ -11,7 +11,7 @@ build:
 	. venv/bin/activate
 
 	@echo "installing additional python requirements"
-	venv/bin/pip install -r requirements
+	venv/bin/pip2.7 install -r requirements
 
 	@echo "building ace"
 	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
