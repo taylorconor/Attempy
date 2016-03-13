@@ -212,6 +212,49 @@ var steps = [
     print_success("File upload working!");
   },
   // end test 6
+  // test 7: file save
+  function() {
+    page.evaluate(function(click) {
+      ace.edit("editor").setValue("process P { broken_token }");
+      click(document.querySelector("a[id=submit_save]"));
+    }, click);
+    print_update("Testing feature: File save");
+  },
+  function() {
+    page.evaluate(function(click) {
+      document.querySelector("input[id=newFileName]").setAttribute("value", "test_file");
+      click(document.querySelector("button[id=createNewName]"));
+    }, click);
+  },
+  function() {
+    var sidebar = page.evaluate(function(click) {
+      return document.querySelector("ul[class~=tree]").outerHTML;
+    });
+    if (sidebar.indexOf("test_file.pml") == -1) {
+      print_error("File save didn't work!");
+      return true;
+    }
+    print_success("File save working!");
+  },
+  // end test 7
+  // test 8: check syntax
+  function() {
+    page.evaluate(function(click) {
+      click(document.querySelector("a[id=check_syn]"));
+    }, click);
+    print_update("Testing feature: Check syntax");
+  },
+  function() {
+    var bell_style = page.evaluate(function() {
+      return document.querySelector("i[id=syn_out_bell]").getAttribute("style");
+    });
+    if (bell_style !== "color: red; ") {
+      print_error("Check syntax didn't spot an error in the syntax!");
+      return true;
+    }
+    print_success("Check syntax working!");
+  },
+  // end test 8
 ];
 
 interval = setInterval(function() {
