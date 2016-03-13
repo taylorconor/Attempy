@@ -70,6 +70,10 @@ Agents can  be filled in in all action boxes.
 ###Predicates
 Predicates can be added in Resources and Agents.
 
+###Basic PML Display
+This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. 
+
+###PML generator
 
 ##Known issues
 A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.
