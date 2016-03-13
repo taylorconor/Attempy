@@ -11,9 +11,6 @@ var paper = new joint.dia.Paper({
     embeddingMode: true,
     validateEmbedding: function(childView, parentView) {
         return parentView.model instanceof joint.shapes.devs.Coupled;
-    },
-    validateConnection: function(sourceView, sourceMagnet, targetView, targetMagnet) {
-        return sourceMagnet != targetMagnet;
     }
 });
 
@@ -40,77 +37,158 @@ var highlighter = V('circle', {
 paper.off('cell:highlight cell:unhighlight').on({
     
     'cell:highlight': function(cellView, el, opt) {
-        console.log(arguments);
         if (opt.embedding) {
             V(el).addClass('highlighted-parent');
-        }
-
-        if (opt.connecting) {
-            var bbox = V(el).bbox(false, paper.viewport);
-            highlighter.translate(bbox.x + 10, bbox.y + 10, { absolute: true });
-            V(paper.viewport).append(highlighter);
         }
     },
     
     'cell:unhighlight': function(cellView, el, opt) {
-
         if (opt.embedding) {
             V(el).removeClass('highlighted-parent');
-        }
-
-        if (opt.connecting) {
-            highlighter.remove();
         }
     }
 });
 
-var elements = [];
+paper.on('cell:pointerup', function(cellView, evt, x, y) {
+    // Find the first element below that is not a link nor the dragged element itself.
+    var elementBelow = graph.get('cells').find(function(cell) {
+        if (cell instanceof joint.dia.Link) return false; // Not interested in links.
+        if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
+        if (cell.getBBox().containsPoint(g.point(x, y))) {
+            return true;
+        }
+        return false;
+    });
+
+    if (!elementBelow) {
+        var xPos = cellView.model.get('position').x;
+        var offSet = (xPos % position.fullBlockWidth > position.fullBlockWidth / 2) 
+                                ? position.fullBlockWidth - xPos % position.fullBlockWidth 
+                                : -1 * (xPos % position.fullBlockWidth);
+        xPos += offSet + position.outerPadding;
+        graph.get('cells').map(function(cell) {
+            if (xPos > cellMoving.position.x) {
+                if (cell.get("position").x < xPos && cellMoving.position.x > cellMoving.position.x) {
+                    cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
+                }
+            } else {
+                if (cell.get("position").x > xPos && cellMoving.position.x < cellMoving.position.x) {
+                    cell.translate(position.fullBlockWidth * cellMoving.blockSize, 0);
+                }
+            } 
+        });  
+        cellView.model.set("position", {x: xPos + 50, y: position.outerPadding + position.actionCorrection});
+    } else {
+        graph.get('cells').map(function(cell) {
+            //if (elementBelow.id !== cell.id) {
+                if (xPos > cellMoving.position.x) {
+                    if (cell.get("position").x < cellView.position.x) {
+                        cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
+                    }
+                } 
+            //}
+        }); 
+    }
+    
+});
+
+var cellMoving = {};
+paper.on('cell:pointerdown', function(cellView, evt, x, y) {
+    cellMoving.position = cellView.model.get('position');
+    cellMoving.blockSize = cellView.model.get('blockSize');
+});
 
 var insert = function(type) {
     type = type || "branch";
-    var el = getElement(type);
-    elements.push(el);
-    graph.addCell(el);  
+    graph.addCell(getElement(type));  
 }
 
 var getElement = function(type) {
     type = type || "branch";
     switch(type) {
-        case "branch": {
-            return new joint.shapes.devs.Coupled({
-                position: { x: 230, y: 150 },
-                size: { width: 300, height: 300 },
-                inPorts: ['in'],
-                outPorts: ['out'],
-                attrs: { text: { text: type } }
+        case "branch":
+        case "sequence":
+        case "iteration": 
+        case "selection": {
+            var el = new joint.shapes.devs.Coupled({
+                position: position.addOuterElement(1),
+                size: position.complexBlockSize,
+                attrs: { text: { text: type } },
+                blockSize: 1
             });
-        } break;
-        case "sequence": {
-            return new joint.shapes.devs.Coupled({
-                position: { x: 230, y: 150 },
-                size: { width: 300, height: 300 },
-                inPorts: ['in'],
-                outPorts: ['out'],
-                attrs: { text: { text: type } }
-            });
-        } break;
-        case "iteration": {
-            return new joint.shapes.devs.Coupled({
-                position: { x: 230, y: 150 },
-                size: { width: 300, height: 300 },
-                inPorts: ['in'],
-                outPorts: ['out'],
-                attrs: { text: { text: type } }
-            });
+            el.on("change:embeds", function(el, children) { position.addChild(el, children, type); console.log(arguments); });
+            return el;
         } break;
         case "action": {
-            return new joint.shapes.html.Element({ 
-                position: { x: 80, y: 80 }, 
-                size: { width: 170, height: 100 }, //width:170
-                label: 'Action'
+            var el = new joint.shapes.html.Element({ 
+                position: position.addOuterElement(1, true), 
+                size: position.actionSize,
+                label: 'Action',
+                blockSize: 1
             });
+            el.on("change:parent", function() { console.log(arguments)});
+            return el;
         }
     }
+}
+
+var position = {
+
+    //Block size contants
+    outerPadding: 50,
+    innerPadding: 20,
+    actionCorrection: 50,
+    actionSize: {width: 260, height: 260},
+    complexBlockSize: {width: 300, height: 300},
+    fullBlockWidth: 400,
+
+    numOuterGridsFilled: 0,
+    addOuterElement: function(size, isAction) {
+        var blockPos = this.fullBlockWidth * this.numOuterGridsFilled;
+        this.numOuterGridsFilled += size;
+        var pos = { x: blockPos + this.outerPadding, y: this.outerPadding };
+        if (isAction) {
+            pos.y += this.actionCorrection;
+        }
+        return pos;
+    },
+    removeOuterElement: function(elPos, size) {
+        this.numOuterGridsFilled -= size;
+    },
+    addChild: function(parent, children, type) {
+        var self = this;
+        var innerPos = children.length - 1;
+        var parentPos = parent.get("position");
+        
+        switch(type) {
+            case "branch":
+            case "selection": {
+                var size = self.complexBlockSize;
+                size.height *= children.length;
+                parent.resize(size.width, size.height);
+                parent.set('blockSize', children.length);
+                var pos = parentPos;
+                pos.y += self.innerPadding + innerPos * self.fullBlockWidth;
+                pos.x += self.innerPadding;
+                var child = graph.get('cells').find(function(cell) {
+                    return cell.id == children[children.length - 1];
+                });
+                child.set("position", pos);
+            } break;
+            case "iteration": 
+            case "sequence":{
+                var size = self.complexBlockSize;
+                size.width *= children.length;
+                parent.resize(size.width, size.height);
+                var pos = parentPos;
+                pos.x += self.innerPadding + innerPos * self.fullBlockWidth;
+                pos.y += self.innerPadding;
+                child.model.set("position", pos);
+            }
+
+        }
+    },
+    removeChild: function(child, children, type, parent){}
 }
 
 
@@ -212,4 +290,13 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     }
 });
 
+var getOutput = function() {
+    $("#output").html(JSON.stringify(graph));
+}
+
+
+
+var addChild = function(patent, child) {
+
+}
 

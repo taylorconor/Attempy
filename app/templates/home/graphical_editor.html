@@ -11,6 +11,8 @@ Editor
 {% block content %}
     {{ super() }}
     <div id="paper"></div>
+    <button onclick="getOutput()"></button>
+    <div id="output"></div>
 {% endblock %}
 
 {% block javascipt %}
