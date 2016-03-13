@@ -9,7 +9,7 @@ The project is designed to be run on Ubuntu 14.04
 A number of supporting packages are required before installation. These can be installed by running:
 <pre>
 sudo apt-get update
-sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs libxslt-dev python-dev python-virtualenv happy alex ghc 
+sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs npm libxslt-dev python-dev python-virtualenv happy alex ghc phantomjs 
 </pre>
 
 ##Installation instructions
@@ -71,3 +71,5 @@ Agents can  be filled in in all action boxes.
 Predicates can be added in Resources and Agents.
 
 
+##Known issues
+A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.

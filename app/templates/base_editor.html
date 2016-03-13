@@ -123,7 +123,7 @@
             </li>
 
             {% if current_user.is_authenticated %}
-		            <li><a>{{name}}</a></li>
+		            <li><a id="nav-name">{{name}}</a></li>
                 <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
             {% else %}
                 <li><a href="{{url_for('auth.login')}}">Login</a></li>
