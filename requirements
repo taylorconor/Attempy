@@ -15,4 +15,5 @@ requests==2.9.1
 six==1.10.0
 wsgiref==0.1.2
 lxml==3.3.3
+pyparsing==2.0.1
 
