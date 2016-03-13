@@ -35,10 +35,11 @@ From the editor, file upload can be accessed from the nav bar at the top, under 
 When a programs syntax is checked, the errors given from pmlcheck will be parsed, and the offending portion of the code will be highlighted
 
 ###File Panel
-Allows creation and movement between files and directories.
+Allows for user specific file management. Each user has access to their own files.
 
 ###Code Completion
-Keyword and variable name completion using "ctrl space"
+Keyword and variable name completion using 'ctrl space'
 
-###Keybinding Emulation
-Accessable via settigns in navigation bar
+###Editor Settings
+Accessible from Edit > Editor settings. Allows control over:
+- Keboard Handler
