@@ -44,6 +44,11 @@ function loadSideBar(){
             $('#folder-sidebar a').click(function () {
                 var filename = $(this).text();
                 var path = $(this).attr('relative');
+                var current_file = '/' + $('#current_file_name').val();
+                if(current_file !== '/'){
+                    save_file(current_file);
+                }
+                
                 load_file(path);
             });
             
@@ -158,7 +163,6 @@ function checkIfInputFilled(but){
 var file_saved = true;
 function save_file(path){
     var info = {'path': path, 'text': ace.edit("editor").getSession().getValue()};
-    var temp = JSON.stringify(info, null, '\t');
     $.ajax({
         url: "/pml_save_file",
         method: "POST",
@@ -173,7 +177,6 @@ function save_file(path){
     });
 }
 function load_file(path){
-    get_path_save_file();
     $.ajax({
         url: "/pml_load_file",
         method: "POST",
