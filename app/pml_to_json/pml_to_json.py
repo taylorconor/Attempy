@@ -128,7 +128,7 @@ if __name__ == "__main__":
     with open(tmp_filename, 'w') as f:
         f.write(stripped)
 
-    xml = subprocess.check_output(["./TestPML", tmp_filename])
+    xml = subprocess.check_output(["parser/TestPML", tmp_filename])
     os.remove(tmp_filename)
 
 
