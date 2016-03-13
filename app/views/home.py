@@ -67,13 +67,26 @@ def pml_source_submit():
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
 def pml_save_file():
-    path = request.json["path"]
+    path = {}
+    try:
+        path = request.json["path"]
+    except:
+        path = request.form["path"]
+    text = ""
+    try:
+        text = request.json["text"]
+    except:
+        text = request.form["text"]
+
     path = secure_filename(path)
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
     print('Saved: ' + tmp_filename, file=sys.stderr)
-    f = open(tmp_filename, "w")
-    f.write(request.json["text"])
-    f.close()
+    try:
+        f = open(tmp_filename, "w")
+        f.write(text)
+        f.close()
+    except:
+        return jsonify(output = "Failed", reason = "Opening File Failed")
     return jsonify(output = 'Success')
 
 @home.route('/pml_load_file', methods=['POST'])
@@ -97,12 +110,15 @@ def createFile():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
     file_name = secure_filename(file_name)
-    if file_name[0] is "/":
-        file_name[1:]
+    if(len(file_name) < 1):
+        return jsonify(output = "Failed", reason = "Invalid Filename")
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
     # print('FilePath: ' + tmp_filename, file=sys.stderr)
-    f = open(tmp_filename, "w")
-    f.close()
+    try:
+        f = open(tmp_filename, "w")
+        f.close()
+    except:
+        return jsonify(output = "Failed", reason = "Invalid Filename")
     return jsonify(output = 'Success')
 
 @home.route('/createFolder', methods=['POST'])
@@ -170,20 +186,3 @@ def checkIfUserDirectoryExists():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config["ALLOWED_EXTENSIONS"]
-
-
-
-
-
-def shutdown_server():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-
-# This should only exist for testing purposes for obvious reasons
-@app.route('/shutdown', methods=['POST'])
-def shutdown():
-    shutdown_server()
-    return 'Server shutting down...'
-

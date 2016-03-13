@@ -158,10 +158,11 @@ function checkIfInputFilled(but){
 var file_saved = true;
 function save_file(path){
     var info = {'path': path, 'text': ace.edit("editor").getSession().getValue()};
+    var temp = JSON.stringify(info, null, '\t');
     $.ajax({
         url: "/pml_save_file",
         method: "POST",
-        data: JSON.stringify(info, null, '\t'),
+        data: JSON.stringify(info),
         contentType: 'application/json;charset=UTF-8',
         success: function(data) {
             file_saved = true;

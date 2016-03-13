@@ -14,7 +14,7 @@ sys.path.append('..')
 import urllib  # cant use urllib2 in python3 :P
 import sample_strings
 from random import randint
-from flask import Flask
+from flask import Flask, json
 from flask.ext.testing import TestCase
 from app import app, settings
 from utils import print_test_time_elapsed
@@ -60,6 +60,42 @@ class StartingTestCase(TestCase):
     def logout(self):
         return self.client.get('/logout', follow_redirects=True)
 
+    def handler_changed(self, handler):
+        data = {
+            'handler': handler
+        }
+        return self.client.post('/handler_changed', data=data, follow_redirects=True)
+
+    def pml_source_submit(self, file_name):
+        data = {
+            'data': file_name
+        }
+        return self.client.post('/pml_source_submit', data=data, follow_redirects=True)
+
+    def pml_save_file(self, path, text):
+        data = {
+            "path":path,
+            "text":text
+        }
+        headers = {'contentType': 'application/json;charset=UTF-8'}
+        return self.client.post('/pml_save_file', data=data, headers=headers, follow_redirects=True) 
+
+    def pml_load_file(self, path):
+        data = {
+            'data': path
+        }
+        return self.client.post('/pml_load_file', data=data, follow_redirects=True) 
+
+
+    def createFile(self, file_name):
+        data = {
+            'data': file_name
+        }
+        return self.client.post('/createFile', data=data, follow_redirects=True) 
+
+    def pml_load_file_sidebar(self):
+        return self.client.get('/pml_load_file_sidebar')
+
     # --------------------------------------------------------------------------
     # Simple tests to make sure server is UP
     # (does NOT use LiveServer)
@@ -103,66 +139,82 @@ class StartingTestCase(TestCase):
     def test_home_loads(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.client.get('/')
-        print(str(rv.data))
-        assert 'Please log in to access this page.' in rv.data
-        assert 'Logged in' in rv.data
+        assert rv.status_code == 200
+        assert 'id="editor"' in rv.data
+        
+    @print_test_time_elapsed
+    def test_graphic_editor_loads(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.client.get('/graphical_editor')
         assert rv.status_code == 200
-        print(str(rv.data))
-        assert 'Please log in to access this page.' in rv.data
-        
     
+    @print_test_time_elapsed
+    def test_handler_changed(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.handler_changed("vim")
+        assert rv.status_code == 200
+        assert 'Success' in rv.data 
 
-    # # --------------------------------------------------------------------------
-    # # Testing Views with GET
-    # # --------------------------------------------------------------------------
-    # @print_test_time_elapsed
-    # def test_view_form_resumo_get(self):
-    #     rv = self.client.get('/')
-    #     # print(rv.data)
-    #     assert rv.status_code == 200
-    #     assert 'Please enter your text:' in str(rv.data)
+    @print_test_time_elapsed
+    def test_createFile(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.createFile("/"+sample_strings.file_name)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data 
+        assert os.path.isfile("uploads/1/"+sample_strings.file_name) 
+        # writes over
+        rv = self.createFile("/"+sample_strings.file_name)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data 
+        assert os.path.isfile("uploads/1/"+sample_strings.file_name) 
+        # still writes over
+        rv = self.createFile(sample_strings.file_name)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data 
+        assert os.path.isfile("uploads/1/"+sample_strings.file_name)
 
-    # # --------------------------------------------------------------------------
-    # # Testing Views with POST
-    # # --------------------------------------------------------------------------
-    # @print_test_time_elapsed
-    # def test_view_form_resumo_post(self):
-    #     post_data = {'texto': self.small_str}
-    #     rv = self.client.post('/', data=post_data, follow_redirects=True)
-    #     assert rv.status_code == 200
-    #     assert 'Todos os direitos reservados' in str(rv.data)
+        rv = self.createFile("/")
+        assert rv.status_code == 200
+        assert 'Failed' in rv.data
 
+        rv = self.createFile(sample_strings.long_name)
+        assert rv.status_code == 200
+        assert 'Failed' in rv.data 
 
-    # @print_test_time_elapsed
-    # def test_view_form_resumo_post_with_textrank(self):
-    #     post_data = {'texto': self.small_str, 'algorithm': 'textrank'}
-    #     rv = self.client.post('/', data=post_data, follow_redirects=True)
-    #     assert rv.status_code == 200
-    #     assert 'Todos os direitos reservados' in str(rv.data)
+        rv = self.createFile("../../..testingDir.pml")
+        assert rv.status_code == 200
+        assert 'Success' in rv.data
+        assert os.path.isfile("uploads/1/testingDir.pml") 
 
+    @print_test_time_elapsed
+    def test_pml_save_file(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.pml_save_file(sample_strings.file_name, sample_strings.valid_pml)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data
+        assert os.path.isfile("uploads/1/"+sample_strings.file_name)
+        fd = os.open("uploads/1/"+sample_strings.file_name,os.O_RDWR)
+        ret = os.read(fd,len(sample_strings.valid_pml))
+        os.close(fd)
+        assert ret in sample_strings.valid_pml
 
-    # @print_test_time_elapsed
-    # def test_ajax_resumo_post(self):
-    #     post_data = {'texto': self.small_str}
-    #     rv = self.client.post('/ajax_resumo',
-    #                           data=post_data,
-    #                           follow_redirects=True)
-    #     assert rv.status_code == 200
-    #     # the ajax view returns nothing but the string
-    #     assert b'Todos os direitos reservados' == rv.data
+    @print_test_time_elapsed
+    def test_pml_load_file(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.pml_save_file(sample_strings.file_name, sample_strings.valid_pml)
+        fd = os.open("uploads/1/"+sample_strings.file_name,os.O_RDWR)
+        ret = os.read(fd,16)
+        os.close(fd)
+        rv = self.pml_load_file(sample_strings.file_name)
+        assert ret in rv.data
 
-
-    # @print_test_time_elapsed
-    # def test_ajax_resumo_post_with_textrank(self):
-    #     post_data = {'texto': self.small_str, 'algorithm': 'textrank'}
-    #     rv = self.client.post('/ajax_resumo',
-    #                           data=post_data,
-    #                           follow_redirects=True)
-    #     assert rv.status_code == 200
-    #     assert b'Todos os direitos reservados' == rv.data
-
-
+    @print_test_time_elapsed
+    def test_pml_load_file_sidebar(self):
+        rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.pml_load_file_sidebar()
+        assert rv.status_code == 200
+        assert sample_strings.file_name in rv.data
+    
 
 if __name__ == '__main__':
     unittest.main()
