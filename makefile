@@ -7,15 +7,20 @@ build:
 	cd peos && make
 
 	@echo "Creating virtualenv"
-	virtualenv venv
+	export PYTHONPATH=
+	virtualenv --no-site-packages --python=/usr/bin/python2.7 venv
 	. venv/bin/activate
 
 	@echo "installing additional python requirements"
-	venv/bin/pip install -r requirements
+	venv/bin/pip2.7 install -r requirements
 
 	@echo "building ace"
+	sudo ln -fs /usr/bin/nodejs /usr/bin/node
 	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
 
+	@echo "building parser"
+	cd app/pml_to_json/parser/ && make
+		
 	mkdir -p uploads
 test:
 	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db, *then* start the flask server. If you have done this, hit enter to begin the tests"')
@@ -39,9 +44,9 @@ endif
 clean:
 	@echo "Cleaning"
 	find . -name "*.pyc" -type f -delete
-	@echo "Finished cleaning"
-	venv/bin/pip uninstall -y -r requirements 
 	cd peos && make clean && cd ..
+	cd app/pml_to_json/parser && make clean 
+	venv/bin/pip uninstall -y -r requirements 
 
 distclean:
 	make clean

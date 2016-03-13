@@ -1,0 +1,65 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE PML [
+<!ELEMENT Integer EMPTY>
+<!ATTLIST Integer value CDATA #REQUIRED>
+<!ELEMENT Double EMPTY>
+<!ATTLIST Double value CDATA #REQUIRED>
+<!ELEMENT String EMPTY>
+<!ATTLIST String value CDATA #REQUIRED>
+
+<!ELEMENT STRING EMPTY>
+<!ATTLIST STRING value CDATA #REQUIRED>
+<!ELEMENT ID EMPTY>
+<!ATTLIST ID value CDATA #REQUIRED>
+<!ELEMENT NUMBER EMPTY>
+<!ATTLIST NUMBER value CDATA #REQUIRED>
+
+<!ELEMENT Process ((ID), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+
+<!ELEMENT PrimBr ((OpNmNull | OpNmId), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+<!ELEMENT PrimSeln ((OpNmNull | OpNmId), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+<!ELEMENT PrimIter ((OpNmNull | OpNmId), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+<!ELEMENT PrimSeq ((OpNmNull | OpNmId), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+<!ELEMENT PrimTask ((OpNmNull | OpNmId), (PrimBr | PrimSeln | PrimIter | PrimSeq | PrimTask | PrimAct)*)>
+<!ELEMENT PrimAct ((ID), (OptNull | OptMan | OptExec), (SpecProv | SpecReqs | SpecAgent | SpecScript | SpecTool)*)>
+
+<!ELEMENT OpNmNull (EMPTY)>
+<!ELEMENT OpNmId ((ID))>
+
+<!ELEMENT OptNull (EMPTY)>
+<!ELEMENT OptMan (EMPTY)>
+<!ELEMENT OptExec (EMPTY)>
+
+<!ELEMENT SpecProv ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+<!ELEMENT SpecReqs ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+<!ELEMENT SpecAgent ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+<!ELEMENT SpecScript ((STRING))>
+<!ELEMENT SpecTool ((STRING))>
+
+<!ELEMENT DisjExpr ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot), (DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+<!ELEMENT ConjExpr ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot), (DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+<!ELEMENT Str ((STRING))>
+<!ELEMENT RelEq ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelNe ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelLt ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelGt ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelLe ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelGe ((ValAttr | ValString | ValNum), (ValAttr | ValString | ValNum))>
+<!ELEMENT RelVeq ((VarId | VarPar | VarMore), (VarId | VarPar | VarMore))>
+<!ELEMENT RelVne ((VarId | VarPar | VarMore), (VarId | VarPar | VarMore))>
+<!ELEMENT PrimVar ((VarId | VarPar | VarMore))>
+<!ELEMENT PrimAttr ((Attr))>
+<!ELEMENT PrimNot ((DisjExpr | ConjExpr | Str | RelEq | RelNe | RelLt | RelGt | RelLe | RelGe | RelVeq | RelVne | PrimVar | PrimAttr | PrimNot))>
+
+<!ELEMENT VarId ((ID))>
+<!ELEMENT VarPar ((ID))>
+<!ELEMENT VarMore ((ID), (VarId | VarPar | VarMore))>
+
+<!ELEMENT Attr ((VarId | VarPar | VarMore), (ID))>
+
+<!ELEMENT ValAttr ((Attr))>
+<!ELEMENT ValString ((STRING))>
+<!ELEMENT ValNum ((NUMBER))>
+
+
+]>
