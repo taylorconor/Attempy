@@ -23,7 +23,7 @@ build:
 
 	mkdir -p uploads
 test:
-	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db, *then* start the flask server. If you have done this, hit enter to begin the tests"')
+	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db (if it exists), *then* start the flask server. If you have done this, hit enter to begin the tests"')
 	@echo "\n\n\n"
 	@echo "*************************"
 	@echo "Running Python unit tests"
