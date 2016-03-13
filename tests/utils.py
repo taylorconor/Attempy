@@ -11,10 +11,10 @@ def print_test_time_elapsed(method):
 
     def run(*args, **kw):
         ts = time.time()
-        print('\n\ttesting function %r' % method.__name__)
+        print('\n[..] Testing function: %r' % method.__name__)
         method(*args, **kw)
         te = time.time()
-        print('\t[OK] in %r %2.2f sec' % (method.__name__, te - ts))
+        print('[OK] in %r %2.2f sec' % (method.__name__, te - ts))
 
     return run
 

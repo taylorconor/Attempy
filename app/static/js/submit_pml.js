@@ -77,7 +77,7 @@ $('#check_syn').on('click', function() {
                 $("#syn_out_text").append("<li> Nothing to say here! </li>");
             }
 			$('#syn_out_text li').click(function() {
-                $(this).css("")
+                // $(this).css("")
                 var text = $(this).text();
                 var line_number = text.match(":(.*):")[1];
                 editor.gotoLine(line_number, 0, true);

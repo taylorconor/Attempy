@@ -18,13 +18,13 @@ def login():
     if request.method == "GET":
         return render_template("auth/login.html")
     #POST
-    print request
+    # print request
 
     email = request.form["email"]
     password = request.form["password"]
     remember = request.form.get("remember-me")
     user = User.query.filter_by(email=email).first()
-    print user
+    # print user
     if not user or user.password_hash == None: #user doesn't exist
         flash("No user with that email or user uses third party login", "danger")
         return redirect(url_for("auth.login"))

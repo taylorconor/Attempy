@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #!flask/bin/python
 
-# See: http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-vii-unit-testing
 import os
 import unittest
 import sys

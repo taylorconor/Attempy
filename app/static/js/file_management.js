@@ -173,6 +173,7 @@ function save_file(path){
     });
 }
 function load_file(path){
+    get_path_save_file();
     $.ajax({
         url: "/pml_load_file",
         method: "POST",
@@ -191,6 +192,7 @@ function load_file(path){
                     }
                 }
             }
+            editor.getSession().setUndoManager(new ace.UndoManager())
             $('#syn_out_bell').css("color", "gray");
             $("#syn_out_text").html("<li> Run syntax check to see output! </li>");
             var rows = editor.session.getLength();

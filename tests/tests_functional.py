@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 #!flask/bin/python
 
-# See:
-# http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-vii-unit-testing
-# https://pythonhosted.org/Flask-Testing/
-# http://flask.pocoo.org/docs/0.10/testing/#testing
-
 import os
 import unittest
 import tempfile
@@ -23,11 +18,6 @@ class StartingTestCase(TestCase):
     def setUp(self):
         self.client = app.test_client()
         settings.WTF_CSRF_ENABLED = False
-
-        # load sample strings
-        self.small_str = sample_strings.small_text
-        self.medium_str = sample_strings.medium_text
-        self.large_str = sample_strings.large_text
 
     def tearDown(self):
         pass
@@ -95,15 +85,6 @@ class StartingTestCase(TestCase):
 
     def pml_load_file_sidebar(self):
         return self.client.get('/pml_load_file_sidebar')
-
-    # --------------------------------------------------------------------------
-    # Simple tests to make sure server is UP
-    # (does NOT use LiveServer)
-    # --------------------------------------------------------------------------
-    @print_test_time_elapsed
-    def test_real_server_is_up_and_running(self):
-        response = urllib.urlopen(self.baseURL)
-        self.assertEqual(response.code, 200)
 
     @print_test_time_elapsed
     def test_register_loads(self):

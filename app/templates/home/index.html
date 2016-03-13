@@ -106,12 +106,14 @@ Editor
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Done</button>
+        <button id="settings_done" type="button" class="btn btn-default" data-dismiss="modal">Done</button>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block javascript %}
 <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
 <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom_ace.js') }}"></script>
@@ -126,6 +128,4 @@ var select = document.getElementById('keybinding_select');
 select.value = "{{keyboard_handler}}";
 </script>
 {% endif %}
-
-
 {% endblock %}

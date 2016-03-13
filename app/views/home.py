@@ -1,6 +1,6 @@
 from __future__ import print_function # In python 2.7
 import sys
-from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify, helpers
+from flask import Blueprint, Flask, render_template, request, redirect, send_from_directory, jsonify, helpers, flash
 from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
 from app.models import User
@@ -10,7 +10,7 @@ from werkzeug import secure_filename
 import os, io
 
 home = Blueprint('home', __name__)
-    
+
 #routes for home
 @home.route('/', methods=["GET", "POST"])
 @login_required
@@ -20,7 +20,6 @@ def index():
         if file and allowed_file(file.filename):
             #forbid path traversal attack
             filename = secure_filename(file.filename)
-            print("Caught Insecure Filename", file=sys.stderr )
             file_path = os.path.join('.' + app.config['UPLOAD_DIR'], current_user.get_id())
             file_path = os.path.join(file_path, filename)
             file.save(file_path)
@@ -32,7 +31,11 @@ def index():
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
                 return render_template("home/index.html", passed_filename=filename, source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
-
+	
+        elif not allowed_file(file.filename):
+            flash("Uploaded file must have the extension .pml", "warning")
+            return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
+	
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
 @home.route('/graphical_editor')
@@ -77,10 +80,9 @@ def pml_save_file():
         text = request.json["text"]
     except:
         text = request.form["text"]
-
     path = secure_filename(path)
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
-    print('Saved: ' + tmp_filename, file=sys.stderr)
+    # print('Saved: ' + tmp_filename, file=sys.stderr)
     try:
         f = open(tmp_filename, "w")
         f.write(text)
@@ -163,14 +165,14 @@ def make_tree(path):
             return ''
         for name in lst:
             fn = os.path.join(path, name)
-            print("name: " + name, file=sys.stderr)
+            # print("name: " + name, file=sys.stderr)
             html += '<li>'
             if os.path.isdir(fn):
                 html += '<label class="tree-toggle nav-header" style="display: inline-block">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
                 html += '<ul class="nav nav-list tree">'
                 html += make_tree(fn)
                 html += '</ul>'
-            else:    
+            else:
                 html += '<a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(name) + '</a>'
                 # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'
@@ -186,3 +188,4 @@ def checkIfUserDirectoryExists():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config["ALLOWED_EXTENSIONS"]
+

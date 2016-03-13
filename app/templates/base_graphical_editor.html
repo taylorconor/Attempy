@@ -55,11 +55,14 @@
 .left-addon input  { padding-left:  30px; }
 .right-addon input { padding-right: 30px; }
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/joint.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/graphical_editor.css') }}">
+
 {% endblock %}
 
 {% block content %}
 
-    <nav class="navbar navbar-default" style="margin-bottom:0px;border:0px">
+    <nav id="nav-bar" class="navbar navbar-default" style="margin-bottom:0px;border:0px">
       <div class="container-fluid">
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="nav1">
@@ -72,6 +75,29 @@
                 <li>
                   <a href="{{url_for('home.graphical_editor')}}">
                       <label> Graphical Editor </label>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+             <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Insert<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a onclick="insert('action')">
+                      <label> Action </label>
+                  </a>
+                  <a onclick="insert('branch')">
+                      <label> Branch </label>
+                  </a>
+                  <a onclick="insert('sequence')">
+                      <label> Sequence </label>
+                  </a>
+                  <a onclick="insert('iteration')">
+                      <label> Iteration </label>
+                  </a>
+                  <a onclick="insert('selection')">
+                      <label> Selection </label>
                   </a>
                 </li>
               </ul>
@@ -94,6 +120,13 @@
       </div><!-- /.container-fluid -->
     </nav>
 
-
-
+{% endblock %}
+{% block javascript %}
+  <script src="{{ url_for('static', filename='ace/build/src/ace.js') }}"></script>
+  <script src="{{ url_for('static', filename='ace/build/src/ext-language_tools.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/underscore.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/backbone.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/lodash.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/libraries/joint.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/graphical_editor.js') }}"></script>
 {% endblock %}

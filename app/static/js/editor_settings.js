@@ -2,7 +2,7 @@ $('#editor_settings').on('click', function() {
   $('#editor_settings_pane').modal('show');
 });
 
-$('#keybinding_select').on('change', function() {
+$('#settings_done').on('click', function() {
   var newKeyboardHandler = this.value;
   $.ajax({
 		type: 'POST',
