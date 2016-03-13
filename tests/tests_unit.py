@@ -8,7 +8,7 @@ sys.path.append('..')
 import sample_strings
 from app.views.home import allowed_file
 from utils import print_test_time_elapsed
-
+from app.pml_to_json.pml_to_json import parse
 
 class TestCase(unittest.TestCase):
 
@@ -29,6 +29,12 @@ class TestCase(unittest.TestCase):
         assert not allowed_file("")
         assert not allowed_file(".........")
 
+    def test_pml_to_json(self):
+        filename = "commit_changes_testfile.pml"
+        d = parse(filename)
+        print d["process"]["name"]
+        assert d["process"]["name"] == "commit_change"
+        assert len( d["process"]["contains"].keys() ) == 2
 
 
 if __name__ == '__main__':
