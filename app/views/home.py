@@ -81,6 +81,7 @@ def pml_save_file():
     except:
         text = request.form["text"]
     path = secure_filename(path)
+    checkIfUserDirectoryExists()
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
     # print('Saved: ' + tmp_filename, file=sys.stderr)
     try:
