@@ -60,7 +60,7 @@ def pml_source_submit():
     tmp_filename = os.path.join(tmp_filename, file_name)
     checkIfUserDirectoryExists()
     try:
-            p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
         return render_template("home/pml_res_fatal_error.html", error = e)
 
@@ -70,7 +70,7 @@ def pml_source_submit():
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
 def pml_save_file():
-    path = {}
+    path = ""
     try:
         path = request.json["path"]
     except:

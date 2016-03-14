@@ -4,7 +4,7 @@ build:
 	git submodule update
 
 	@echo "Compiling pmlcheck"
-	#cd peos && make
+	cd peos && make
 
 	@echo "Creating virtualenv"
 	export PYTHONPATH=
