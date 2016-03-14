@@ -75,5 +75,8 @@ This generated a JSON representation of the PML source for use with the boxes an
 
 ###PML generator
 
+##Notes
+To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen
+
 ##Known issues
 A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.
