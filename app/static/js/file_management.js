@@ -44,15 +44,12 @@ function loadSideBar(){
             $('#folder-sidebar a').click(function () {
                 var filename = $(this).text();
                 var path = $(this).attr('relative');
-                var current_file = '/' + $('#current_file_name').val();
-                if(current_file !== '/'){
-                    save_file(current_file);
-                }
+
                 
                 load_file(path);
             });
             
-            $('#folder-sidebar .fa-plus-circle').click(function () {
+            $('#folder-sidebar .fa').click(function () {
                 var path = '';
                 var current_folder = $(this).prev();
                 var parents = current_folder.parents('#folder-sidebar ul');
@@ -89,7 +86,6 @@ function loadSideBar(){
                     },
                     success: function(data) {
                         $('#newFileDirectoryName').val('');
-                        editor.setValue('');
                         loadSideBar();
                     }
                 });                
