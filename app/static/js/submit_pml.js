@@ -67,6 +67,44 @@ $('#check_syn').on('click', function() {
 
             } else {
                 $('#syn_out_bell').css("color", "green");
+
+                var warning = data.output;
+                //error of the form: tmp/pmlcheck_output:1: syntax error at dsaff 
+                //match the integer value between two colons to get the line number of the error:
+                var warning_arr = warning.split("\n");
+                var line_no_arr = [];
+                for(var i=0; i<warning_arr.length; i++){
+                    if( warning_arr[i].match(":(.*):") != null){
+                        var line_number = warning_arr[i].match(":(.*):")[1];
+                        line_number -= 1;
+                        line_no_arr.push(line_number);
+                    }
+                }
+
+                // var word_arr = warning.split(" ");
+                // var word = $.trim(word_arr[word_arr.length - 1]);
+                var annotations =[];
+                for(var i=0; i< line_no_arr.length; i++){
+                    annotations.push({row: line_no_arr[i], type: "warning", text: warning_arr[i]});
+                }
+                //Register error with ace and give tooltip description
+                editor.session.setAnnotations(annotations);
+
+                //draw line in the gutter 
+                // editor.session.addGutterDecoration(line_number, 'ace_error');
+
+                // //highlight the offending word
+                // var Range = ace.require("ace/range").Range
+
+                //get line that error is on
+                // var error_line = editor.session.getLine(line_number);
+
+                // var start_index = error_line.indexOf(word);
+
+                // if (start_index >= 0) {
+                //     var end_index = start_index + word.length;
+                //     erroneousLine = editor.session.addMarker(new Range(line_number, start_index, line_number, end_index), "error_highlight", "text");
+                // }
             }
             var lines = data.output.split("\n");
             $("#syn_out_text").empty();
