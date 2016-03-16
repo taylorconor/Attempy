@@ -49,7 +49,7 @@ function loadSideBar(){
                 load_file(path);
             });
             
-            $('#folder-sidebar .fa').click(function () {
+            $('#folder-sidebar label~.fa').click(function () {
                 var path = '';
                 var current_folder = $(this).prev();
                 var parents = current_folder.parents('#folder-sidebar ul');
@@ -108,6 +108,22 @@ function loadSideBar(){
                     },
                     success: function(data) {
                         $('#newFileDirectoryName').val('');
+                        loadSideBar();
+                    }
+                });
+            });
+            $('#folder-sidebar .delete_icon').click(function() {
+                var path = $(this).parent().children('a').attr('relative')
+                $.ajax({
+                    url: "/deleteFile",
+                    method: "POST",
+                    data: {
+                        data: path
+                    },
+                    success: function(data) {
+                        if(path === $('#newFileDirectoryName').val()){
+                            $('#newFileDirectoryName').val('')
+                        }
                         loadSideBar();
                     }
                 });
@@ -250,8 +266,4 @@ $(document).ready(function (){
         $('#current_file_name').val('');
         get_path_save_file();
     });
-    if(window.location.hash.length > 1){
-        var hash = window.location.hash;
-        load_file(hash.substring(1));
-    }
 })

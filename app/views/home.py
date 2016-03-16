@@ -135,6 +135,21 @@ def createFolder():
     os.mkdir(tmp_filename);
     return jsonify(output = 'Success')
 
+@home.route('/deleteFile', methods=['POST'])
+@login_required
+def deleteFile():
+    checkIfUserDirectoryExists()
+    file_name = request.form["data"]
+    file_name = secure_filename(file_name)
+    if(len(file_name) < 1):
+        return jsonify(output = "Failed", reason = "Invalid Filename")
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    try:
+        os.remove(tmp_filename);
+    except:
+        return jsonify(output = "Failed", reason = "Invalid Filename")
+    return jsonify(output = 'Success')
+
 @home.route('/pml_load_file_sidebar', methods=['GET'])
 @login_required
 def pml_load_file_sidebar():
@@ -169,12 +184,17 @@ def make_tree(path):
             # print("name: " + name, file=sys.stderr)
             html += '<li>'
             if os.path.isdir(fn):
-                html += '<label class="tree-toggle nav-header" style="display: inline-block">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
+                html += '<label class="tree-toggle nav-header">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory"></i>'
                 html += '<ul class="nav nav-list tree">'
                 html += make_tree(fn)
                 html += '</ul>'
             else:
-                html += '<a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(name) + '</a>'
+                max_length = 14
+                if(len(str(name)) > max_length):
+                    shorterName = str(name)[0:max_length-3] + "..."
+                    html += '<i class="fa fa-trash-o delete_icon" data-toggle="modal" data-target="#delete_file"></i><a href="#' + name + '" title="' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(shorterName) + '</a>'
+                else:
+                    html += '<i class="fa fa-trash-o delete_icon" data-toggle="modal" data-target="#delete_file"></i><a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + name + '</a>'
                 # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'
     return html
