@@ -229,3 +229,19 @@ window.addEventListener("beforeunload", function (e) {
     }
     
 });
+
+$(document).ready(function (){
+    $('#dropdown_new_file').on('click', function(){
+        $('#folder-sidebar .fa:first').trigger("click");
+    });
+    $('.modal input[type=text]').keypress(function(e) {
+        if(e.which == 13) {
+            $(this).blur();
+            $(this).parents('.modal').find("button:contains('Submit')").focus().click();
+        }
+    });
+    $('#submit_save_as').on('click', function(){
+        $('#current_file_name').val('');
+        get_path_save_file();
+    });
+})
