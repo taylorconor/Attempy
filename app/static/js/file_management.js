@@ -173,6 +173,10 @@ function save_file(path){
     });
 }
 function load_file(path){
+    if(path.length < 1){
+        return;
+    }
+    var storedPath = path;
     $.ajax({
         url: "/pml_load_file",
         method: "POST",
@@ -200,6 +204,7 @@ function load_file(path){
             }
             ace.edit("editor").session.clearAnnotations();
             $('#current_file_name').val(path);
+            window.location.hash = "#" + storedPath;
             loadSideBar();
         }
     });
@@ -220,6 +225,7 @@ function new_file(){
 }
 
 window.addEventListener("beforeunload", function (e) {
+    $('#current_file_name').val('');
     if(!file_saved){
         var confirmationMessage = 'It looks like you have been editing something. '
                             + 'If you leave before saving, your changes will be lost.';
@@ -244,4 +250,8 @@ $(document).ready(function (){
         $('#current_file_name').val('');
         get_path_save_file();
     });
+    if(window.location.hash.length > 1){
+        var hash = window.location.hash;
+        load_file(hash.substring(1));
+    }
 })
