@@ -114,19 +114,7 @@ function loadSideBar(){
             });
             $('#folder-sidebar .delete_icon').click(function() {
                 var path = $(this).parent().children('a').attr('relative')
-                $.ajax({
-                    url: "/deleteFile",
-                    method: "POST",
-                    data: {
-                        data: path
-                    },
-                    success: function(data) {
-                        if(path === $('#newFileDirectoryName').val()){
-                            $('#newFileDirectoryName').val('')
-                        }
-                        loadSideBar();
-                    }
-                });
+                show_delete_confirmation(path);
             });
         }
     });
@@ -171,6 +159,48 @@ function checkIfInputFilled(but){
         return true;
     }
     return false;
+}
+function show_delete_confirmation(path){
+    $('#delete_warning_filename').text(path);
+    $('#delete_warning_button').val(path);
+    $('#delete_confirmation_modal').modal('show');
+}
+function delete_file(path){
+    $.ajax({
+        url: "/deleteFile",
+        method: "POST",
+        data: {
+            data: path
+        },
+        success: function(data) {
+            var temp = $('#current_file_name').val();
+            if(path === $('#current_file_name').val()){
+                $('#current_file_name').val('')
+                ace.edit("editor").setValue("");
+                //clear syntax check 
+                var editor = ace.edit("editor");
+                var markers = editor.session.$backMarkers;
+                for(var key in markers){
+                    if (markers.hasOwnProperty(key)) {
+                        if (markers[key].clazz == "error_highlight"){
+                            editor.session.removeMarker(markers[key].id);
+                        }
+                    }
+                }
+                editor.getSession().setUndoManager(new ace.UndoManager())
+                $('#syn_out_bell').css("color", "gray");
+                $("#syn_out_text").html("<li> Run syntax check to see output! </li>");
+                var rows = editor.session.getLength();
+                for (var i = 0; i < rows; i++){
+                    editor.session.removeGutterDecoration(i, 'ace_error');
+                }
+                ace.edit("editor").session.clearAnnotations();
+                window.location.hash = '#';
+            }
+            
+            loadSideBar();
+        }
+    });
 }
 var file_saved = true;
 function save_file(path){
@@ -265,5 +295,8 @@ $(document).ready(function (){
     $('#submit_save_as').on('click', function(){
         $('#current_file_name').val('');
         get_path_save_file();
+    });
+    $('#delete_warning_button').on('click', function(){
+        delete_file($(this).val());
     });
 })
