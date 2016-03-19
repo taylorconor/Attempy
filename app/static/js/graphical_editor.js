@@ -50,7 +50,8 @@ paper.off('cell:highlight cell:unhighlight').on({
 });
 
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
-    // Find the first element below that is not a link nor the dragged element itself.
+
+    //Find the first element below that is not a link nor the dragged element itself.
     var elementBelow = graph.get('cells').find(function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -60,100 +61,219 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         return false;
     });
 
+    //Find if it used to be a child.
+    var exParent = graph.get('cells').find(function(cell) {
+        if (cell instanceof joint.dia.Link) return false; // Not interested in links.
+        if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
+        if (cell.getBBox().containsPoint(g.point(grid.currentlyMoving.position.x, grid.currentlyMoving.position.y))) {
+            return true;
+        }
+        return false;
+    });
+
+    // Get elements "dropped" position
+    var elementPos = cellView.model.get('position');
+
     if (!elementBelow) {
-        var xPos = cellView.model.get('position').x;
-        var offSet = (xPos % position.fullBlockWidth > position.fullBlockWidth / 2) 
-                                ? position.fullBlockWidth - xPos % position.fullBlockWidth 
-                                : -1 * (xPos % position.fullBlockWidth);
-        xPos += offSet + position.outerPadding;
-        graph.get('cells').map(function(cell) {
-            if (xPos > cellMoving.position.x) {
-                if (cell.get("position").x < xPos && cellMoving.position.x > cellMoving.position.x) {
-                    cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
+        var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
+        var movingUp = elementPos.x > grid.currentlyMoving.position.x;
+
+        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) { 
+            //goes before the element in this grid
+            var offSet = -1 * (grid.fullBlockWidth - distanceFromNearestLowerGrid);
+        } else if (movingUp || distanceFromNearestLowerGrid < grid.outerPadding) {
+            //goes on element in this grid and this one moves
+            var offSet = -1 * distanceFromNearestLowerGrid;
+        } else {
+            //goes after this element
+            var offSet = grid.fullBlockWidth - distanceFromNearestLowerGrid;
+        }
+
+        //set x pos
+        elementPos.x += offSet + grid.outerPadding;
+
+        //If beyond beginning or end, adjust
+        if (elementPos.x > (grid.columnsFilled - 1) * grid.fullBlockWidth) {
+            elementPos.x = (grid.columnsFilled - 1) * grid.fullBlockWidth + grid.outerPadding;
+        } else if (elementPos.x < 0) {
+            elementPos.x = grid.outerPadding;
+        }
+
+        //set y pos
+        elementPos.y = grid.outerPadding;
+
+        //translate element to correct grid place
+        cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
+
+        //If it moving from onw root to another
+        if (!exParent) {
+            graph.get('cells').map(
+                function(cell) {
+                    //Don't move the element again
+                    if (cellView.model.id === cell.id) {
+                        return;
+                    } else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
+                        //If this element has children move them the same translation.
+                        cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
+                    } else if (movingUp) { 
+                        if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
+                            //If between the start and finish move down
+                            cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                        }
+                    } else { //moving down  
+                        if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
+                            //if between start and finish move up
+                            cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                        }
+                    } 
                 }
-            } else {
-                if (cell.get("position").x > xPos && cellMoving.position.x < cellMoving.position.x) {
-                    cell.translate(position.fullBlockWidth * cellMoving.blockSize, 0);
+            );  
+        } else {
+            //If it used to have a parent
+            graph.get('cells').map(function(cell) {
+                //Don't move it again
+                if (cell.id === cellView.model.id) {
+                    return;
+                }else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
+                    //If this element has children move them the same translation.
+                    cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
+                } else if (cell.get("position").x >= elementPos.x) {
+                    //If higer than new pos move up
+                    cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                 }
-            } 
-        });  
-        cellView.model.set("position", {x: xPos + 50, y: position.outerPadding + position.actionCorrection});
-    } else {
+            }); 
+        }
+    } else if (!exParent){
+        //Moving from root into an element
         graph.get('cells').map(function(cell) {
-            //if (elementBelow.id !== cell.id) {
-                if (xPos > cellMoving.position.x) {
-                    if (cell.get("position").x < cellView.position.x) {
-                        cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
-                    }
-                } 
-            //}
+            //If cell higher than old position move down
+            if (cell.get("position").x > grid.currentlyMoving.position.x) {
+                cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+            }
         }); 
-    }
-    
+    } //Nothing to do if moving from element to element
 });
 
-var cellMoving = {};
+
 paper.on('cell:pointerdown', function(cellView, evt, x, y) {
-    cellMoving.position = cellView.model.get('position');
-    cellMoving.blockSize = cellView.model.get('blockSize');
+    grid.currentlyMoving.position = cellView.model.get('position');
+    grid.currentlyMoving.columnWidth = cellView.model.get('columnWidth');
 });
 
+//Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
-    graph.addCell(getElement(type));  
+    graph.addCell(grid.addElement(type));  
 }
 
-var getElement = function(type) {
-    type = type || "branch";
-    switch(type) {
-        case "branch":
-        case "sequence":
-        case "iteration": 
-        case "selection": {
-            var el = new joint.shapes.devs.Coupled({
-                position: position.addOuterElement(1),
-                size: position.complexBlockSize,
-                attrs: { text: { text: type } },
-                blockSize: 1
-            });
-            el.on("change:embeds", function(el, children) { position.addChild(el, children, type); console.log(arguments); });
-            return el;
-        } break;
-        case "action": {
-            var el = new joint.shapes.html.Element({ 
-                position: position.addOuterElement(1, true), 
-                size: position.actionSize,
-                label: 'Action',
-                blockSize: 1
-            });
-            el.on("change:parent", function() { console.log(arguments)});
-            return el;
-        }
-    }
-}
+// var getElement = function(type) {
+//     type = type || "branch";
+//     switch(type) {
+//         case "branch":
+//         case "sequence":
+//         case "iteration": 
+//         case "selection": {
+//             grid.addOuterElement(type);
+//             var el = new joint.shapes.devs.Coupled({
+//                 size: grid.complexBlockSize,
+//                 attrs: { text: { text: type } },
+//                 columnWidth: 1
+//             });
+//             position: grid.addOuterElement(1),
+//             startColumn: -1
 
-var position = {
+//             el.on("change:embeds", function(el, children) { grid.addChild(el, children, type); console.log(arguments); });
+//             return el;
+//         } break;
+//         case "action": {
+//             var el = new joint.shapes.html.Element({ 
+//                 position: grid.addOuterElement(1, true), 
+//                 size: grid.actionSize,
+//                 label: 'Action',
+//                 columnWidth: 1,
+//                 startColumn: -1
+//             });
+//             el.on("change:parent", function() { console.log(arguments)});
+//             return el;
+//         }
+//     }
+// }
+
+var grid = {
 
     //Block size contants
     outerPadding: 50,
-    innerPadding: 20,
+    childPadding: 20,
     actionCorrection: 50,
     actionSize: {width: 260, height: 260},
     complexBlockSize: {width: 300, height: 300},
     fullBlockWidth: 400,
+    actionHeight: 600,
 
-    numOuterGridsFilled: 0,
-    addOuterElement: function(size, isAction) {
-        var blockPos = this.fullBlockWidth * this.numOuterGridsFilled;
-        this.numOuterGridsFilled += size;
-        var pos = { x: blockPos + this.outerPadding, y: this.outerPadding };
-        if (isAction) {
+    columnsFilled: 0,
+    currentlyMoving: {},
+
+    //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
+    addElement: function(type) {
+        var self = this;
+        var blockWidth = blockWidth || 1;
+        var innerPos = innerPos === undefined ? -1 : innerPos; 
+        var parent = parent || null;
+
+        if (type == "action") {
+            var el = new joint.shapes.html.Element({ 
+                position: self.getPos(type, 1), 
+                size: self.actionSize,
+                label: 'Action',
+                columnWidth: 1,
+                startColumn: self.columnsFilled
+            });
+        } else {
+            var el = new joint.shapes.devs.Coupled({
+                position: self.getPos(type, 1), 
+                size: self.complexBlockSize,
+                attrs: { text: { text: type } },
+                columnWidth: 1,
+                startColumn: self.columnsFilled
+            });
+        }      
+        return el;
+    },
+    getPos: function(type, blockWidth, innerPos, parent) {
+        var self = this;
+        var innerPos = innerPos || -1;
+        
+        
+        if (innerPos < 0) {
+            var pos = { x: this.fullBlockWidth * this.columnsFilled + this.outerPadding, y: this.outerPadding };
+            if (type == "action") {
+                pos.y += this.actionCorrection;
+            }
+            this.columnsFilled += blockWidth;
+        } else {
+            var pos = parent.get
             pos.y += this.actionCorrection;
+            switch (parent) {
+                case "branch":
+                case "selection": {
+                    pos.x += self.childPadding;
+                    pos.y += self.childPadding  + (self.childPadding + self.actionHeight) * innerPos;
+                } break;
+
+                case "sequence":
+                case "iteration": {
+                    pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
+                    pos.y += self.childPadding;
+                } break;
+                
+                default: return undefined;
+            }
         }
+
         return pos;
     },
     removeOuterElement: function(elPos, size) {
-        this.numOuterGridsFilled -= size;
+        this.columnsFilled -= size;
     },
     addChild: function(parent, children, type) {
         var self = this;
@@ -166,10 +286,10 @@ var position = {
                 var size = self.complexBlockSize;
                 size.height *= children.length;
                 parent.resize(size.width, size.height);
-                parent.set('blockSize', children.length);
+                parent.set('columnWidth', children.length);
                 var pos = parentPos;
-                pos.y += self.innerPadding + innerPos * self.fullBlockWidth;
-                pos.x += self.innerPadding;
+                pos.y += self.childPadding + innerPos * self.fullBlockWidth;
+                pos.x += self.childPadding;
                 var child = graph.get('cells').find(function(cell) {
                     return cell.id == children[children.length - 1];
                 });
@@ -181,14 +301,17 @@ var position = {
                 size.width *= children.length;
                 parent.resize(size.width, size.height);
                 var pos = parentPos;
-                pos.x += self.innerPadding + innerPos * self.fullBlockWidth;
-                pos.y += self.innerPadding;
+                pos.x += self.childPadding + innerPos * self.fullBlockWidth;
+                pos.y += self.childPadding;
                 child.model.set("position", pos);
             }
 
         }
     },
-    removeChild: function(child, children, type, parent){}
+    removeChild: function(child, children, type, parent){},
+    removeElement: function(event, element){
+        console.log(arguments);
+    }
 }
 
 
@@ -266,6 +389,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
+        grid.removeElement(evt, this);
         this.$box.remove();
     }, 
     addreq: function(){
