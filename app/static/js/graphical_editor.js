@@ -138,7 +138,7 @@ var position = {
     outerPadding: 50,
     innerPadding: 20,
     actionCorrection: 50,
-    actionSize: {width: 260, height: 260},
+    actionSize: {width: 260, height: 300},
     complexBlockSize: {width: 300, height: 300},
     fullBlockWidth: 400,
 
@@ -210,18 +210,34 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         '<div class="html-element">',
         '<button class="delete">x</button>',
-        '<label></label><span></span>', 
-        '<input id="name1" type="text" value="Enter Action Name" />',         
-        '<input id = "script" type="text" value="Enter Script" /> ',
-        '<div class="requires"><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="reqAdd">add</button>',
-        '<div class="provides"><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="provAdd">add</button>',
-        '<div class="agent"><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="ageAdd">add</button>',
-        '<div class="tool"><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="toolAdd">add</button>',
+        '<label></label><span></span><br>', 
+        '<input class="full " id="name1" type="text" placeholder="Enter Action Name" /><br>',         
+        '<input class="full " id = "script" type="text" placeholder="Enter Script" /> ',
+        //requires
+        '<br>Requires:<br>',
+        '<div class="requires"><input type="text" placeholder="Resoure" />',
+        '.<input type="text" class = "" placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" placeholder="Value" /></div>',
+        '<button class=" reqAdd">add</button>',
+        //provides
+        '<br>Provides:<br>',
+        '<div class="provides"><input type="text" placeholder="Resource" />.',
+        '<input type="text" class = ""  placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" class = ""  placeholder="Value" /></div>',
+        '<button class=" provAdd">add</button>',
+        //agents
+        '<br>Agents:<br>',
+        '<div class="agent"><input type="text" placeholder="Resource" />.',
+        '<input type="text" placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" class = ""  placeholder="Value" /></div>',
+        '<button class=" ageAdd ">add</button>',
+        // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
+        // '<button class="toolAdd">add</button>',
         '</div>'
+        // drop down for oporators 
     ].join(''),
 
     initialize: function() {
@@ -263,31 +279,32 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
         this.$box.find('span').text(this.model.get('#name1'));
-        this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
+        // removed height: bbox.height to allow the div to resize to fit when things added
+        this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
         this.$box.remove();
     }, 
     addreq: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        jqueryEle.siblings('.requires').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
     }, 
     addpro: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        jqueryEle.siblings('.provides').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
     }, 
     addact: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.agent').append('<select><option>||</option><option>&&</option><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        jqueryEle.siblings('.agent').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
     }, 
-    addtool: function(){
-        jqueryEle = $(this);
-        jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    }
+    // addtool: function(){
+    //     jqueryEle = $(this);
+    //     jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
+    //     // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
+    // }
 });
 
 var getOutput = function() {
