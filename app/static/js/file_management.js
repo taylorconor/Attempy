@@ -49,7 +49,7 @@ function loadSideBar(){
                 load_file(path);
             });
             
-            $('#folder-sidebar .fa').click(function () {
+            $('#folder-sidebar label~.fa').click(function () {
                 var path = '';
                 var current_folder = $(this).prev();
                 var parents = current_folder.parents('#folder-sidebar ul');
@@ -112,6 +112,10 @@ function loadSideBar(){
                     }
                 });
             });
+            $('#folder-sidebar .delete_icon').click(function() {
+                var path = $(this).parent().children('a').attr('relative')
+                show_delete_confirmation(path);
+            });
         }
     });
 }
@@ -156,6 +160,48 @@ function checkIfInputFilled(but){
     }
     return false;
 }
+function show_delete_confirmation(path){
+    $('#delete_warning_filename').text(path);
+    $('#delete_warning_button').val(path);
+    $('#delete_confirmation_modal').modal('show');
+}
+function delete_file(path){
+    $.ajax({
+        url: "/deleteFile",
+        method: "POST",
+        data: {
+            data: path
+        },
+        success: function(data) {
+            var temp = $('#current_file_name').val();
+            if(path === $('#current_file_name').val()){
+                $('#current_file_name').val('')
+                ace.edit("editor").setValue("");
+                //clear syntax check 
+                var editor = ace.edit("editor");
+                var markers = editor.session.$backMarkers;
+                for(var key in markers){
+                    if (markers.hasOwnProperty(key)) {
+                        if (markers[key].clazz == "error_highlight"){
+                            editor.session.removeMarker(markers[key].id);
+                        }
+                    }
+                }
+                editor.getSession().setUndoManager(new ace.UndoManager())
+                $('#syn_out_bell').css("color", "gray");
+                $("#syn_out_text").html("<li> Run syntax check to see output! </li>");
+                var rows = editor.session.getLength();
+                for (var i = 0; i < rows; i++){
+                    editor.session.removeGutterDecoration(i, 'ace_error');
+                }
+                ace.edit("editor").session.clearAnnotations();
+                window.location.hash = '#';
+            }
+            
+            loadSideBar();
+        }
+    });
+}
 var file_saved = true;
 function save_file(path){
     var info = {'path': path, 'text': ace.edit("editor").getSession().getValue()};
@@ -173,6 +219,10 @@ function save_file(path){
     });
 }
 function load_file(path){
+    if(path.length < 1){
+        return;
+    }
+    var storedPath = path;
     $.ajax({
         url: "/pml_load_file",
         method: "POST",
@@ -200,6 +250,7 @@ function load_file(path){
             }
             ace.edit("editor").session.clearAnnotations();
             $('#current_file_name').val(path);
+            window.location.hash = "#" + storedPath;
             loadSideBar();
         }
     });
@@ -220,6 +271,7 @@ function new_file(){
 }
 
 window.addEventListener("beforeunload", function (e) {
+    $('#current_file_name').val('');
     if(!file_saved){
         var confirmationMessage = 'It looks like you have been editing something. '
                             + 'If you leave before saving, your changes will be lost.';
@@ -229,3 +281,22 @@ window.addEventListener("beforeunload", function (e) {
     }
     
 });
+
+$(document).ready(function (){
+    $('#dropdown_new_file').on('click', function(){
+        $('#folder-sidebar .fa:first').trigger("click");
+    });
+    $('.modal input[type=text]').keypress(function(e) {
+        if(e.which == 13) {
+            $(this).blur();
+            $(this).parents('.modal').find("button:contains('Submit')").focus().click();
+        }
+    });
+    $('#submit_save_as').on('click', function(){
+        $('#current_file_name').val('');
+        get_path_save_file();
+    });
+    $('#delete_warning_button').on('click', function(){
+        delete_file($(this).val());
+    });
+})

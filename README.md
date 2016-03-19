@@ -46,7 +46,10 @@ Allows Vim and Emacs emulation, as well as plain emulation (mouse-click editing)
 ###Error highlighting
 Displays PML syntax errors inline in the editor.
 Error highlighting runs when the syntax is checked with “File->Check Syntax” in the navigation bar at the top of the editor. Error highlighting parses the error returned from peos and uses the line  number / offending word to highlight. 
-To clear errors, change the code and re-check the syntax. 
+To clear errors, change the code and re-check the syntax.
+
+###Warning Highlighting
+Warning icons are displayed beside the line numbers. When hovered over these will display the warnings associated with that line. The warnings are also displayed when the bell icon is clicked on. These warnings can be clicked on to bring you to the line containing the warning.
 
 ###Authentication
 Authentication works with Google, Github, Facebook, or alternatively a local account for the IDE

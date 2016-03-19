@@ -29,7 +29,6 @@ $('#check_syn').on('click', function() {
             }
 
             editor.session.clearAnnotations();
-
             if (data.return_code > 0) {
                 $('#syn_out_bell').css("color", "red");
                 
