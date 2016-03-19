@@ -101,6 +101,9 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
         //set y pos
         elementPos.y = grid.outerPadding;
+        if (cellView.model instanceof joint.shapes.html.Element) {
+            elementPos.y += grid.outerPadding;
+        }
 
         //translate element to correct grid place
         cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
