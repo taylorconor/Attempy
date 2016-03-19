@@ -166,38 +166,6 @@ var insert = function(type) {
     graph.addCell(grid.addElement(type));  
 }
 
-// var getElement = function(type) {
-//     type = type || "branch";
-//     switch(type) {
-//         case "branch":
-//         case "sequence":
-//         case "iteration": 
-//         case "selection": {
-//             grid.addOuterElement(type);
-//             var el = new joint.shapes.devs.Coupled({
-//                 size: grid.complexBlockSize,
-//                 attrs: { text: { text: type } },
-//                 columnWidth: 1
-//             });
-//             position: grid.addOuterElement(1),
-//             startColumn: -1
-
-//             el.on("change:embeds", function(el, children) { grid.addChild(el, children, type); console.log(arguments); });
-//             return el;
-//         } break;
-//         case "action": {
-//             var el = new joint.shapes.html.Element({ 
-//                 position: grid.addOuterElement(1, true), 
-//                 size: grid.actionSize,
-//                 label: 'Action',
-//                 columnWidth: 1,
-//                 startColumn: -1
-//             });
-//             el.on("change:parent", function() { console.log(arguments)});
-//             return el;
-//         }
-//     }
-// }
 
 var grid = {
 
