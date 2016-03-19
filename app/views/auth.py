@@ -11,19 +11,20 @@ auth = Blueprint('auth', __name__)
 #Routes 
 @auth.route('/login', methods=["GET", "POST"])
 def login():
+    # import pdb; pdb.set_trace()
     if current_user.is_authenticated:
-        return redirect(url_for('home.index'))
+        return redirect(url_for('home.index')) 
 
     if request.method == "GET":
         return render_template("auth/login.html")
-
     #POST
-    print request
+    # print request
+
     email = request.form["email"]
     password = request.form["password"]
     remember = request.form.get("remember-me")
     user = User.query.filter_by(email=email).first()
-    print user
+    # print user
     if not user or user.password_hash == None: #user doesn't exist
         flash("No user with that email or user uses third party login", "danger")
         return redirect(url_for("auth.login"))
@@ -33,12 +34,13 @@ def login():
         flash("Logged in", "success")
         return redirect(request.args.get('next') or url_for('home.index'))
 
+    flash("Incorrect password","danger")
+    return redirect(url_for("auth.login"))
 
 @auth.route('/register' , methods=['GET','POST'])
 def register():
     if request.method == 'GET':
         return render_template('auth/register.html')
-
     #POST
     #TODO:
     #Check passwords match
@@ -47,7 +49,6 @@ def register():
     if user:
         flash("User already registered with that email", "warning")
         return redirect(url_for('auth.register'))
-
     user = User(email=request.form['email'], password=request.form["password"], name=request.form["name"])
     db_session.add(user)
     db_session.commit()

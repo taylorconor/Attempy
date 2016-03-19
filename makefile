@@ -1,10 +1,10 @@
-build:  
+build:
 	@echo "Fetching pmlcheck"
 	git submodule init
 	git submodule update
 
 	@echo "Compiling pmlcheck"
-	#cd peos && make
+	cd peos && make
 
 	@echo "Creating virtualenv"
 	export PYTHONPATH=
@@ -20,11 +20,25 @@ build:
 
 	@echo "building parser"
 	cd app/pml_to_json/parser/ && make
-		
+
 	mkdir -p uploads
 test:
+	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db (if it exists), *then* start the flask server. If you have done this, hit enter to begin the tests"')
+	@echo "\n\n\n"
+	@echo "*************************"
 	@echo "Running Python unit tests"
-	python ./tests/tests.py
+	@echo "*************************"
+	cd tests && ../venv/bin/python tests_unit.py && cd ..
+	@echo "\n\n\n"
+	@echo "*************************"
+	@echo "Running API tests"
+	@echo "*************************"
+	cd tests && ../venv/bin/python tests_functional.py && cd ..
+	@echo "\n\n\n"
+	@echo "*************************"
+	@echo "** Running Smoke tests **"
+	@echo "*************************"
+	cd tests && phantomjs --ssl-protocol=any smoke_test.js
 
 install:
 
@@ -32,7 +46,7 @@ verify:
 	@echo "testing pmlcheck"
 ifeq ($(wildcard peos/pml/check/pmlcheck),)
 	@echo "pmlcheck has not been built!"
-	exit 1; 
+	exit 1;
 else
 	@echo "pmlcheck OK"
 endif
@@ -42,8 +56,8 @@ clean:
 	@echo "Cleaning"
 	find . -name "*.pyc" -type f -delete
 	cd peos && make clean && cd ..
-	cd app/pml_to_json/parser && make clean 
-	venv/bin/pip uninstall -y -r requirements 
+	cd app/pml_to_json/parser && make clean
+	venv/bin/pip uninstall -y -r requirements
 
 distclean:
 	make clean

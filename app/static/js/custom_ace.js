@@ -82,9 +82,11 @@ editor.on("input", function() {
 
 $('#editor').data('editor', editor);
 
+
+
 $(window).load(function(){
-    // ace.edit("editor").setValue(""); //clears text in editor on load
     if(window.location.hash.length > 1){
-		load_file(window.location.hash.substring(1));
+        var hash = window.location.hash;
+        load_file(hash.substring(1));
     }
 });

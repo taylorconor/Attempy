@@ -20,7 +20,8 @@ def index():
         if file and allowed_file(file.filename):
             #forbid path traversal attack
             filename = secure_filename(file.filename)
-            file_path = os.path.join('.' + app.config['UPLOAD_DIR'], filename)
+            file_path = os.path.join('.' + app.config['UPLOAD_DIR'], current_user.get_id())
+            file_path = os.path.join(file_path, filename)
             file.save(file_path)
             #TODO: Check file is not ridiculously large and can fit in memory. Limit upload size
             with io.open(file_path, 'r', encoding='utf8') as f:
@@ -29,11 +30,12 @@ def index():
                 source = source.replace("\n","\\n")
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
-                return render_template("home/index.html", source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
-
+                return render_template("home/index.html", passed_filename=filename, source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
+	
         elif not allowed_file(file.filename):
             flash("Uploaded file must have the extension .pml", "warning")
-
+            return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
+	
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
 @home.route('/graphical_editor')
@@ -58,7 +60,7 @@ def pml_source_submit():
     tmp_filename = os.path.join(tmp_filename, file_name)
     checkIfUserDirectoryExists()
     try:
-            p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
         return render_template("home/pml_res_fatal_error.html", error = e)
 
@@ -68,13 +70,26 @@ def pml_source_submit():
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
 def pml_save_file():
-    path = request.json["path"]
+    path = ""
+    try:
+        path = request.json["path"]
+    except:
+        path = request.form["path"]
+    text = ""
+    try:
+        text = request.json["text"]
+    except:
+        text = request.form["text"]
     path = secure_filename(path)
+    checkIfUserDirectoryExists()
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
-    print('Saved: ' + tmp_filename, file=sys.stderr)
-    f = open(tmp_filename, "w")
-    f.write(request.json["text"])
-    f.close()
+    # print('Saved: ' + tmp_filename, file=sys.stderr)
+    try:
+        f = open(tmp_filename, "w")
+        f.write(text)
+        f.close()
+    except:
+        return jsonify(output = "Failed", reason = "Opening File Failed")
     return jsonify(output = 'Success')
 
 @home.route('/pml_load_file', methods=['POST'])
@@ -98,12 +113,15 @@ def createFile():
     checkIfUserDirectoryExists()
     file_name = request.form["data"]
     file_name = secure_filename(file_name)
-    if file_name[0] is "/":
-        file_name[1:]
+    if(len(file_name) < 1):
+        return jsonify(output = "Failed", reason = "Invalid Filename")
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
     # print('FilePath: ' + tmp_filename, file=sys.stderr)
-    f = open(tmp_filename, "w")
-    f.close()
+    try:
+        f = open(tmp_filename, "w")
+        f.close()
+    except:
+        return jsonify(output = "Failed", reason = "Invalid Filename")
     return jsonify(output = 'Success')
 
 @home.route('/createFolder', methods=['POST'])
@@ -117,6 +135,21 @@ def createFolder():
     os.mkdir(tmp_filename);
     return jsonify(output = 'Success')
 
+@home.route('/deleteFile', methods=['POST'])
+@login_required
+def deleteFile():
+    checkIfUserDirectoryExists()
+    file_name = request.form["data"]
+    file_name = secure_filename(file_name)
+    if(len(file_name) < 1):
+        return jsonify(output = "Failed", reason = "Invalid Filename")
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    try:
+        os.remove(tmp_filename);
+    except:
+        return jsonify(output = "Failed", reason = "Invalid Filename")
+    return jsonify(output = 'Success')
+
 @home.route('/pml_load_file_sidebar', methods=['GET'])
 @login_required
 def pml_load_file_sidebar():
@@ -124,7 +157,7 @@ def pml_load_file_sidebar():
     path = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id()
     html = ''
     html += '<ul class="nav nav-list">'
-    html += '<li><label class="tree-toggle nav-header" tree="relative" style="display: inline-block">Your Files</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
+    html += '<li><label class="tree-toggle nav-header" tree="relative" style="display: inline-block">Your Files</label><i class="fa fa-file-text-o" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
     html += '<ul class="nav nav-list tree">'
     html += make_tree(path)
     html += '</ul>'
@@ -148,15 +181,20 @@ def make_tree(path):
             return ''
         for name in lst:
             fn = os.path.join(path, name)
-            print("name: " + name, file=sys.stderr)
+            # print("name: " + name, file=sys.stderr)
             html += '<li>'
             if os.path.isdir(fn):
-                html += '<label class="tree-toggle nav-header" style="display: inline-block">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory" style="display: inline-block; margin-left: 5px"></i>'
+                html += '<label class="tree-toggle nav-header">'+str(name)+'</label><i class="fa fa-plus-circle" data-toggle="modal" data-target="#newFileOrDirectory"></i>'
                 html += '<ul class="nav nav-list tree">'
                 html += make_tree(fn)
                 html += '</ul>'
             else:
-                html += '<a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(name) + '</a>'
+                max_length = 14
+                if(len(str(name)) > max_length):
+                    shorterName = str(name)[0:max_length-3] + "..."
+                    html += '<i class="fa fa-trash-o delete_icon" data-toggle="modal" data-target="#delete_file"></i><a href="#' + name + '" title="' + name + '" relative=' + os.path.join(relativePath, name) + '>' + str(shorterName) + '</a>'
+                else:
+                    html += '<i class="fa fa-trash-o delete_icon" data-toggle="modal" data-target="#delete_file"></i><a href="#' + name + '" relative=' + os.path.join(relativePath, name) + '>' + name + '</a>'
                 # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'
     return html

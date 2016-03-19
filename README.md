@@ -9,7 +9,7 @@ The project is designed to be run on Ubuntu 14.04
 A number of supporting packages are required before installation. These can be installed by running:
 <pre>
 sudo apt-get update
-sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs libxslt-dev python-dev python-virtualenv happy alex ghc 
+sudo apt-get install build-essential git tcl-dev flex bison byacc check expect ncurses-dev libreadline-dev libxml2-dev python-pip nodejs npm libxslt-dev python-dev python-virtualenv happy alex ghc phantomjs 
 </pre>
 
 ##Installation instructions
@@ -46,7 +46,10 @@ Allows Vim and Emacs emulation, as well as plain emulation (mouse-click editing)
 ###Error highlighting
 Displays PML syntax errors inline in the editor.
 Error highlighting runs when the syntax is checked with “File->Check Syntax” in the navigation bar at the top of the editor. Error highlighting parses the error returned from peos and uses the line  number / offending word to highlight. 
-To clear errors, change the code and re-check the syntax. 
+To clear errors, change the code and re-check the syntax.
+
+###Warning Highlighting
+Warning icons are displayed beside the line numbers. When hovered over these will display the warnings associated with that line. The warnings are also displayed when the bell icon is clicked on. These warnings can be clicked on to bring you to the line containing the warning.
 
 ###Authentication
 Authentication works with Google, Github, Facebook, or alternatively a local account for the IDE
@@ -70,4 +73,13 @@ Agents can  be filled in in all action boxes.
 ###Predicates
 Predicates can be added in Resources and Agents.
 
+###Basic PML Display
+This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. 
 
+###PML generator
+
+##Notes
+To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen
+
+##Known issues
+A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.

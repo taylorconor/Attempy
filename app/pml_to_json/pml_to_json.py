@@ -113,13 +113,7 @@ def strip_comments(text):
     )
     return re.sub(pattern, replacer, text)
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage: ./pml_to_json.py <filename.pml>"
-        sys.exit(2)
-
-    #run the parser from this script
-    filename = sys.argv[1]
+def parse(filename):
     tmp_filename = filename+".tmp"
     #pre_processed = subprocess.check_output(["cpp", "-P", filename])
     stripped = ""
@@ -128,7 +122,8 @@ if __name__ == "__main__":
     with open(tmp_filename, 'w') as f:
         f.write(stripped)
 
-    xml = subprocess.check_output(["parser/TestPML", tmp_filename])
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "parser/")
+    xml = subprocess.check_output([path + "TestPML", tmp_filename])
     os.remove(tmp_filename)
 
 
@@ -154,7 +149,19 @@ if __name__ == "__main__":
     root = format_xml(tree.getroot())
 
 
-    print json.dumps(build_dict(root, source), indent = 2, sort_keys = True)
+    return build_dict(root, source)
 
+
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print "Usage: ./pml_to_json.py <filename.pml>"
+        sys.exit(2)
+
+    #run the parser from this script
+    filename = sys.argv[1]
+
+    print json.dumps(parse(filename), indent=2, sort_keys = True)
     #print( json.dumps (etree_to_dict(root) , indent = 1 ))
 
