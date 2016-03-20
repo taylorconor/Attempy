@@ -466,6 +466,7 @@ var getOutput = function() {
 }
 
 var setInput = function(jsonString) {
+    graph.clear();
     graph.fromJSON(jsonString); 
 }
 
