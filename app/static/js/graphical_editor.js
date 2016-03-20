@@ -140,13 +140,31 @@ var getElement = function(type) {
 }
 
 var nesting = {
+    // forcibly (e.g. not top-down) resizes an element, then bubbles up the
+    // hierarchy to maintain consistency
+    forceResize: function(el, size) {
+        el.set("size", size);
+        // now resize the entire hierarchy to adapt to el's new size
+        this.resize(el);
+    },
     resize: function(el) {
         var ancestors = el.getAncestors();
+        var toResize = null;
         if (!ancestors || ancestors.length == 0)
-            this._resize(el);
+            toResize = el;
         else {
-            console.log("ancestors.length = "+ancestors.length);
-            this._resize(ancestors[0]);
+            toResize = ancestors[0];
+        }
+        var childMinHeight = nesting.minHeight(toResize);
+        if (toResize.get("size").height == childMinHeight) {
+            this._resize(toResize);
+        }
+        else {
+            var newSize = {
+                width: toResize.get("size").width,
+                height: childMinHeight
+            };
+            nesting.forceResize(toResize, newSize);
         }
     },
     // recursively resize all children inside an element. this is very useful
@@ -159,21 +177,21 @@ var nesting = {
             return;
         }
 
-        var size = el.get("size");
-        var pos = el.get("position");
-        var childSize = {
-            width: size.width - position.innerPadding*2,
-            height: ((size.height - position.innerPadding*2)/children.length) - position.innerPadding
-        }
-
+        var childWidth = el.get("size").width - position.innerPadding*2;
+        var runningHeight = 0;
         for (var i = 0; i < children.length; i++) {
             var child = children[i];
+            var childSize = {
+                width: childWidth,
+                height: nesting.minHeight(child)
+            };
             child.set("size", childSize);
             var childPos = {
-                x: pos.x + position.innerPadding,
-                y: pos.y + position.innerPadding*2 + ((childSize.height + position.innerPadding) * i)
+                x: el.get("position").x + position.innerPadding,
+                y: el.get("position").y + position.innerPadding*2 + runningHeight
             }
             child.set("position", childPos);
+            runningHeight += childSize.height + position.innerPadding;
 
             // recurse with the current child as the parent
             nesting._resize(child);
@@ -191,12 +209,6 @@ var nesting = {
             minChildHeight += nesting.minHeight(children[i]) + position.innerPadding;
         }
         return minChildHeight;
-    },
-    // forcibly (e.g. not top-down) resizes an element, then bubbles up the
-    // hierarchy to maintain consistency
-    forceResize: function(el, size) {
-        el.set("size", size);
-        this.resize(el);
     }
 };
 
@@ -252,7 +264,6 @@ var position = {
                     height: nesting.minHeight(parent)
                 }
                 nesting.forceResize(parent, size);
-                console.log("parent.size = ("+size.width+","+size.height+")");
             }
         }
         nesting.resize(parent);
