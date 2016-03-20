@@ -76,6 +76,11 @@ class StartingTestCase(TestCase):
         }
         return self.client.post('/pml_load_file', data=data, follow_redirects=True) 
 
+    def pml_to_json(self, file_name):
+        data = {
+            'data': file_name
+        }
+        return self.client.post('/get_pml_json', data=data)
 
     def createFile(self, file_name):
         data = {
@@ -196,6 +201,10 @@ class StartingTestCase(TestCase):
         assert rv.status_code == 200
         assert sample_strings.file_name in rv.data
     
+    @print_test_time_elapsed
+    def test_pml_to_json(self):
+        rv = self.pml_to_json("commit_changes_testfile.pml")
+        #TODO: finish this
 
 if __name__ == '__main__':
     unittest.main()
