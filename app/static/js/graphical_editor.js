@@ -50,7 +50,8 @@ paper.off('cell:highlight cell:unhighlight').on({
 });
 
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
-    // Find the first element below that is not a link nor the dragged element itself.
+
+    //Find the first element below that is not a link nor the dragged element itself.
     var elementBelow = graph.get('cells').find(function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -60,174 +61,278 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         return false;
     });
 
+    //Find if it used to be a child.
+    var exParent = graph.get('cells').find(function(cell) {
+        if (cell instanceof joint.dia.Link) return false; // Not interested in links.
+        if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
+        if (cell.getBBox().containsPoint(g.point(grid.currentlyMoving.position.x, grid.currentlyMoving.position.y))) {
+            return true;
+        }
+        return false;
+    });
+
+    // Get elements "dropped" position
+    var elementPos = cellView.model.get('position');
+
     if (!elementBelow) {
-        var xPos = cellView.model.get('position').x;
-        var offSet = (xPos % position.fullBlockWidth > position.fullBlockWidth / 2)
-                                ? position.fullBlockWidth - xPos % position.fullBlockWidth
-                                : -1 * (xPos % position.fullBlockWidth);
-        xPos += offSet + position.outerPadding;
+        var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
+        var movingUp = elementPos.x > grid.currentlyMoving.position.x;
+
+        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) { 
+            //goes before the element in this grid
+            var offSet = -1 * (grid.fullBlockWidth - distanceFromNearestLowerGrid);
+        } else if (movingUp || distanceFromNearestLowerGrid < grid.outerPadding) {
+            //goes on element in this grid and this one moves
+            var offSet = -1 * distanceFromNearestLowerGrid;
+        } else {
+            //goes after this element
+            var offSet = grid.fullBlockWidth - distanceFromNearestLowerGrid;
+        }
+
+        //set x pos
+        elementPos.x += offSet + grid.outerPadding;
+
+        //If beyond beginning or end, adjust
+        if (elementPos.x > (grid.columnsFilled - 1) * grid.fullBlockWidth) {
+            elementPos.x = (grid.columnsFilled - 1) * grid.fullBlockWidth + grid.outerPadding;
+        } else if (elementPos.x < 0) {
+            elementPos.x = grid.outerPadding;
+        }
+
+        //set y pos
+        elementPos.y = grid.outerPadding;
+        if (cellView.model instanceof joint.shapes.html.Element) {
+            elementPos.y += grid.outerPadding;
+        }
+
+        //translate element to correct grid place
+        cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
+
+        //If it moving from onw root to another
+        if (!exParent) {
+            graph.get('cells').map(
+                function(cell) {
+                    //Don't move the element again
+                    if (cellView.model.id === cell.id) {
+                        return;
+                    } else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
+                        //If this element has children move them the same translation.
+                        cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
+                    } else if (movingUp) { 
+                        if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
+                            //If between the start and finish move down
+                            cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                        }
+                    } else { //moving down  
+                        if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
+                            //if between start and finish move up
+                            cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                        }
+                    } 
+                }
+            );  
+        } else {
+            //If it used to have a parent
+            graph.get('cells').map(function(cell) {
+                //Don't move it again
+                if (cell.id === cellView.model.id) {
+                    return;
+                }else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
+                    //If this element has children move them the same translation.
+                    cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
+                } else if (cell.get("position").x >= elementPos.x) {
+                    //If higer than new pos move up
+                    cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                }
+            }); 
+        }
+    } else if (!exParent){
+        //Moving from root into an element
         graph.get('cells').map(function(cell) {
-            if (xPos > cellMoving.position.x) {
-                if (cell.get("position").x < xPos && cellMoving.position.x > cellMoving.position.x) {
-                    cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
-                }
-            } else {
-                if (cell.get("position").x > xPos && cellMoving.position.x < cellMoving.position.x) {
-                    cell.translate(position.fullBlockWidth * cellMoving.blockSize, 0);
-                }
+            //If cell higher than old position move down
+            if (cell.get("position").x > grid.currentlyMoving.position.x) {
+                cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
             }
-        });
-        cellView.model.set("position", {x: xPos + 50, y: position.outerPadding + position.actionCorrection});
-    } else {
-        graph.get('cells').map(function(cell) {
-            //if (elementBelow.id !== cell.id) {
-                if (xPos > cellMoving.position.x) {
-                    if (cell.get("position").x < cellView.position.x) {
-                        cell.translate(-1 * position.fullBlockWidth * cellMoving.blockSize, 0);
-                    }
-                }
-            //}
-        });
-    }
+        }); 
+    } //Nothing to do if moving from element to element
 
 });
 
-var cellMoving = {};
+
 paper.on('cell:pointerdown', function(cellView, evt, x, y) {
-    cellMoving.position = cellView.model.get('position');
-    cellMoving.blockSize = cellView.model.get('blockSize');
+    grid.currentlyMoving.position = cellView.model.get('position');
+    grid.currentlyMoving.columnWidth = cellView.model.get('columnWidth');
 });
 
+//Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
-    graph.addCell(getElement(type));
+    graph.addCell(grid.addElement(type));  
 }
 
-var getElement = function(type) {
-    type = type || "branch";
-    switch(type) {
-        case "branch":
-        case "sequence":
-        case "iteration":
-        case "selection": {
-            var el = new joint.shapes.devs.Coupled({
-                position: position.addOuterElement(1),
-                size: position.complexBlockSize,
-                attrs: { text: { text: type } },
-                childCount: 0,
-                blockSize: 1
-            });
-            el.on("change:embeds", function(el, children) {
-                position.childChanged(el, children, type);
-            });
-            el.on("change:parent", function(el) {
-                position.parentChanged(el, type);
-            });
-            return el;
-        } break;
-        case "action": {
-            var el = new joint.shapes.html.Element({
-                position: position.addOuterElement(1, true),
-                size: position.actionSize,
-                label: 'Action',
-                blockSize: 1
-            });
-            return el;
-        }
-    }
-}
 
-var position = {
+var grid = {
 
     //Block size contants
     outerPadding: 50,
-    innerPadding: 20,
+    childPadding: 20,
     actionCorrection: 50,
-    actionSize: {width: 260, height: 260},
+    actionSize: {width: 260, height: 300},
     complexBlockSize: {width: 300, height: 300},
     fullBlockWidth: 400,
-    numOuterGridsFilled: 0,
 
     // keep a copy of the last element whos parent has changed
     prevParentChanged: null,
 
-    addOuterElement: function(size, isAction) {
-        var blockPos = this.fullBlockWidth * this.numOuterGridsFilled;
-        this.numOuterGridsFilled += size;
-        var pos = { x: blockPos + this.outerPadding, y: this.outerPadding };
-        if (isAction) {
-            pos.y += this.actionCorrection;
-        }
+    actionHeight: 600,
+
+    columnsFilled: 0,
+    currentlyMoving: {},
+
+    //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
+    addElement: function(type) {
+        var self = this;
+        var blockWidth = blockWidth || 1;
+        var innerPos = innerPos === undefined ? -1 : innerPos; 
+        var parent = parent || null;
+
+        if (type == "action") {
+            var el = new joint.shapes.html.Element({ 
+                position: self.getPos(type, 1), 
+                size: self.actionSize,
+                label: 'Action',
+                columnWidth: 1,
+                startColumn: self.columnsFilled
+            });
+        } else {
+            var el = new joint.shapes.devs.Coupled({
+                position: self.getPos(type, 1), 
+                size: self.complexBlockSize,
+                attrs: { text: { text: type } },
+                columnWidth: 1,
+                childCount: 0,
+                startColumn: self.columnsFilled
+            });
+            el.on("change:embeds", function(el, children) {
+                self.childChanged(el, children, type);
+            });
+            el.on("change:parent", function(el) {
+                self.parentChanged(el, type);
+            });
+        }      
+        return el;
+    },
+    getPos: function(type, blockWidth, innerPos, parent) {
+        var self = this;
+        var innerPos = innerPos || -1;
+        
+        
+        if (innerPos < 0) {
+            var pos = { x: this.fullBlockWidth * this.columnsFilled + this.outerPadding, y: this.outerPadding };
+            if (type == "action") {
+                pos.y += this.actionCorrection;
+            }
+            this.columnsFilled += blockWidth;
+        } 
+        //THis bit needs rewriting/refactoring
+        // else {
+        //     var pos = parent.position();
+        //     pos.y += this.actionCorrection;
+        //     switch (parent) {
+        //         case "branch":
+        //         case "selection": {
+        //             pos.x += self.childPadding;
+        //             pos.y += self.childPadding  + (self.childPadding + self.actionHeight) * innerPos;
+        //         } break;
+
+        //         case "sequence":
+        //         case "iteration": {
+        //             pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
+        //             pos.y += self.childPadding;
+        //         } break;
+                
+        //         default: return undefined;
+        //     }
+        // }
+
         return pos;
     },
     removeOuterElement: function(elPos, size) {
-        this.numOuterGridsFilled -= size;
+        this.columnsFilled -= size;
     },
     childChanged: function(parent, children, type) {
         console.log("childChanged");
+        console.log(parent.get("childCount"), children.length)
         if (parent.get("childCount") < children.length) {
             parent.set("childCount", parent.get("childCount")+1);
-            position.addChild(parent, children, type);
+            this.addChild(parent, children, type);
         } else {
             parent.set("childCount", parent.get("childCount")-1);
-            position.removeChild(parent, children, type);
+            this.removeChild(parent, children, type);
         }
     },
     parentChanged: function(element, type) {
         console.log("parentChanged");
-        prevParentChanged = element;
+        this.prevParentChanged = element;
     },
     addChild: function(parent, children, type) {
+        var self = this;
         console.log("addChild");
         // search for the child object
         var child = graph.get('cells').find(function(cell) {
             return cell.id == children[children.length - 1];
         });
-
         // increase parent container size if a child is added
         if (children.length > 1) {
             var newParentSize = parent.get("size");
-            newParentSize.height = (newParentSize.height*2) - position.innerPadding;
+            newParentSize.height = (newParentSize.height*2) - this.childPadding;
             parent.set("size", newParentSize);
         }
 
         // create a new position for the child, relative to the parent. once the
         // user releases the mouse, the child will 'snap' to this new (correct) position
-        child.set("position", position.nestPosition(parent, children));
+        child.set("position", self.nestPosition(parent, children));
 
         // get the size of the child, relative to the container
-        child.set("size", position.nestSize(parent));
+        child.set("size", self.nestSize(parent));
     },
     removeChild: function(parent, children, type) {
         console.log("removeChild");
         // prevParentChanged is the object that has been removed
-        var removed = prevParentChanged;
+        var removed = this.prevParentChanged;
 
-        var newElementSize = position.unnestSize(removed);
+        var newElementSize = this.unnestSize(removed);
         removed.set("size", newElementSize);
     },
     nestSize: function(parent) {
+        var self = this;
+        console.log(self.childPadding);
         return {
-            width: parent.get("size").width - position.innerPadding*2,
-            height: parent.get("size").height - position.innerPadding*3
+            width: parent.get("size").width - self.childPadding*2,
+            height: parent.get("size").height - self.childPadding*3
         }
     },
     nestPosition: function(parent, children) {
-        var yPadding = position.innerPadding
+        var self = this;
+        var yPadding = this.childPadding
         if (children.length <= 1) {
-            yPadding += position.innerPadding;
+            yPadding += this.childPadding;
         }
         return {
-            x: parent.get("position").x + position.innerPadding,
+            x: parent.get("position").x + self.childPadding,
             y: parent.get("position").y + yPadding
         }
     },
     unnestSize: function(parent) {
+        var self = this;
         return {
-            width: parent.get("size").width + position.innerPadding*2,
-            height: parent.get("size").height + position.innerPadding*3
+            width: parent.get("size").width + self.childPadding*2,
+            height: parent.get("size").height + self.childPadding*3
         }
     },
+    removeElement: function(event, element){
+        console.log(arguments);
+    }
 }
 
 
@@ -249,18 +354,35 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         '<div class="html-element">',
         '<button class="delete">x</button>',
-        '<label></label><span></span>',
-        '<input id="name1" type="text" value="Enter Action Name" />',
-        '<input id = "script" type="text" value="Enter Script" /> ',
-        '<div class="requires"><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="reqAdd">add</button>',
-        '<div class="provides"><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="provAdd">add</button>',
-        '<div class="agent"><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="ageAdd">add</button>',
-        '<div class="tool"><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" /></div>',
-        '<button class="toolAdd">add</button>',
+
+        '<label></label><span></span><br>', 
+        '<input class="full " id="name1" type="text" placeholder="Enter Action Name" /><br>',         
+        '<input class="full " id = "script" type="text" placeholder="Enter Script" /> ',
+        //requires
+        '<br>Requires:<br>',
+        '<div class="requires"><input type="text" placeholder="Resoure" />',
+        '.<input type="text" class = "" placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" placeholder="Value" /></div>',
+        '<button class=" reqAdd">add</button>',
+        //provides
+        '<br>Provides:<br>',
+        '<div class="provides"><input type="text" placeholder="Resource" />.',
+        '<input type="text" class = ""  placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" class = ""  placeholder="Value" /></div>',
+        '<button class=" provAdd">add</button>',
+        //agents
+        '<br>Agents:<br>',
+        '<div class="agent"><input type="text" placeholder="Resource" />.',
+        '<input type="text" placeholder="attribute" />',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<input type="text" class = ""  placeholder="Value" /></div>',
+        '<button class=" ageAdd ">add</button>',
+        // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
+        // '<button class="toolAdd">add</button>',
         '</div>'
+        // drop down for oporators 
     ].join(''),
 
     initialize: function() {
@@ -302,9 +424,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
         this.$box.find('span').text(this.model.get('#name1'));
-        this.$box.css({ width: bbox.width, height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
+        // removed height: bbox.height to allow the div to resize to fit when things added
+        this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
+        grid.removeElement(evt, this);
         this.$box.remove();
     },
     addreq: function(){
@@ -322,11 +446,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         jqueryEle.siblings('.agent').append('<select><option>||</option><option>&&</option><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
         // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
     },
-    addtool: function(){
-        jqueryEle = $(this);
-        jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    }
+    // addtool: function(){
+    //     jqueryEle = $(this);
+    //     jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    //     // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    // }
+
 });
 
 var getOutput = function() {

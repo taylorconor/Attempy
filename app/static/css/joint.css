@@ -139,7 +139,7 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
    cursor: move;
    cursor: -webkit-grab;
    cursor: -moz-grab;
-/*   display: none;   */   /* setting `display: none` on .marker-arrowheads effectivelly switches of links reconnecting */
+   display: none;      /* setting `display: none` on .marker-arrowheads effectivelly switches of links reconnecting */
 }
 .link-tools {
    opacity: 0;
@@ -237,4 +237,79 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
     vertical-align: middle;
     display: table-cell;
     padding: 0px 5px 0px 5px;
+}
+
+/*make html pretty */
+
+.html-element {
+   /*display: inline-block;*/
+   position: absolute;
+   background: #3498DB;
+   /* Make sure events are propagated to the JointJS element so, e.g. dragging works.*/
+   pointer-events: none;
+   -webkit-user-select: none;
+   border-radius: 4px;
+   border: 2px solid #2980B9;
+   box-shadow: inset 0 0 5px black, 2px 2px 1px gray;
+   padding: 5px;
+   box-sizing: border-box;
+   z-index: 2;
+   height:auto;
+   color: black;
+}
+.html-element select,
+.html-element input,
+.html-element button {
+   /* Enable interacting with inputs only. */
+   pointer-events: auto; 
+}
+.html-element button.delete {
+   color: white;
+   border: none;
+   background-color: #C0392B;
+   border-radius: 20px;
+   width: 15px;
+   height: 15px;
+   line-height: 15px;
+   text-align: middle;
+   position: absolute;
+   top: -15px;
+   left: -15px;
+   padding: 0;
+   margin: 0;
+   font-weight: bold;
+   cursor: pointer;
+}
+.html-element button.delete:hover {
+   width: 20px;
+   height: 20px;
+   line-height: 20px;
+}
+.html-element select {
+   /*position: absolute;*/
+   /*right: 2px;*/
+   /*bottom: 28px;*/
+}
+.html-element input {
+   /*position: absolute;*/
+   border: "border-color:gray";
+   color: #333;
+   padding: 5px;
+   width: 65px;
+   font-size: 12px;  
+
+}
+.html-element input.full{
+  width: 150px;
+}
+.html-element label {
+   color: #333;
+   font-weight: bold;
+}
+.html-element span {
+   /*position: absolute;*/
+   top: 2px;
+   right: 9px;
+   color: white;
+   font-size: 10px;
 }
