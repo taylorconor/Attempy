@@ -3,7 +3,7 @@ $('#editor_settings').on('click', function() {
 });
 
 $('#settings_done').on('click', function() {
-  var newKeyboardHandler = this.value;
+  var newKeyboardHandler = $('#keybinding_select').val();
   $.ajax({
 		type: 'POST',
 		url: 'handler_changed',
@@ -11,5 +11,6 @@ $('#settings_done').on('click', function() {
 		dataType: 'text',
 		crossDomain: 'true'
 	});
+  console.log("new keyboard handler = "+newKeyboardHandler);
   editor.setKeyboardHandler(newKeyboardHandler);
 });
