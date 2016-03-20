@@ -1,3 +1,5 @@
+"use strict";
+
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
@@ -112,7 +114,7 @@ var getElement = function(type) {
         case "selection": {
             var el = new joint.shapes.devs.Coupled({
                 position: position.addOuterElement(1),
-                size: position.complexBlockSize,
+                size: position.minSize,
                 attrs: { text: { text: type } },
                 childCount: 0,
                 blockSize: 1
@@ -137,6 +139,67 @@ var getElement = function(type) {
     }
 }
 
+var nesting = {
+    resize: function(el) {
+        var ancestors = el.getAncestors();
+        if (!ancestors || ancestors.length == 0)
+            this._resize(el);
+        else {
+            console.log("ancestors.length = "+ancestors.length);
+            this._resize(ancestors[0]);
+        }
+    },
+    // recursively resize all children inside an element. this is very useful
+    // if the parent of a deeply nested structure resizes; it will allow the
+    // entire structure to adapt.
+    _resize: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            // no children to resize
+            return;
+        }
+
+        var size = el.get("size");
+        var pos = el.get("position");
+        var childSize = {
+            width: size.width - position.innerPadding*2,
+            height: ((size.height - position.innerPadding*2)/children.length) - position.innerPadding
+        }
+
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            child.set("size", childSize);
+            var childPos = {
+                x: pos.x + position.innerPadding,
+                y: pos.y + position.innerPadding*2 + ((childSize.height + position.innerPadding) * i)
+            }
+            child.set("position", childPos);
+
+            // recurse with the current child as the parent
+            nesting._resize(child);
+        }
+    },
+    // finds the minimum possible height of an element
+    minHeight: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            return position.minHeight;
+        }
+
+        var minChildHeight = position.innerPadding*2;
+        for (var i = 0; i < children.length; i++) {
+            minChildHeight += nesting.minHeight(children[i]) + position.innerPadding;
+        }
+        return minChildHeight;
+    },
+    // forcibly (e.g. not top-down) resizes an element, then bubbles up the
+    // hierarchy to maintain consistency
+    forceResize: function(el, size) {
+        el.set("size", size);
+        this.resize(el);
+    }
+};
+
 var position = {
 
     //Block size contants
@@ -144,12 +207,17 @@ var position = {
     innerPadding: 20,
     actionCorrection: 50,
     actionSize: {width: 260, height: 260},
-    complexBlockSize: {width: 300, height: 300},
     fullBlockWidth: 400,
     numOuterGridsFilled: 0,
 
     // keep a copy of the last element whos parent has changed
     prevParentChanged: null,
+
+    // minimum element height
+    minHeight: 50,
+
+    colWidth: 400,
+    minSize: {width: 300, height: 50},
 
     addOuterElement: function(size, isAction) {
         var blockPos = this.fullBlockWidth * this.numOuterGridsFilled;
@@ -164,7 +232,6 @@ var position = {
         this.numOuterGridsFilled -= size;
     },
     childChanged: function(parent, children, type) {
-        console.log("childChanged");
         if (parent.get("childCount") < children.length) {
             parent.set("childCount", parent.get("childCount")+1);
             position.addChild(parent, children, type);
@@ -174,59 +241,37 @@ var position = {
         }
     },
     parentChanged: function(element, type) {
-        console.log("parentChanged");
-        prevParentChanged = element;
+        this.prevParentChanged = element;
     },
     addChild: function(parent, children, type) {
-        console.log("addChild");
-        // search for the child object
-        var child = graph.get('cells').find(function(cell) {
-            return cell.id == children[children.length - 1];
-        });
-
-        // increase parent container size if a child is added
-        if (children.length > 1) {
-            var newParentSize = parent.get("size");
-            newParentSize.height = (newParentSize.height*2) - position.innerPadding;
-            parent.set("size", newParentSize);
+        switch(type) {
+            case "branch":
+            case "selection": {
+                var size = {
+                    width: parent.get("size").width,
+                    height: nesting.minHeight(parent)
+                }
+                nesting.forceResize(parent, size);
+                console.log("parent.size = ("+size.width+","+size.height+")");
+            }
         }
-
-        // create a new position for the child, relative to the parent. once the
-        // user releases the mouse, the child will 'snap' to this new (correct) position
-        child.set("position", position.nestPosition(parent, children));
-
-        // get the size of the child, relative to the container
-        child.set("size", position.nestSize(parent));
+        nesting.resize(parent);
     },
     removeChild: function(parent, children, type) {
-        console.log("removeChild");
         // prevParentChanged is the object that has been removed
-        var removed = prevParentChanged;
+        var removed = this.prevParentChanged;
+        var removedSize = removed.getBBox();
 
-        var newElementSize = position.unnestSize(removed);
-        removed.set("size", newElementSize);
-    },
-    nestSize: function(parent) {
-        return {
-            width: parent.get("size").width - position.innerPadding*2,
-            height: parent.get("size").height - position.innerPadding*3
+        var size = {
+            width: parent.get("size").width,
+            height: parent.get("size").height - removedSize.height - position.innerPadding
+        };
+        if (children.length == 0) {
+            size.height = position.minHeight;
         }
-    },
-    nestPosition: function(parent, children) {
-        var yPadding = position.innerPadding
-        if (children.length <= 1) {
-            yPadding += position.innerPadding;
-        }
-        return {
-            x: parent.get("position").x + position.innerPadding,
-            y: parent.get("position").y + yPadding
-        }
-    },
-    unnestSize: function(parent) {
-        return {
-            width: parent.get("size").width + position.innerPadding*2,
-            height: parent.get("size").height + position.innerPadding*3
-        }
+
+        nesting.forceResize(parent, size);
+        nesting.resize(parent);
     },
 }
 
