@@ -465,6 +465,9 @@ var getOutput = function() {
     $("#output").html(JSON.stringify(graph));
 }
 
+var setInput = function(jsonString) {
+    graph.fromJSON(jsonString); 
+}
 
 
 var addChild = function(patent, child) {

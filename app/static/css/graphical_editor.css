@@ -72,4 +72,45 @@
 
 #paper {
     border: 3px solid #DDD;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    top: 50px;
 }
+
+#folder-sidebar{
+    position: absolute;
+    top: 50px;
+    left: 0;
+    bottom: 0;
+    background: #111111;
+    overflow-x: auto;
+}
+
+#folder-sidebar i{
+    cursor: pointer;
+}
+
+#folder-sidebar .nav li+.nav-header{margin-top:9px;}
+#folder-sidebar .nav-list{padding-left:0px;padding-right:0px;margin-bottom:0;}
+#folder-sidebar .nav-list a{padding-left:0px;padding-right:0px;margin-bottom:0;}
+#folder-sidebar label{
+  display: inline-block;
+}
+#folder-sidebar label~i{
+  display: inline-block;
+  margin-left: 5px;
+}
+#folder-sidebar a{
+  display: inline-block; 
+  margin-left: 15px;
+  text-indent: 5px;
+  min-width: 80%;
+}
+.delete_icon{
+  display: inline-block;
+  visibility: hidden;
+}
+#folder-sidebar li:hover > .delete_icon{
+  visibility: visible;
+} 
