@@ -30,11 +30,7 @@ class TestCase(unittest.TestCase):
         assert not allowed_file(".........")
 
     def test_pml_to_json(self):
-        filename = "commit_changes_testfile.pml"
-        d = parse(filename)
-        print d["process"]["name"]
-        assert d["process"]["name"] == "commit_change"
-        assert len( d["process"]["contains"].keys() ) == 2
+        pass
 
 
 if __name__ == '__main__':

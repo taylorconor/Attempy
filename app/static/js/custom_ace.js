@@ -60,7 +60,8 @@ editor.getSession().on('keyboardHandlerChanged', function(data) {
 // Enable Options
 editor.setOptions({
     enableBasicAutocompletion: true,
-    enableSnippets: true
+    enableSnippets: true,
+    enableLiveAutocompletion: true
 });
 
 // define keywords

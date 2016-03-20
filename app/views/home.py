@@ -7,7 +7,9 @@ from app.models import User
 from app.database import db_session
 from app import app
 from werkzeug import secure_filename
+from app.pml_to_json import pml_to_json
 import os, io
+
 
 home = Blueprint('home', __name__)
 
@@ -31,17 +33,24 @@ def index():
                 source = source.replace("\"","\\\"")
                 source = source.replace("\'","\\\'")
                 return render_template("home/index.html", passed_filename=filename, source=source, name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
-	
+
         elif not allowed_file(file.filename):
             flash("Uploaded file must have the extension .pml", "warning")
             return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
-	
+
     return render_template("home/index.html", name = current_user.name, keyboard_handler = current_user.get_keyboard_handler())
 
 @home.route('/graphical_editor')
 @login_required
 def graphical_editor():
     return render_template("home/graphical_editor.html", name=current_user.name)
+
+@home.route('/get_pml_json', methods=["GET", "POST"])
+@login_required
+def get_pml_json():
+    filename = secure_filename(request.form["data"])
+    d = pml_to_json.parse(filename)
+    return jsonify(d)
 
 @home.route('/handler_changed', methods=['POST'])
 @login_required
