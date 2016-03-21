@@ -80,7 +80,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
         var movingUp = elementPos.x > grid.currentlyMoving.position.x;
 
-        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) { 
+        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) {
             //goes before the element in this grid
             var offSet = -1 * (grid.fullBlockWidth - distanceFromNearestLowerGrid);
         } else if (movingUp || distanceFromNearestLowerGrid < grid.outerPadding) {
@@ -120,19 +120,19 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
                     } else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
                         //If this element has children move them the same translation.
                         cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
-                    } else if (movingUp) { 
+                    } else if (movingUp) {
                         if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
                             //If between the start and finish move down
                             cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                         }
-                    } else { //moving down  
+                    } else { //moving down
                         if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
                             //if between start and finish move up
                             cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                         }
-                    } 
+                    }
                 }
-            );  
+            );
         } else {
             //If it used to have a parent
             graph.get('cells').map(function(cell) {
@@ -146,7 +146,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
                     //If higer than new pos move up
                     cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                 }
-            }); 
+            });
         }
     } else if (!exParent){
         //Moving from root into an element
@@ -155,7 +155,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             if (cell.get("position").x > grid.currentlyMoving.position.x) {
                 cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
             }
-        }); 
+        });
     } //Nothing to do if moving from element to element
 
 });
@@ -169,7 +169,7 @@ paper.on('cell:pointerdown', function(cellView, evt, x, y) {
 //Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
-    graph.addCell(grid.addElement(type));  
+    graph.addCell(grid.addElement(type));
 }
 
 
@@ -211,7 +211,7 @@ var nesting = {
             return;
         }
 
-        var childWidth = el.get("size").width - grid.innerPadding*2;
+        var childWidth = el.get("size").width - grid.childPadding*2;
         var runningHeight = 0;
         for (var i = 0; i < children.length; i++) {
             var child = children[i];
@@ -221,11 +221,11 @@ var nesting = {
             };
             child.set("size", childSize);
             var childPos = {
-                x: el.get("position").x + grid.innerPadding,
-                y: el.get("position").y + grid.innerPadding*2 + runningHeight
+                x: el.get("position").x + grid.childPadding,
+                y: el.get("position").y + grid.childPadding*2 + runningHeight
             }
             child.set("position", childPos);
-            runningHeight += childSize.height + grid.innerPadding;
+            runningHeight += childSize.height + grid.childPadding;
 
             // recurse with the current child as the parent
             nesting._resize(child);
@@ -238,9 +238,9 @@ var nesting = {
             return grid.minHeight;
         }
 
-        var minChildHeight = grid.innerPadding*2;
+        var minChildHeight = grid.childPadding*2;
         for (var i = 0; i < children.length; i++) {
-            minChildHeight += nesting.minHeight(children[i]) + grid.innerPadding;
+            minChildHeight += nesting.minHeight(children[i]) + grid.childPadding;
         }
         return minChildHeight;
     }
@@ -252,7 +252,6 @@ var grid = {
     outerPadding: 50,
     childPadding: 20,
     actionCorrection: 50,
-    complexBlockSize: {width: 300, height: 300},
     actionSize: {width: 260, height: 260},
     fullBlockWidth: 400,
 
@@ -273,12 +272,12 @@ var grid = {
     addElement: function(type) {
         var self = this;
         var blockWidth = blockWidth || 1;
-        var innerPos = innerPos === undefined ? -1 : innerPos; 
+        var innerPos = innerPos === undefined ? -1 : innerPos;
         var parent = parent || null;
 
         if (type == "action") {
-            var el = new joint.shapes.html.Element({ 
-                position: self.getPos(type, 1), 
+            var el = new joint.shapes.html.Element({
+                position: self.getPos(type, 1),
                 size: self.actionSize,
                 label: 'Action',
                 columnWidth: 1,
@@ -286,8 +285,8 @@ var grid = {
             });
         } else {
             var el = new joint.shapes.devs.Coupled({
-                position: self.getPos(type, 1), 
-                size: self.complexBlockSize,
+                position: self.getPos(type, 1),
+                size: self.minSize,
                 attrs: { text: { text: type } },
                 columnWidth: 1,
                 childCount: 0,
@@ -299,21 +298,21 @@ var grid = {
             el.on("change:parent", function(el) {
                 self.parentChanged(el, type);
             });
-        }      
+        }
         return el;
     },
     getPos: function(type, blockWidth, innerPos, parent) {
         var self = this;
         var innerPos = innerPos || -1;
-        
-        
+
+
         if (innerPos < 0) {
             var pos = { x: this.fullBlockWidth * this.columnsFilled + this.outerPadding, y: this.outerPadding };
             if (type == "action") {
                 pos.y += this.actionCorrection;
             }
             this.columnsFilled += blockWidth;
-        } 
+        }
         //THis bit needs rewriting/refactoring
         // else {
         //     var pos = parent.position();
@@ -330,7 +329,7 @@ var grid = {
         //             pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
         //             pos.y += self.childPadding;
         //         } break;
-                
+
         //         default: return undefined;
         //     }
         // }
@@ -374,7 +373,7 @@ var grid = {
 
         var size = {
             width: parent.get("size").width,
-            height: parent.get("size").height - removedSize.height - self.innerPadding
+            height: parent.get("size").height - removedSize.height - self.childPadding
         };
         if (children.length == 0) {
             size.height = this.minHeight;
@@ -408,8 +407,8 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         '<div class="html-element">',
         '<button class="delete">x</button>',
 
-        '<label></label><span></span><br>', 
-        '<input class="full " id="name1" type="text" placeholder="Enter Action Name" /><br>',         
+        '<label></label><span></span><br>',
+        '<input class="full " id="name1" type="text" placeholder="Enter Action Name" /><br>',
         '<input class="full " id = "script" type="text" placeholder="Enter Script" /> ',
         //requires
         '<br>Requires:<br>',
@@ -435,7 +434,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
         // '<button class="toolAdd">add</button>',
         '</div>'
-        // drop down for oporators 
+        // drop down for oporators
     ].join(''),
 
     initialize: function() {
