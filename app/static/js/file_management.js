@@ -45,8 +45,12 @@ function loadSideBar(){
                 var filename = $(this).text();
                 var path = $(this).attr('relative');
 
-                
-                load_file(path);
+                if ($('#editor').length){
+                    load_file(path);
+                }
+                else if($('#paper').length){
+                    load_graphic_file(path);
+                }
             });
             
             $('#folder-sidebar label~.fa').click(function () {
@@ -268,6 +272,37 @@ function get_path_save_file(){
 function new_file(){
     $('#createNewFile').attr( 'folderPath', "" );
     $('#newFileOrDirectory').modal('show');
+}
+
+function load_graphic_file(path){
+    if(path.length < 1){
+        return;
+    }
+    var storedPath = path;
+    $.ajax({
+        url: "/get_pml_json",
+        method: "POST",
+        data: {
+            data: path
+        },
+        success: function(data) {
+            //TODO make this do something
+            if(data.output === "Success"){
+                setInput(data.source);
+            }
+            else{
+                //TODO Replace this with something nice
+                $('body').prepend(
+                    '<div class="alert alert-danger alert-dismissible" role="alert">'+
+                    '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
+                                    'Unable to Parse' +
+                                  '</div>');
+            }
+            $('#current_file_name').val(path);
+            window.location.hash = "#" + storedPath;
+            loadSideBar();
+        }
+    });
 }
 
 window.addEventListener("beforeunload", function (e) {

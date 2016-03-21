@@ -281,7 +281,12 @@ var grid = {
                 size: self.actionSize,
                 label: 'Action',
                 columnWidth: 1,
-                startColumn: self.columnsFilled
+                startColumn: self.columnsFilled,
+                nameIn: 'Action Name',
+                scriptIn: '',
+                RequiresIn: '',
+                ProvidesIn:'',
+                AgentsIn:''
             });
         } else {
             var el = new joint.shapes.devs.Coupled({
@@ -406,31 +411,37 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         '<div class="html-element">',
         '<button class="delete">x</button>',
-
-        '<label></label><span></span><br>',
-        '<input class="full " id="name1" type="text" placeholder="Enter Action Name" /><br>',
-        '<input class="full " id = "script" type="text" placeholder="Enter Script" /> ',
+        '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>', 
+        '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',         
+        '<input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> ',
         //requires
         '<br>Requires:<br>',
-        '<div class="requires"><input type="text" placeholder="Resoure" />',
-        '.<input type="text" class = "" placeholder="attribute" />',
-        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
-        '<input type="text" placeholder="Value" /></div>',
+        '<div class="fullReq">',
+        '<div class="requires"><input class = "reqResIn" type="text" placeholder="Resource" />',
+        '.<input type="text" class = "reqAttIn" placeholder="attribute" />',
+        '<select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
+        '<input type="text" class = "reqValIn" placeholder="Value" /></div>',
         '<button class=" reqAdd">add</button>',
+        '<button class=" reqSub">Submit</button>',
+        '</div>',
+        // uncomment to see how data is sent to graph object
+        // '<br><span class ="test"> </span><br>',
         //provides
         '<br>Provides:<br>',
         '<div class="provides"><input type="text" placeholder="Resource" />.',
-        '<input type="text" class = ""  placeholder="attribute" />',
-        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
-        '<input type="text" class = ""  placeholder="Value" /></div>',
+        '<input type="text" class = "provResIn"  placeholder="attribute" />',
+        '<select class="provOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
+        '<input type="text" class = "provValIn"  placeholder="Value" /></div>',
         '<button class=" provAdd">add</button>',
+        '<button class=" provSub">Submit</button>',
         //agents
         '<br>Agents:<br>',
         '<div class="agent"><input type="text" placeholder="Resource" />.',
         '<input type="text" placeholder="attribute" />',
-        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option>',
+        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
         '<input type="text" class = ""  placeholder="Value" /></div>',
         '<button class=" ageAdd ">add</button>',
+        '<button class=" ageSub">Submit</button>',
         // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
         // '<button class="toolAdd">add</button>',
         '</div>'
@@ -439,6 +450,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
     initialize: function() {
         _.bindAll(this, 'updateBox');
+        // _.bindAll(this, 'addreq');
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
         this.$box = $(_.template(this.template)());
@@ -449,11 +461,45 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             this.model.set('input', $(evt.target).val());
         }, this));
         this.$box.find('select').on('change', _.bind(function(evt) {
-            this.model.set('select', $(evt.target).val());
+            this.model.set('select1', $(evt.target).val());
         }, this));
-        this.$box.find('select').val(this.model.get('select'));
+        this.$box.find('.nameAction').on('change', _.bind(function(evt) {
+            this.model.set('nameIn', $(evt.target).val());
+        }, this));
+        this.$box.find('.scriptInput').on('change', _.bind(function(evt) {
+            this.model.set('scriptIn', $(evt.target).val());
+        }, this));
+        // this.$box.find('.reqResIn,.reqAttIn,.reqOpIn,.reqValIn,.reqRelOp').on('change', _.bind(function(evt) {
+        //     var values = "";
+        //     $(evt.target).parent().children().each(function (){
+        //         values += $(this).val() + ",";
+        //     });
+        //     this.model.set('RequiresIn', values); 
+        // }, this));
+        this.$box.find('select1').val(this.model.get('select'));
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
         this.$box.find('.reqAdd').on('click', this.addreq);
+        this.$box.find('.reqSub').on('click', _.bind(function(evt) {
+            var values = "";
+            $(evt.target).siblings('.requires').children().each(function (){
+                values += $(this).val() + ",";
+            });
+            this.model.set('RequiresIn', values); 
+        }, this));
+        this.$box.find('.provSub').on('click', _.bind(function(evt) {
+            var values = "";
+            $(evt.target).siblings('.provides').children().each(function (){
+                values += $(this).val() + ",";
+            });
+            this.model.set('ProvidesIn', values); 
+        }, this));
+        this.$box.find('.ageSub').on('click', _.bind(function(evt) {
+            var values = "";
+            $(evt.target).siblings('.agent').children().each(function (){
+                values += $(this).val() + ",";
+            });
+            this.model.set('AgentsIn', values); 
+        }, this));
         this.$box.find('.provAdd').on('click', this.addpro);
         this.$box.find('.ageAdd').on('click', this.addact);
         this.$box.find('.toolAdd').on('click', this.addtool);
@@ -475,7 +521,8 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         var bbox = this.model.getBBox();
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
-        this.$box.find('span').text(this.model.get('#name1'));
+        this.$box.find('label').text(this.model.get('label'));
+        this.$box.find('.name1').text(this.model.get('nameIn'));
         // removed height: bbox.height to allow the div to resize to fit when things added
         this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
@@ -485,9 +532,20 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     },
     addreq: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    },
+        jqueryEle.siblings('.requires').append('<br><select class = "reqRelOp"><option>||</option><option>&&</option></select><br><input class = "reqResIn" type="text" placeholder="Resource" />.<input type="text" class = "reqAttIn" placeholder="attribute" /><select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option><input type="text" class = "reqValIn" placeholder="Value" />');
+        
+        // joint.dia.ElementView.prototype.addreq.apply(this, arguments);
+        // var temp = this.previousElementSibling.$box;
+        // this.previousElementSibling.$box.find('.reqResIn,.reqAttIn,.reqOpIn,.reqValIn,.reqRelOp').on('change', _.bind(function(evt) {
+        //     var values = "";
+        //     $(evt.target).parent().children().each(function (){
+        //         values += $(this).val() + ",";
+        //     });
+        //     this.model.set('RequiresIn', values); 
+        // }, this));
+        
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
+    }, 
     addpro: function(){
         jqueryEle = $(this);
         jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
@@ -508,4 +566,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
 var getOutput = function() {
     $("#output").html(JSON.stringify(graph));
+}
+
+var setInput = function(jsonString) {
+    graph.clear();
+    graph.fromJSON(jsonString); 
 }

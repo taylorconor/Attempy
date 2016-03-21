@@ -2,7 +2,7 @@
 from StringIO import StringIO
 from lxml import etree
 from pyparsing import nestedExpr
-import json, re, sys, subprocess, os
+import json, re, sys, subprocess, os, pprint
 
 ###Usage: ./pml_to_json.py <filename.pml>
 ###Prints the dumped json representation
@@ -24,6 +24,111 @@ def format_xml(xml):
         elem.getparent().remove(elem)
 
     return xml
+
+def build_dict_alt(root, source, id = None, level = None):
+    d = {}
+    arr = []
+    template = {
+        "id": level,
+        "type": None,
+        "position": {"x": 0, "y": 0},
+        "angle": 0,
+        "size": {"width": 300, "height": 300},
+        "inPorts": [],
+        "outPorts": [],
+        "columnWidth": 1,
+        "startColumn": 1,
+        "embeds": [],
+        "attrs": {}
+    }
+    count = 0
+    prefix = ""
+
+    if level != None:
+        prefix = str(level) + "."
+
+    if root.tag == "Process":
+        contains = []
+
+        for i, child in enumerate(root.getchildren()):
+            if child.tag != "ID":
+                res = build_dict_alt(child, source, i, prefix + str(i))
+		if type(res) is list:
+		    arr.extend(res)
+		elif type(res) is dict:
+		    arr.append(res)
+                count += 1
+
+        #arr.extend(contains)
+        d["cells"] = arr
+        pp = pprint.PrettyPrinter(indent = 2)
+        pp.pprint(d)
+        return d
+
+    if root.tag in PRIMARY_NESTED.keys():
+        template["type"] = "devs.Coupled"
+        template["parent"] = "".join(level.rsplit(".", 1)[:-1])
+        contains = []
+        name = root.xpath('./OpNmId/ID/@value')
+        if name:
+            template["name"] = name[0]
+        for i, child in enumerate(root.getchildren()):
+            if child.tag != "ID":
+                template["embeds"].append(prefix + str(i))
+                res = build_dict_alt(child, source, i,  prefix + str(i))
+                if type(res) is list:
+                    arr.extend(res)
+                elif type(res) is dict:
+                    arr.append(res)
+                count += 1
+        #arr.append(template)
+        #arr.extend(contains)
+
+        return arr
+
+    if root.tag == "PrimAct":
+        name = root.xpath('./ID/@value')[0]
+        template["name"] = name
+        template["type"] = "html.Element"
+        template["parent"] = "".join(level.rsplit(".", 1)[:-1])
+
+
+        script = root.xpath('./SpecScript/STRING/@value')
+        agent = root.xpath('./SpecAgent//VarId/ID/@value')
+
+        action_split = source.split(name, 1)[-1]
+        nested = nestedExpr('{', '}').parseString(action_split).asList()[0]
+        requires = None
+        provides = None
+
+        try:
+            requires_index = nested.index("requires")
+            requires = "".join(nested[requires_index + 1])
+            provides_index = nested.index("provides")
+            provides = "".join(nested[provides_index + 1])
+        except: #There are no requires or provides
+            pass
+
+        """
+	if script:
+            template["attrs"]["scripts"] = script[0]
+        if agent:
+            template["attrs"]["agent"] = agent
+        if requires:
+            template["attrs"]["requires"] = requires
+        if provides:
+            template["attrs"]["provides"] = provides
+        """
+	if script:
+            template["scripts"] = script[0]
+        if agent:
+            template["agent"] = agent
+        if requires:
+            template["requires"] = requires
+        if provides:
+            template["provides"] = provides
+        #let the rest just be empty lists until figured out how to parse expressions
+        return template
 
 def build_dict(root, source, level=None):
     d = {}
@@ -148,11 +253,8 @@ def parse(filename):
     tree = etree.parse(StringIO(xml), parser)
     root = format_xml(tree.getroot())
 
-
-    return build_dict(root, source)
-
-
-
+    #build_dict_alt(root, source)
+    return build_dict_alt(root, source)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -162,6 +264,8 @@ if __name__ == "__main__":
     #run the parser from this script
     filename = sys.argv[1]
 
-    print json.dumps(parse(filename), indent=2, sort_keys = True)
+    res =  json.dumps(parse(filename), indent=2, sort_keys = True)
+    print res
+
     #print( json.dumps (etree_to_dict(root) , indent = 1 ))
 
