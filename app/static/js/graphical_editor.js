@@ -307,42 +307,47 @@ joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
 joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
     template: [
+        // '<div class="html-element">',
+        // '<button class="delete">x</button>',
+        // '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>', 
+        // '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',         
+        // '<input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> ',
+        // //requires
+        // '<br>Requires:<br>',
+        // '<div class="fullReq">',
+        // '<div class="requires"><input class = "reqResIn" type="text" placeholder="Resource" />',
+        // '.<input type="text" class = "reqAttIn" placeholder="attribute" />',
+        // '<select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
+        // '<input type="text" class = "reqValIn" placeholder="Value" /></div>',
+        // '<button class=" reqAdd">add</button>',
+        // '<button class=" reqSub">Submit</button>',
+        // '</div>',
+        // // uncomment to see how data is sent to graph object
+        // // '<br><span class ="test"> </span><br>',
+        // //provides
+        // '<br>Provides:<br>',
+        // '<div class="provides"><input type="text" placeholder="Resource" />.',
+        // '<input type="text" class = "provResIn"  placeholder="attribute" />',
+        // '<select class="provOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
+        // '<input type="text" class = "provValIn"  placeholder="Value" /></div>',
+        // '<button class=" provAdd">add</button>',
+        // '<button class=" provSub">Submit</button>',
+        // //agents
+        // '<br>Agents:<br>',
+        // '<div class="agent"><input type="text" placeholder="Resource" />.',
+        // '<input type="text" placeholder="attribute" />',
+        // '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
+        // '<input type="text" class = ""  placeholder="Value" /></div>',
+        // '<button class=" ageAdd ">add</button>',
+        // '<button class=" ageSub">Submit</button>',
+        // // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
+        // // '<button class="toolAdd">add</button>',
+        // '</div>'
+        // // drop down for oporators 
+    
         '<div class="html-element">',
-        '<button class="delete">x</button>',
-        '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>', 
-        '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',         
-        '<input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> ',
-        //requires
-        '<br>Requires:<br>',
-        '<div class="fullReq">',
-        '<div class="requires"><input class = "reqResIn" type="text" placeholder="Resource" />',
-        '.<input type="text" class = "reqAttIn" placeholder="attribute" />',
-        '<select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        '<input type="text" class = "reqValIn" placeholder="Value" /></div>',
-        '<button class=" reqAdd">add</button>',
-        '<button class=" reqSub">Submit</button>',
-        '</div>',
-        // uncomment to see how data is sent to graph object
-        // '<br><span class ="test"> </span><br>',
-        //provides
-        '<br>Provides:<br>',
-        '<div class="provides"><input type="text" placeholder="Resource" />.',
-        '<input type="text" class = "provResIn"  placeholder="attribute" />',
-        '<select class="provOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        '<input type="text" class = "provValIn"  placeholder="Value" /></div>',
-        '<button class=" provAdd">add</button>',
-        '<button class=" provSub">Submit</button>',
-        //agents
-        '<br>Agents:<br>',
-        '<div class="agent"><input type="text" placeholder="Resource" />.',
-        '<input type="text" placeholder="attribute" />',
-        '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        '<input type="text" class = ""  placeholder="Value" /></div>',
-        '<button class=" ageAdd ">add</button>',
-        '<button class=" ageSub">Submit</button>',
-        // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
-        // '<button class="toolAdd">add</button>',
-        '</div>'
+       ' <button type="button" class="btn btn-primary testBtn">Large modal</button>',
+       '</div>'
         // drop down for oporators 
     ].join(''),
 
@@ -374,6 +379,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         //     });
         //     this.model.set('RequiresIn', values); 
         // }, this));
+        this.$box.find('.testBtn').on('click', this.testFunc);
         this.$box.find('select1').val(this.model.get('select'));
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
         this.$box.find('.reqAdd').on('click', this.addreq);
@@ -407,6 +413,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.model.on('remove', this.removeBox, this);
 
         this.updateBox();
+    },
+    testFunc: function(){
+        $('#myModal').modal('show'); 
     },
     render: function() {
         joint.dia.ElementView.prototype.render.apply(this, arguments);

@@ -13,6 +13,70 @@ Editor
     <div id="paper"></div>
     <button onclick="getOutput()"></button>
     <div id="output"></div>
+    <div class="modal fade bs-example-modal-lg " id = "myModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+	  <div class="modal-dialog modal-lg">
+	    <div class="modal-content">
+
+	        <input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>         
+	        <input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> 
+	        <!-- //requires -->
+	        <br>Requires:<br>
+	        <div class="fullReq">
+	        <div class="requires">
+	        	<input class = "reqResIn" type="text" placeholder="Resource" />
+		        .<input type="text" class = "reqAttIn" placeholder="attribute" />
+		        <select class = "reqOpIn">
+		        	<option>=</option>
+		        	<option>!=</option>
+		        	<option><</option>
+		        	<option><=</option>
+		        	<option>></option>
+		        	<option>>=</option>
+		        </select>
+		        <input type="text" class = "reqValIn" placeholder="Value" />
+	        </div>
+	        <button class=" reqAdd">add</button>
+	        </div>
+	        <!-- //provides -->
+	        <br>Provides:<br>
+	        <div class="provides">
+		        <input type="text" placeholder="Resource" />.
+		        <input type="text" class = "provResIn"  placeholder="attribute" />
+		        <select class="provOpIn">
+		        	<option>=</option>
+		        	<option>!=</option>
+		        	<option><</option>
+		        	<option><=</option>
+		        	<option>></option>
+		        	<option>>=</option>
+		        </select>
+		        <input type="text" class = "provValIn"  placeholder="Value" />
+	        </div>
+	        <button class=" provAdd">add</button>
+	        <!-- //agents -->
+	        <br>Agents:<br>
+	        <div class="agent">
+	        	<input type="text" placeholder="Resource" />.
+		        <input type="text" placeholder="attribute" />
+		        <select>
+		        	<option>=</option>
+		        	<option>!=</option>
+		        	<option><</option>
+		        	<option><=</option>
+		        	<option>></option>
+		        	<option>>=</option>
+		        </select>
+		        <input type="text" class = ""  placeholder="Value" />
+	        </div>
+	        <button class=" ageAdd ">add</button>
+	    </div>
+
+	    <div class="modal-footer">
+	    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	       	<button type="button" class="btn btn-primary">Save changes</button>
+	    </div>
+	  </div>
+	</div>
 {% endblock %}
 
 {% block javascipt %}
@@ -20,3 +84,4 @@ Editor
 {% endblock %}
 
 
+ 
