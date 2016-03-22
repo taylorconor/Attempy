@@ -170,7 +170,6 @@ def deleteFile():
 @home.route('/pml_load_file_sidebar', methods=['GET'])
 @login_required
 def pml_load_file_sidebar():
-    import pdb; pdb.set_trace()
     checkIfUserDirectoryExists()
     path = '.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id()
     html = ''
