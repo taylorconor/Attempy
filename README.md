@@ -74,7 +74,7 @@ Agents can  be filled in in all action boxes.
 Predicates can be added in Resources and Agents.
 
 ###Basic PML Display
-This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. 
+This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. Basic implementation of it currently present.
 
 ###PML generator
 
@@ -83,3 +83,7 @@ To create a new, empty, file, click the file button next to Your Files on the le
 
 ##Known issues
 A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.
+
+Deleting a recently "uploaded" file and then reloading the page will resurrect the file.
+
+Tests are currently failing for keybinding emulation, keybinding emulation is currently working. The tests need to be updated.

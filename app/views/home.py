@@ -49,8 +49,16 @@ def graphical_editor():
 @login_required
 def get_pml_json():
     filename = secure_filename(request.form["data"])
-    d = pml_to_json.parse(filename)
-    return jsonify(d)
+    checkIfUserDirectoryExists()
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
+    tmp_filename = os.path.join(tmp_filename, filename)
+    try:
+        d = pml_to_json.parse(tmp_filename)
+        return jsonify(output = 'Success', source=d)
+    except:
+        # flash("Unable to Parse File", "danger")
+        return jsonify(output = 'Error')
+
 
 @home.route('/handler_changed', methods=['POST'])
 @login_required
@@ -207,7 +215,6 @@ def make_tree(path):
                 # print('relativePath: ' + str(os.path.join(relativePath, name)), file=sys.stderr)
             html += '</li>'
     return html
-
 
 
 def checkIfUserDirectoryExists():

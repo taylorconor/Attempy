@@ -1,3 +1,5 @@
+"use strict";
+
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
@@ -35,13 +37,13 @@ var highlighter = V('circle', {
 
 
 paper.off('cell:highlight cell:unhighlight').on({
-    
+
     'cell:highlight': function(cellView, el, opt) {
         if (opt.embedding) {
             V(el).addClass('highlighted-parent');
         }
     },
-    
+
     'cell:unhighlight': function(cellView, el, opt) {
         if (opt.embedding) {
             V(el).removeClass('highlighted-parent');
@@ -78,7 +80,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
         var movingUp = elementPos.x > grid.currentlyMoving.position.x;
 
-        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) { 
+        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) {
             //goes before the element in this grid
             var offSet = -1 * (grid.fullBlockWidth - distanceFromNearestLowerGrid);
         } else if (movingUp || distanceFromNearestLowerGrid < grid.outerPadding) {
@@ -118,19 +120,19 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
                     } else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
                         //If this element has children move them the same translation.
                         cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
-                    } else if (movingUp) { 
+                    } else if (movingUp) {
                         if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
                             //If between the start and finish move down
                             cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                         }
-                    } else { //moving down  
+                    } else { //moving down
                         if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
                             //if between start and finish move up
                             cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                         }
-                    } 
+                    }
                 }
-            );  
+            );
         } else {
             //If it used to have a parent
             graph.get('cells').map(function(cell) {
@@ -144,7 +146,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
                     //If higer than new pos move up
                     cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                 }
-            }); 
+            });
         }
     } else if (!exParent){
         //Moving from root into an element
@@ -153,8 +155,9 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             if (cell.get("position").x > grid.currentlyMoving.position.x) {
                 cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
             }
-        }); 
+        });
     } //Nothing to do if moving from element to element
+
 });
 
 
@@ -166,9 +169,82 @@ paper.on('cell:pointerdown', function(cellView, evt, x, y) {
 //Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
-    graph.addCell(grid.addElement(type));  
+    graph.addCell(grid.addElement(type));
 }
 
+
+var nesting = {
+    // forcibly (e.g. not top-down) resizes an element, then bubbles up the
+    // hierarchy to maintain consistency
+    forceResize: function(el, size) {
+        el.set("size", size);
+        // now resize the entire hierarchy to adapt to el's new size
+        this.resize(el);
+    },
+    resize: function(el) {
+        var ancestors = el.getAncestors();
+        var toResize = null;
+        if (!ancestors || ancestors.length == 0)
+            toResize = el;
+        else {
+            toResize = ancestors[0];
+        }
+        var childMinHeight = nesting.minHeight(toResize);
+        if (toResize.get("size").height == childMinHeight) {
+            this._resize(toResize);
+        }
+        else {
+            var newSize = {
+                width: toResize.get("size").width,
+                height: childMinHeight
+            };
+            nesting.forceResize(toResize, newSize);
+        }
+    },
+    // recursively resize all children inside an element. this is very useful
+    // if the parent of a deeply nested structure resizes; it will allow the
+    // entire structure to adapt.
+    _resize: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            // no children to resize
+            return;
+        }
+
+        var childWidth = el.get("size").width - grid.childPadding*2;
+        var runningHeight = 0;
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            var childSize = {
+                width: childWidth,
+                height: nesting.minHeight(child)
+            };
+            child.set("size", childSize);
+            var childPos = {
+                x: el.get("position").x + grid.childPadding,
+                y: el.get("position").y + grid.childPadding*2 + runningHeight
+            }
+            child.set("position", childPos);
+            runningHeight += childSize.height + grid.childPadding;
+
+            // recurse with the current child as the parent
+            nesting._resize(child);
+        }
+    },
+    // finds the minimum possible height of an element
+    minHeight: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            return grid.minHeight;
+        }
+
+        var minChildHeight = grid.childPadding*2;
+        for (var i = 0; i < children.length; i++) {
+            minChildHeight += nesting.minHeight(children[i]) + grid.childPadding;
+        }
+        return minChildHeight;
+    }
+};
 
 var grid = {
 
@@ -176,24 +252,32 @@ var grid = {
     outerPadding: 50,
     childPadding: 20,
     actionCorrection: 50,
-    actionSize: {width: 260, height: 300},
-    complexBlockSize: {width: 300, height: 300},
+    actionSize: {width: 260, height: 260},
     fullBlockWidth: 400,
+
+    // keep a copy of the last element whos parent has changed
+    prevParentChanged: null,
+
     actionHeight: 600,
 
     columnsFilled: 0,
     currentlyMoving: {},
 
+    // minimum element height
+    minHeight: 50,
+    colWidth: 400,
+    minSize: {width: 300, height: 50},
+
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
     addElement: function(type) {
         var self = this;
         var blockWidth = blockWidth || 1;
-        var innerPos = innerPos === undefined ? -1 : innerPos; 
+        var innerPos = innerPos === undefined ? -1 : innerPos;
         var parent = parent || null;
 
         if (type == "action") {
-            var el = new joint.shapes.html.Element({ 
-                position: self.getPos(type, 1), 
+            var el = new joint.shapes.html.Element({
+                position: self.getPos(type, 1),
                 size: self.actionSize,
                 label: 'Action',
                 columnWidth: 1,
@@ -206,85 +290,103 @@ var grid = {
             });
         } else {
             var el = new joint.shapes.devs.Coupled({
-                position: self.getPos(type, 1), 
-                size: self.complexBlockSize,
+                position: self.getPos(type, 1),
+                size: self.minSize,
                 attrs: { text: { text: type } },
                 columnWidth: 1,
+                childCount: 0,
                 startColumn: self.columnsFilled
             });
-        }      
+            el.on("change:embeds", function(el, children) {
+                self.childChanged(el, children, type);
+            });
+            el.on("change:parent", function(el) {
+                self.parentChanged(el, type);
+            });
+        }
         return el;
     },
     getPos: function(type, blockWidth, innerPos, parent) {
         var self = this;
         var innerPos = innerPos || -1;
-        
-        
+
+
         if (innerPos < 0) {
             var pos = { x: this.fullBlockWidth * this.columnsFilled + this.outerPadding, y: this.outerPadding };
             if (type == "action") {
                 pos.y += this.actionCorrection;
             }
             this.columnsFilled += blockWidth;
-        } else {
-            var pos = parent.get
-            pos.y += this.actionCorrection;
-            switch (parent) {
-                case "branch":
-                case "selection": {
-                    pos.x += self.childPadding;
-                    pos.y += self.childPadding  + (self.childPadding + self.actionHeight) * innerPos;
-                } break;
-
-                case "sequence":
-                case "iteration": {
-                    pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
-                    pos.y += self.childPadding;
-                } break;
-                
-                default: return undefined;
-            }
         }
+        //THis bit needs rewriting/refactoring
+        // else {
+        //     var pos = parent.position();
+        //     pos.y += this.actionCorrection;
+        //     switch (parent) {
+        //         case "branch":
+        //         case "selection": {
+        //             pos.x += self.childPadding;
+        //             pos.y += self.childPadding  + (self.childPadding + self.actionHeight) * innerPos;
+        //         } break;
 
+        //         case "sequence":
+        //         case "iteration": {
+        //             pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
+        //             pos.y += self.childPadding;
+        //         } break;
+
+        //         default: return undefined;
+        //     }
+        // }
         return pos;
     },
     removeOuterElement: function(elPos, size) {
         this.columnsFilled -= size;
     },
+    childChanged: function(parent, children, type) {
+        console.log("childChanged");
+        console.log(parent.get("childCount"), children.length);
+        if (parent.get("childCount") < children.length) {
+            parent.set("childCount", parent.get("childCount")+1);
+            this.addChild(parent, children, type);
+        } else {
+            parent.set("childCount", parent.get("childCount")-1);
+            this.removeChild(parent, children, type);
+        }
+    },
+    parentChanged: function(element, type) {
+        this.prevParentChanged = element;
+    },
     addChild: function(parent, children, type) {
-        var self = this;
-        var innerPos = children.length - 1;
-        var parentPos = parent.get("position");
-        
         switch(type) {
             case "branch":
             case "selection": {
-                var size = self.complexBlockSize;
-                size.height *= children.length;
-                parent.resize(size.width, size.height);
-                parent.set('columnWidth', children.length);
-                var pos = parentPos;
-                pos.y += self.childPadding + innerPos * self.fullBlockWidth;
-                pos.x += self.childPadding;
-                var child = graph.get('cells').find(function(cell) {
-                    return cell.id == children[children.length - 1];
-                });
-                child.set("position", pos);
-            } break;
-            case "iteration": 
-            case "sequence":{
-                var size = self.complexBlockSize;
-                size.width *= children.length;
-                parent.resize(size.width, size.height);
-                var pos = parentPos;
-                pos.x += self.childPadding + innerPos * self.fullBlockWidth;
-                pos.y += self.childPadding;
-                child.model.set("position", pos);
+                var size = {
+                    width: parent.get("size").width,
+                    height: nesting.minHeight(parent)
+                }
+                nesting.forceResize(parent, size);
             }
-
         }
+        nesting.resize(parent);
     },
-    removeChild: function(child, children, type, parent){},
+    removeChild: function(parent, children, type) {
+        var self = this;
+        // prevParentChanged is the object that has been removed
+        var removed = this.prevParentChanged;
+        var removedSize = removed.getBBox();
+
+        var size = {
+            width: parent.get("size").width,
+            height: parent.get("size").height - removedSize.height - self.childPadding
+        };
+        if (children.length == 0) {
+            size.height = this.minHeight;
+        }
+
+        nesting.forceResize(parent, size);
+        nesting.resize(parent);
+    },
     removeElement: function(event, element){
         console.log(arguments);
     }
@@ -349,6 +451,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
        ' <button type="button" class="btn btn-primary testBtn">Large modal</button>',
        '</div>'
         // drop down for oporators 
+
     ].join(''),
 
     initialize: function() {
@@ -436,7 +539,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     removeBox: function(evt) {
         grid.removeElement(evt, this);
         this.$box.remove();
-    }, 
+    },
     addreq: function(){
         jqueryEle = $(this);
         jqueryEle.siblings('.requires').append('<br><select class = "reqRelOp"><option>||</option><option>&&</option></select><br><input class = "reqResIn" type="text" placeholder="Resource" />.<input type="text" class = "reqAttIn" placeholder="attribute" /><select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option><input type="text" class = "reqValIn" placeholder="Value" />');
@@ -455,28 +558,27 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     }, 
     addpro: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.provides').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
-    }, 
+        jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    },
     addact: function(){
         jqueryEle = $(this);
-        jqueryEle.siblings('.agent').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
-    }, 
+        jqueryEle.siblings('.agent').append('<select><option>||</option><option>&&</option><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    },
     // addtool: function(){
     //     jqueryEle = $(this);
-    //     jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
-    //     // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
+    //     jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
+    //     // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
     // }
+
 });
 
 var getOutput = function() {
     $("#output").html(JSON.stringify(graph));
 }
 
-
-
-var addChild = function(patent, child) {
-
+var setInput = function(jsonString) {
+    graph.clear();
+    graph.fromJSON(jsonString); 
 }
-

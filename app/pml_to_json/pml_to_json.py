@@ -39,7 +39,7 @@ def build_dict_alt(root, source, id = None, level = None):
         "columnWidth": 1,
         "startColumn": 1,
         "embeds": [],
-        "attrs": {"text": None}
+        "attrs": {}
     }
     count = 0
     prefix = ""
@@ -52,17 +52,21 @@ def build_dict_alt(root, source, id = None, level = None):
 
         for i, child in enumerate(root.getchildren()):
             if child.tag != "ID":
-                contains.extend(build_dict_alt(child, source, i, prefix + str(i)))
+                res = build_dict_alt(child, source, i, prefix + str(i))
+		if type(res) is list:
+		    arr.extend(res)
+		elif type(res) is dict:
+		    arr.append(res)
                 count += 1
 
-        arr.extend(contains)
+        #arr.extend(contains)
         d["cells"] = arr
         pp = pprint.PrettyPrinter(indent = 2)
         pp.pprint(d)
         return d
 
     if root.tag in PRIMARY_NESTED.keys():
-        template["type"] = "devs.Coupled",
+        template["type"] = "devs.Coupled"
         template["parent"] = "".join(level.rsplit(".", 1)[:-1])
         contains = []
         name = root.xpath('./OpNmId/ID/@value')
@@ -73,12 +77,12 @@ def build_dict_alt(root, source, id = None, level = None):
                 template["embeds"].append(prefix + str(i))
                 res = build_dict_alt(child, source, i,  prefix + str(i))
                 if type(res) is list:
-                    contains.extend(res)
+                    arr.extend(res)
                 elif type(res) is dict:
-                    contains.append(res)
+                    arr.append(res)
                 count += 1
-        arr.append(template)
-        arr.extend(contains)
+        #arr.append(template)
+        #arr.extend(contains)
 
         return arr
 
@@ -105,7 +109,8 @@ def build_dict_alt(root, source, id = None, level = None):
         except: #There are no requires or provides
             pass
 
-        if script:
+        """
+	if script:
             template["attrs"]["scripts"] = script[0]
         if agent:
             template["attrs"]["agent"] = agent
@@ -113,6 +118,15 @@ def build_dict_alt(root, source, id = None, level = None):
             template["attrs"]["requires"] = requires
         if provides:
             template["attrs"]["provides"] = provides
+        """
+	if script:
+            template["scripts"] = script[0]
+        if agent:
+            template["agent"] = agent
+        if requires:
+            template["requires"] = requires
+        if provides:
+            template["provides"] = provides
         #let the rest just be empty lists until figured out how to parse expressions
         return template
 
