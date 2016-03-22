@@ -59,23 +59,30 @@ editor.getSession().on('keyboardHandlerChanged', function(data) {
 
 // Enable Options
 editor.setOptions({
-    enableBasicAutocompletion: true,
-    enableSnippets: true,
-    enableLiveAutocompletion: true
+	enableBasicAutocompletion: true,
+	enableSnippets: true,
+	enableLiveAutocompletion: true
 });
 
-// define keywords
-var pml_keywords = ["action", "agent", "branch", "executable", "iteration", "manual", "process",
-	"provides", "requires", "script", "selection", "select", "sequence", "task", "tool"];
-
-// Add keywords to autocomplete
-langTools.addCompleter(
-	pml_keywords.map(
-		function(keyword) {
-			return { name: keyword, value: keyword, score: 1, meta: "keyword" };
-		}
-	)
-);
+// Add completer options for live autocompletion
+editor.completers.push({
+	getCompletions: function(editor, session, pos, prefix, callback) {
+		callback(null, 
+			[
+				{value: "action", meta: "keyword"},
+				{value: "agent", meta: "keyword"},
+				{value: "branch", meta: "keyword"},
+				{value: "iteration", meta: "keyword"},
+				{value: "process", meta: "keyword"},
+				{value: "provides", meta: "keyword"},
+				{value: "requires", meta: "keyword"},
+				{value: "script", meta: "keyword"},
+				{value: "selection", meta: "keyword"},
+				{value: "sequence", meta: "keyword"}
+			]
+		);
+	}
+});
 
 editor.on("input", function() {
     file_saved = false;
