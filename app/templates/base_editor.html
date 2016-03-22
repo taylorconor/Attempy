@@ -170,10 +170,12 @@
 		var editor = ace.edit("editor");
 		editor.setValue("{{source|safe}}");
 		file_saved = true;
+    {%set source = none%}
 		{% endif %}
 		{% if passed_filename is not none %}
 		  load_file("{{passed_filename|safe}}");
 		  window.location.hash = "#" + "{{passed_filename|safe}}";
+      {%set source = passed_filename%}
 		{% endif %}
 	}
 </script>

@@ -315,7 +315,7 @@ var steps = [
     var keybinding = page.evaluate(function() {
       return ace.edit("editor").getKeyboardHandler();
     });
-    if (keybinding != "") {
+    if (keybinding === "") {
       print_error("Keybinding not working!");
       return true;
     }
@@ -323,6 +323,24 @@ var steps = [
   },
   // end test 10
   function() {
+    page.evaluate(function(click) {
+      click(document.querySelector("a[id=editor_settings]"));
+    }, click);
+  },
+  function() {
+    var style = page.evaluate(function() {
+      return document.querySelector("div[id=editor_settings_pane]").getAttribute("style");
+    });
+    page.evaluate(function() {
+      document.querySelector("select[id=keybinding_select]").selectedIndex = 0;
+    });
+  },
+  function() {
+    page.evaluate(function(click) {
+      click(document.querySelector("button[id=settings_done]"));
+    }, click);
+  },
+  function()  {  
     page.open("http://lvh.me:5000");
   },
   // test 11: code completion
@@ -354,6 +372,7 @@ var steps = [
     });
     // code completion should have expanded "proce" to "process"
     if (text != "process") {
+      print_error("Process: " + text);
       print_error("Code completion didn't work!");
       return true;
     }
