@@ -22,6 +22,7 @@ build:
 	cd app/pml_to_json/parser/ && make
 
 	mkdir -p uploads
+	mkdir -p tests/uploads
 test:
 	$(shell bash -c 'read -s -p "Tests will only work if you first delete test.db (if it exists), *then* start the flask server. If you have done this, hit enter to begin the tests"')
 	@echo "\n\n\n"

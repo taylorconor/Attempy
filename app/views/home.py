@@ -221,7 +221,7 @@ def checkIfUserDirectoryExists():
     if (not os.path.exists('.' + app.config["UPLOAD_DIR"])):
         os.mkdir('.' + app.config["UPLOAD_DIR"])
     if (not os.path.exists('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id())):
-        os.mkdir('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id())
+        os.mkdir(os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id()))
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config["ALLOWED_EXTENSIONS"]

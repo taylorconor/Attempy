@@ -92,13 +92,13 @@ class StartingTestCase(TestCase):
         return self.client.get('/pml_load_file_sidebar')
 
     @print_test_time_elapsed
-    def test_register_loads(self):
+    def test_00_register_loads(self):
         rv = self.client.get('/register')
         assert rv.status_code == 200
         assert len(str(rv.data)) > 0
 
     @print_test_time_elapsed
-    def test_register(self):
+    def test_01_register(self):
         rv = self.register(sample_strings.valid_user, sample_strings.valid_name, sample_strings.valid_password)
         assert rv.status_code == 200
         rv = self.register(sample_strings.valid_user, sample_strings.valid_name, sample_strings.valid_password)        
@@ -107,14 +107,14 @@ class StartingTestCase(TestCase):
         assert "User successfully registered" in rv.data
 
     @print_test_time_elapsed
-    def test_login_loads(self):
+    def test_02_login_loads(self):
         rv = self.client.get('/login')
         assert rv.status_code == 200
         assert len(str(rv.data)) > 0
 
 
     @print_test_time_elapsed
-    def test_login(self):
+    def test_03_login(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         assert 'Logged in' in rv.data
         rv = self.logout()
@@ -122,27 +122,27 @@ class StartingTestCase(TestCase):
         assert "No user with that email or user uses third party login" in rv.data
 
     @print_test_time_elapsed
-    def test_home_loads(self):
+    def test_04_home_loads(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.client.get('/')
         assert rv.status_code == 200
         assert 'id="editor"' in rv.data
         
     @print_test_time_elapsed
-    def test_graphic_editor_loads(self):
+    def test_05_graphic_editor_loads(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.client.get('/graphical_editor')
         assert rv.status_code == 200
     
     @print_test_time_elapsed
-    def test_handler_changed(self):
+    def test_06_handler_changed(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.handler_changed("vim")
         assert rv.status_code == 200
         assert 'Success' in rv.data 
 
     @print_test_time_elapsed
-    def test_createFile(self):
+    def test_07_createFile(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.createFile("/"+sample_strings.file_name)
         assert rv.status_code == 200
@@ -173,7 +173,7 @@ class StartingTestCase(TestCase):
         assert os.path.isfile("uploads/1/testingDir.pml") 
 
     @print_test_time_elapsed
-    def test_pml_save_file(self):
+    def test_08_pml_save_file(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.pml_save_file(sample_strings.file_name, sample_strings.valid_pml)
         assert rv.status_code == 200
@@ -185,7 +185,7 @@ class StartingTestCase(TestCase):
         assert ret in sample_strings.valid_pml
 
     @print_test_time_elapsed
-    def test_pml_load_file(self):
+    def test_09_pml_load_file(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.pml_save_file(sample_strings.file_name, sample_strings.valid_pml)
         fd = os.open("uploads/1/"+sample_strings.file_name,os.O_RDWR)
@@ -195,14 +195,14 @@ class StartingTestCase(TestCase):
         assert ret in rv.data
 
     @print_test_time_elapsed
-    def test_pml_load_file_sidebar(self):
+    def test_10_pml_load_file_sidebar(self):
         rv = self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.pml_load_file_sidebar()
         assert rv.status_code == 200
         assert sample_strings.file_name in rv.data
     
     @print_test_time_elapsed
-    def test_pml_to_json(self):
+    def test_11_pml_to_json(self):
         rv = self.pml_to_json("commit_changes_testfile.pml")
         #TODO: finish this
 
