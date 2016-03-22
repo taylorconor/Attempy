@@ -484,32 +484,54 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // }, this));
         this.$box.find('.testBtn').on('click', this.testFunc);
         this.$box.find('select1').val(this.model.get('select'));
-        this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
-        this.$box.find('.reqAdd').on('click', this.addreq);
-        this.$box.find('.reqSub').on('click', _.bind(function(evt) {
-            var values = "";
-            $(evt.target).siblings('.requires').children().each(function (){
-                values += $(this).val() + ",";
+        this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));$('.reqAdd').on('click' , function(){
+        $(this).siblings('.requires').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />')
+    });
+    $('.provAdd').on('click', function(){
+        $(this).siblings('.provides').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+    });
+    $('.ageAdd').on('click', function(){
+        $(this).siblings('.agent').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+    });
+    $('.submit').on('click', function(){
+        var requireVals = '';
+        $(this).parents('#myModal').find('.requires').children().each(function (){
+                requireVals += $(this).val() + ",";
             });
-            this.model.set('RequiresIn', values); 
-        }, this));
-        this.$box.find('.provSub').on('click', _.bind(function(evt) {
-            var values = "";
-            $(evt.target).siblings('.provides').children().each(function (){
-                values += $(this).val() + ",";
+        var providesVals = '';
+        $(this).parents('#myModal').find('.provides').children().each(function (){
+                providesVals += $(this).val() + ",";
             });
-            this.model.set('ProvidesIn', values); 
-        }, this));
-        this.$box.find('.ageSub').on('click', _.bind(function(evt) {
-            var values = "";
-            $(evt.target).siblings('.agent').children().each(function (){
-                values += $(this).val() + ",";
+        var agentsVals = '';
+        $(this).parents('#myModal').find('.agent').children().each(function (){
+                agentsVals += $(this).val() + ",";
             });
-            this.model.set('AgentsIn', values); 
-        }, this));
-        this.$box.find('.provAdd').on('click', this.addpro);
-        this.$box.find('.ageAdd').on('click', this.addact);
-        this.$box.find('.toolAdd').on('click', this.addtool);
+    })
+        // this.$box.find('.reqAdd').on('click', this.addreq);
+        // this.$box.find('.reqSub').on('click', _.bind(function(evt) {
+        //     var values = "";
+        //     $(evt.target).siblings('.requires').children().each(function (){
+        //         values += $(this).val() + ",";
+        //     });
+        //     this.model.set('RequiresIn', values); 
+        // }, this));
+        // this.$box.find('.provSub').on('click', _.bind(function(evt) {
+        //     var values = "";
+        //     $(evt.target).siblings('.provides').children().each(function (){
+        //         values += $(this).val() + ",";
+        //     });
+        //     this.model.set('ProvidesIn', values); 
+        // }, this));
+        // this.$box.find('.ageSub').on('click', _.bind(function(evt) {
+        //     var values = "";
+        //     $(evt.target).siblings('.agent').children().each(function (){
+        //         values += $(this).val() + ",";
+        //     });
+        //     this.model.set('AgentsIn', values); 
+        // }, this));
+        // this.$box.find('.provAdd').on('click', this.addpro);
+        // this.$box.find('.ageAdd').on('click', this.addact);
+        // this.$box.find('.toolAdd').on('click', this.addtool);
         // Update the box position whenever the underlying model changes.
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
@@ -519,6 +541,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     },
     testFunc: function(){
         $('#myModal').modal('show'); 
+    },
+    modalDataUpdate: function(reqVal, provVal, ageVal){
+        this.model.set('RequiresIn', reqVal); 
+        this.model.set('ProvidesIn', provVal);
+        this.model.set('AgentsIn', ageVal); 
     },
     render: function() {
         joint.dia.ElementView.prototype.render.apply(this, arguments);
@@ -531,7 +558,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         var bbox = this.model.getBBox();
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
-        this.$box.find('label').text(this.model.get('label'));
+        this.$box.find('span').text(this.model.get('RequiresIn'));
         this.$box.find('.name1').text(this.model.get('nameIn'));
         // removed height: bbox.height to allow the div to resize to fit when things added
         this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });

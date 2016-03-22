@@ -18,7 +18,7 @@ Editor
 	</div>
     <button onclick="getOutput()"></button>
     <div id="output"></div>
-    
+
     <div class="modal fade bs-example-modal-lg " id = "myModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
 	  <div class="modal-dialog modal-lg">
 	    <div class="modal-content">
@@ -30,7 +30,8 @@ Editor
 	        <div class="fullReq">
 	        <div class="requires">
 	        	<input class = "reqResIn" type="text" placeholder="Resource" />
-		        .<input type="text" class = "reqAttIn" placeholder="attribute" />
+		        .
+		        <input type="text" class = "reqAttIn" placeholder="attribute" />
 		        <select class = "reqOpIn">
 		        	<option>=</option>
 		        	<option>!=</option>
@@ -41,7 +42,7 @@ Editor
 		        </select>
 		        <input type="text" class = "reqValIn" placeholder="Value" />
 	        </div>
-	        <button class=" reqAdd">add</button>
+	        <button class="reqAdd">add</button>
 	        </div>
 	        <!-- //provides -->
 	        <br>Provides:<br>
@@ -79,7 +80,7 @@ Editor
 
 	    <div class="modal-footer">
 	    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	       	<button type="button" class="btn btn-primary">Save changes</button>
+	       	<button type="button" class="btn btn-primary submitData">Submit</button>
 	    </div>
 	  </div>
 	</div>
