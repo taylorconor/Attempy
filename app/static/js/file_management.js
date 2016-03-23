@@ -140,6 +140,10 @@ $('#createNewName').on('click', function() {
     }
     $('#current_file_name').val(name);
     save_file('/' + name);
+    if($(this).attr("run_syntax")){
+        run_check_syntax();
+    }
+    $(this).attr("run_syntax", false);
 });
 
 
