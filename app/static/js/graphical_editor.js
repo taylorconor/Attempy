@@ -15,6 +15,23 @@ var paper = new joint.dia.Paper({
         return parentView.model instanceof joint.shapes.devs.Coupled;
     }
 });
+var svgResize = function() {
+    var  svg = $('#v-2');   
+    try {
+        var  bbox = paper.viewport.getBBox();
+    }catch(err){
+        return;
+    }
+    var newWidth = bbox.x + bbox.width + 10;
+    if(newWidth < $('#paper').width()){
+        newWidth = $('#paper').width();
+    }
+    var newHeight = bbox.y + bbox.height + 10;
+    if(newHeight < window.innerHeight - $('#nav-bar').height()){
+        newHeight = window.innerHeight - $('#nav-bar').height();
+    }
+    paper.setDimensions(newWidth, newHeight);
+}
 
 var connect = function(source, sourcePort, target, targetPort) {
     var link = new joint.shapes.devs.Link({
@@ -304,6 +321,7 @@ var grid = {
                 self.parentChanged(el, type);
             });
         }
+        svgResize();
         return el;
     },
     getPos: function(type, blockWidth, innerPos, parent) {
@@ -452,7 +470,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         _.bindAll(this, 'updateBox');
         // _.bindAll(this, 'addreq');
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
-
+        self = this;
         this.$box = $(_.template(this.template)());
         // Prevent paper from handling pointerdown.
         this.$box.find('input,select').on('mousedown click', function(evt) { evt.stopPropagation(); });
@@ -514,6 +532,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         joint.dia.ElementView.prototype.render.apply(this, arguments);
         this.paper.$el.prepend(this.$box);
         this.updateBox();
+        svgResize();
         return this;
     },
     updateBox: function() {
