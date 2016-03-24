@@ -16,7 +16,7 @@ var paper = new joint.dia.Paper({
     }
 });
 var svgResize = function() {
-    var  svg = $('#v-2');   
+    var  svg = $('#v-2');
     try {
         var  bbox = paper.viewport.getBBox();
     }catch(err){
@@ -92,9 +92,9 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     // Get elements "dropped" position
     var elementPos = cellView.model.get('position');
-    
+
     var topLevelElements = graph.getCells().filter( function(cell) {
-        return (cell.getAncestors().length === 0 && cell.id !== cellView.model.id) 
+        return (cell.getAncestors().length === 0 && cell.id !== cellView.model.id)
     });
 
 
@@ -136,7 +136,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             elementPos.y += grid.outerPadding;
         }
 
-        
+
 
         //If it moving from onw root to another
         if (!exParent.length) {
@@ -215,7 +215,7 @@ var nesting = {
         }
         var childMinHeight = nesting.minHeight(toResize);
         if (toResize.get("size").height == childMinHeight) {
-            this._resize(toResize);
+            this._resizeHeight(toResize);
         }
         else {
             var newSize = {
@@ -228,10 +228,14 @@ var nesting = {
     // recursively resize all children inside an element. this is very useful
     // if the parent of a deeply nested structure resizes; it will allow the
     // entire structure to adapt.
-    _resize: function(el) {
+    _resizeHeight: function(el) {
         var children = el.getEmbeddedCells();
         if (children == "") {
             // no children to resize
+            if (el.get("size").width < grid.minWidth) {
+                console.log("Width is smaller!");
+                this._resizeWidth(el);
+            }
             return;
         }
 
@@ -252,8 +256,33 @@ var nesting = {
             runningHeight += childSize.height + grid.childPadding;
 
             // recurse with the current child as the parent
-            nesting._resize(child);
+            nesting._resizeHeight(child);
         }
+    },
+    _resizeWidth: function(el) {
+        var newSize = {
+            width: this.minWidth(el),
+            height: el.get("size").height
+        }
+        el.set("size", newSize);
+        var parent = graph.getCell(el.get("parent"));
+        if (parent && parent != "") {
+            this._resizeWidth(parent);
+        }
+    },
+    // find the minimum possible width of an element
+    minWidth: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            return grid.minWidth;
+        }
+        var maxChildWidth = 0;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].get("size").width > maxChildWidth) {
+                maxChildWidth = children[i].get("size").width;
+            }
+        }
+        return maxChildWidth + (grid.childPadding*2);
     },
     // finds the minimum possible height of an element
     minHeight: function(el) {
@@ -287,9 +316,12 @@ var grid = {
     columnsFilled: 0,
     currentlyMoving: {},
 
-    // minimum element height
+    // minimum element size
     minHeight: 50,
+    minWidth: 150,
     colWidth: 400,
+
+    // this is the size of a container with no contents
     minSize: {width: 300, height: 50},
 
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
@@ -435,8 +467,8 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         // '<div class="html-element">',
         // '<button class="delete">x</button>',
-        // '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>', 
-        // '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',         
+        // '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>',
+        // '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',
         // '<input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> ',
         // //requires
         // '<br>Requires:<br>',
@@ -469,12 +501,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
         // // '<button class="toolAdd">add</button>',
         // '</div>'
-        // // drop down for oporators 
-    
+        // // drop down for oporators
+
         '<div class="html-element">',
        ' <button type="button" class="btn btn-primary testBtn">Large modal</button>',
        '</div>'
-        // drop down for oporators 
+        // drop down for oporators
 
     ].join(''),
 
@@ -504,7 +536,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         //     $(evt.target).parent().children().each(function (){
         //         values += $(this).val() + ",";
         //     });
-        //     this.model.set('RequiresIn', values); 
+        //     this.model.set('RequiresIn', values);
         // }, this));
         this.$box.find('.testBtn').on('click', this.testFunc);
         this.$box.find('select1').val(this.model.get('select'));
@@ -537,21 +569,21 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         //     $(evt.target).siblings('.requires').children().each(function (){
         //         values += $(this).val() + ",";
         //     });
-        //     this.model.set('RequiresIn', values); 
+        //     this.model.set('RequiresIn', values);
         // }, this));
         // this.$box.find('.provSub').on('click', _.bind(function(evt) {
         //     var values = "";
         //     $(evt.target).siblings('.provides').children().each(function (){
         //         values += $(this).val() + ",";
         //     });
-        //     this.model.set('ProvidesIn', values); 
+        //     this.model.set('ProvidesIn', values);
         // }, this));
         // this.$box.find('.ageSub').on('click', _.bind(function(evt) {
         //     var values = "";
         //     $(evt.target).siblings('.agent').children().each(function (){
         //         values += $(this).val() + ",";
         //     });
-        //     this.model.set('AgentsIn', values); 
+        //     this.model.set('AgentsIn', values);
         // }, this));
         // this.$box.find('.provAdd').on('click', this.addpro);
         // this.$box.find('.ageAdd').on('click', this.addact);
@@ -564,12 +596,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.updateBox();
     },
     testFunc: function(){
-        $('#myModal').modal('show'); 
+        $('#myModal').modal('show');
     },
     modalDataUpdate: function(reqVal, provVal, ageVal){
-        this.model.set('RequiresIn', reqVal); 
+        this.model.set('RequiresIn', reqVal);
         this.model.set('ProvidesIn', provVal);
-        this.model.set('AgentsIn', ageVal); 
+        this.model.set('AgentsIn', ageVal);
     },
     render: function() {
         joint.dia.ElementView.prototype.render.apply(this, arguments);
@@ -595,7 +627,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     addreq: function(){
         jqueryEle = $(this);
         jqueryEle.siblings('.requires').append('<br><select class = "reqRelOp"><option>||</option><option>&&</option></select><br><input class = "reqResIn" type="text" placeholder="Resource" />.<input type="text" class = "reqAttIn" placeholder="attribute" /><select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option><input type="text" class = "reqValIn" placeholder="Value" />');
-        
+
         // joint.dia.ElementView.prototype.addreq.apply(this, arguments);
         // var temp = this.previousElementSibling.$box;
         // this.previousElementSibling.$box.find('.reqResIn,.reqAttIn,.reqOpIn,.reqValIn,.reqRelOp').on('change', _.bind(function(evt) {
@@ -603,11 +635,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         //     $(evt.target).parent().children().each(function (){
         //         values += $(this).val() + ",";
         //     });
-        //     this.model.set('RequiresIn', values); 
+        //     this.model.set('RequiresIn', values);
         // }, this));
-        
+
         // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
-    }, 
+    },
     addpro: function(){
         jqueryEle = $(this);
         jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
@@ -632,5 +664,5 @@ var getOutput = function() {
 
 var setInput = function(jsonString) {
     // graph.clear();
-    graph.fromJSON(jsonString); 
+    graph.fromJSON(jsonString);
 }
