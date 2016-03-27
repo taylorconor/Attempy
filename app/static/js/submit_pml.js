@@ -1,8 +1,8 @@
 //Submit the pml and display the results
-
-$('#check_syn').on('click', function() {
+function run_check_syntax(){
     var fileName = $('#current_file_name').val();
     if(!fileName){
+        $('#createNewName').attr("run_syntax", true);
         $('#getNewFileName').modal('show');
         return;
     }
@@ -94,7 +94,7 @@ $('#check_syn').on('click', function() {
             if(lines.length == 1 && lines[0] ==""){
                 $("#syn_out_text").append("<li> Nothing to say here! </li>");
             }
-			$('#syn_out_text li').click(function() {
+            $('#syn_out_text li').click(function() {
                 // $(this).css("")
                 var text = $(this).text();
                 var line_number = text.match(":(.*):")[1];
@@ -104,4 +104,7 @@ $('#check_syn').on('click', function() {
 
         }
     });
+}
+$('#check_syn').on('click', function() {
+    run_check_syntax();
 });

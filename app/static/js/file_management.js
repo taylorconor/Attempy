@@ -140,6 +140,10 @@ $('#createNewName').on('click', function() {
     }
     $('#current_file_name').val(name);
     save_file('/' + name);
+    if($(this).attr("run_syntax")){
+        run_check_syntax();
+    }
+    $(this).attr("run_syntax", false);
 });
 
 
@@ -292,11 +296,16 @@ function load_graphic_file(path){
             }
             else{
                 //TODO Replace this with something nice
-                $('body').prepend(
-                    '<div class="alert alert-danger alert-dismissible" role="alert">'+
+                var elm = $('<div class="alert alert-danger alert-dismissible" role="alert">'+
                     '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
                                     'Unable to Parse' +
                                   '</div>');
+                $('body').prepend(elm);
+                setTimeout(function() {
+                    elm.fadeOut("slow", function(){
+                        elm.remove();
+                    });
+                }, 2000);       
             }
             $('#current_file_name').val(path);
             window.location.hash = "#" + storedPath;

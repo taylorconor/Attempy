@@ -15,6 +15,23 @@ var paper = new joint.dia.Paper({
         return parentView.model instanceof joint.shapes.devs.Coupled;
     }
 });
+var svgResize = function() {
+    var  svg = $('#v-2');
+    try {
+        var  bbox = paper.viewport.getBBox();
+    }catch(err){
+        return;
+    }
+    var newWidth = bbox.x + bbox.width + 10;
+    if(newWidth < $('#paper').width()){
+        newWidth = $('#paper').width();
+    }
+    var newHeight = bbox.y + bbox.height + 10;
+    if(newHeight < window.innerHeight - $('#nav-bar').height()){
+        newHeight = window.innerHeight - $('#nav-bar').height();
+    }
+    paper.setDimensions(newWidth, newHeight);
+}
 
 var connect = function(source, sourcePort, target, targetPort) {
     var link = new joint.shapes.devs.Link({
@@ -54,7 +71,7 @@ paper.off('cell:highlight cell:unhighlight').on({
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     //Find the first element below that is not a link nor the dragged element itself.
-    var elementBelow = graph.get('cells').find(function(cell) {
+    var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
         if (cell.getBBox().containsPoint(g.point(x, y))) {
@@ -64,7 +81,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     });
 
     //Find if it used to be a child.
-    var exParent = graph.get('cells').find(function(cell) {
+    var exParent = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
         if (cell.getBBox().containsPoint(g.point(grid.currentlyMoving.position.x, grid.currentlyMoving.position.y))) {
@@ -76,7 +93,19 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     // Get elements "dropped" position
     var elementPos = cellView.model.get('position');
 
-    if (!elementBelow) {
+    var topLevelElements = graph.getCells().filter( function(cell) {
+        return (cell.getAncestors().length === 0 && cell.id !== cellView.model.id)
+    });
+
+
+    console.log(topLevelElements.length)
+
+    if (Object.prototype.toString.call(topLevelElements) !== "[object Array]") {
+        topLevelElements = [topLevelElements];
+    }
+
+
+    if (!elementBelow.length) {
         var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
         var movingUp = elementPos.x > grid.currentlyMoving.position.x;
 
@@ -107,55 +136,50 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             elementPos.y += grid.outerPadding;
         }
 
-        //translate element to correct grid place
-        cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
+
 
         //If it moving from onw root to another
-        if (!exParent) {
-            graph.get('cells').map(
-                function(cell) {
-                    //Don't move the element again
-                    if (cellView.model.id === cell.id) {
-                        return;
-                    } else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
-                        //If this element has children move them the same translation.
-                        cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
-                    } else if (movingUp) {
-                        if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
-                            //If between the start and finish move down
-                            cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-                        }
-                    } else { //moving down
-                        if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
-                            //if between start and finish move up
-                            cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-                        }
+        if (!exParent.length) {
+            topLevelElements.map(function(cell) {
+                //Don't move the element again
+                if (cellView.model.id === cell.id) {
+                    return;
+                } else if (movingUp) {
+                    if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
+                        //If between the start and finish move down
+                        cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
+                    }
+                } else { //moving down
+                    if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
+                        //if between start and finish move up
+                        cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                     }
                 }
-            );
+            });
         } else {
             //If it used to have a parent
-            graph.get('cells').map(function(cell) {
+            topLevelElements.map(function(cell) {
                 //Don't move it again
-                if (cell.id === cellView.model.id) {
-                    return;
-                }else if (cellView.model.get("embeds") && cellView.model.get("embeds").indexOf(cell.id) > -1) {
-                    //If this element has children move them the same translation.
-                    cell.translate(elementPos.x - grid.currentlyMoving.position.x, 0);
-                } else if (cell.get("position").x >= elementPos.x) {
+                if (cell.get("position").x >= elementPos.x) {
                     //If higer than new pos move up
                     cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
                 }
             });
+            grid.columnsFilled += cellView.model.get("columnWidth");
         }
-    } else if (!exParent){
+        //translate element to correct grid place
+        cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
+    } else if (!exParent.length){
         //Moving from root into an element
-        graph.get('cells').map(function(cell) {
+        topLevelElements.map(function(cell) {
             //If cell higher than old position move down
+            console.log(cell.get("position").x, grid.currentlyMoving.position.x)
             if (cell.get("position").x > grid.currentlyMoving.position.x) {
                 cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
             }
         });
+        console.log(cellView.model.get("columnWidth"));
+        grid.columnsFilled -= cellView.model.get("columnWidth");
     } //Nothing to do if moving from element to element
 
 });
@@ -191,7 +215,7 @@ var nesting = {
         }
         var childMinHeight = nesting.minHeight(toResize);
         if (toResize.get("size").height == childMinHeight) {
-            this._resize(toResize);
+            this._resizeHeight(toResize);
         }
         else {
             var newSize = {
@@ -204,10 +228,14 @@ var nesting = {
     // recursively resize all children inside an element. this is very useful
     // if the parent of a deeply nested structure resizes; it will allow the
     // entire structure to adapt.
-    _resize: function(el) {
+    _resizeHeight: function(el) {
         var children = el.getEmbeddedCells();
         if (children == "") {
             // no children to resize
+            if (el.get("size").width < grid.minWidth) {
+                console.log("Width is smaller!");
+                this._resizeWidth(el);
+            }
             return;
         }
 
@@ -228,8 +256,33 @@ var nesting = {
             runningHeight += childSize.height + grid.childPadding;
 
             // recurse with the current child as the parent
-            nesting._resize(child);
+            nesting._resizeHeight(child);
         }
+    },
+    _resizeWidth: function(el) {
+        var newSize = {
+            width: this.minWidth(el),
+            height: el.get("size").height
+        }
+        el.set("size", newSize);
+        var parent = graph.getCell(el.get("parent"));
+        if (parent && parent != "") {
+            this._resizeWidth(parent);
+        }
+    },
+    // find the minimum possible width of an element
+    minWidth: function(el) {
+        var children = el.getEmbeddedCells();
+        if (children == "") {
+            return grid.minWidth;
+        }
+        var maxChildWidth = 0;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].get("size").width > maxChildWidth) {
+                maxChildWidth = children[i].get("size").width;
+            }
+        }
+        return maxChildWidth + (grid.childPadding*2);
     },
     // finds the minimum possible height of an element
     minHeight: function(el) {
@@ -263,9 +316,12 @@ var grid = {
     columnsFilled: 0,
     currentlyMoving: {},
 
-    // minimum element height
+    // minimum element size
     minHeight: 50,
+    minWidth: 150,
     colWidth: 400,
+
+    // this is the size of a container with no contents
     minSize: {width: 300, height: 50},
 
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
@@ -304,6 +360,7 @@ var grid = {
                 self.parentChanged(el, type);
             });
         }
+        svgResize();
         return el;
     },
     getPos: function(type, blockWidth, innerPos, parent) {
@@ -368,7 +425,6 @@ var grid = {
                 nesting.forceResize(parent, size);
             }
         }
-        nesting.resize(parent);
     },
     removeChild: function(parent, children, type) {
         var self = this;
@@ -413,7 +469,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         'Action Name: <span class ="name1"></span> <br>',
         '<button type="button" class="btn btn-primary openMod ">View Details</button>',
         '</div>'
-        // drop down for oporators 
+
 
     ].join(''),
 
@@ -422,7 +478,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         _.bindAll(this, 'updateBox');
         // _.bindAll(this, 'addreq');
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
-
+        self = this;
         this.$box = $(_.template(this.template)());
         // Prevent paper from handling pointerdown.
         this.$box.find('input,select').on('mousedown click', function(evt) { evt.stopPropagation(); });
@@ -477,6 +533,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             self.model.collection.models[index].set('nameIn', nameVal); 
             self.model.collection.models[index].set('scriptIn', scriptVal); 
         })
+
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
         this.model.on('remove', this.removeBox, this);
@@ -492,17 +549,19 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         $('#myModal').find('.nameAction').text(self.parent().find('.name1'));
         var index = $('#paper').children().index(self.parent()); 
         $('#myModal').find('.submitData').attr("source_id",index);
+
         $('#myModal').modal('show');
     },
     modalDataUpdate: function(reqVal, provVal, ageVal){
-        this.model.set('RequiresIn', reqVal); 
+        this.model.set('RequiresIn', reqVal);
         this.model.set('ProvidesIn', provVal);
-        this.model.set('AgentsIn', ageVal); 
+        this.model.set('AgentsIn', ageVal);
     },
     render: function() {
         joint.dia.ElementView.prototype.render.apply(this, arguments);
         this.paper.$el.prepend(this.$box);
         this.updateBox();
+        svgResize();
         return this;
     },
     updateBox: function() {
@@ -518,6 +577,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         grid.removeElement(evt, this);
         this.$box.remove();
     }
+
 });
 
 var getOutput = function() {
@@ -525,6 +585,6 @@ var getOutput = function() {
 }
 
 var setInput = function(jsonString) {
-    graph.clear();
-    graph.fromJSON(jsonString); 
+    // graph.clear();
+    graph.fromJSON(jsonString);
 }
