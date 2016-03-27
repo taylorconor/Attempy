@@ -334,7 +334,7 @@ var grid = {
         if (type == "action") {
             var el = new joint.shapes.html.Element({
                 position: self.getPos(type, 1),
-                size: self.actionSize,
+                size: self.minSize,
                 label: 'Action',
                 columnWidth: 1,
                 startColumn: self.columnsFilled,
@@ -467,7 +467,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     template: [
         '<div class="html-element">',
         '<button class="delete">x</button>',
-        'Action Name: <span class ="name1"></span> <br>',
+        '<span class="action-title">Action Name: </span><span class ="name1"></span>',
         '<button type="button" class="btn btn-primary openMod ">View Details</button>',
         '</div>'
 
@@ -661,6 +661,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             acName = acName.substring(0,12)+"...";
         }
         this.$box.find('.name1').text(acName);
+        if (acName.length) {
+            this.$box.find('.action-title').text("");
+        }  else {
+            this.$box.find('.action-title').text("Action Name: ");
+        }
+        
         // removed height: bbox.height to allow the div to resize to fit when things added
         this.$box.css({ width: bbox.width,height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },

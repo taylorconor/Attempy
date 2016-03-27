@@ -285,6 +285,9 @@ Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
    height: 20px;
    line-height: 20px;
 }
+.html-element button.openMod {
+  float:right;
+}
 .html-element select {
    /*position: absolute;*/
    /*right: 2px;*/
