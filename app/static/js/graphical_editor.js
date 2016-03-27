@@ -305,7 +305,7 @@ var grid = {
     outerPadding: 50,
     childPadding: 20,
     actionCorrection: 50,
-    actionSize: {width: 260, height: 260},
+    actionSize: {width: 200, height: 75},
     fullBlockWidth: 400,
 
     // keep a copy of the last element whos parent has changed
@@ -656,9 +656,13 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         // Set the position and dimension of the box so that it covers the JointJS element.
         var bbox = this.model.getBBox();
         // Example of updating the HTML with a data stored in the cell model.
-        this.$box.find('.name1').text(this.model.get('nameIn'));
+        var acName = this.model.get('nameIn');
+        if(acName.length>12){
+            acName = acName.substring(0,12)+"...";
+        }
+        this.$box.find('.name1').text(acName);
         // removed height: bbox.height to allow the div to resize to fit when things added
-        this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
+        this.$box.css({ width: bbox.width,height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
         grid.removeElement(evt, this);
