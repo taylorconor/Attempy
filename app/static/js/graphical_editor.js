@@ -282,7 +282,7 @@ var grid = {
                 label: 'Action',
                 columnWidth: 1,
                 startColumn: self.columnsFilled,
-                nameIn: 'Action Name',
+                nameIn: '',
                 scriptIn: '',
                 RequiresIn: '',
                 ProvidesIn:'',
@@ -409,52 +409,16 @@ joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
 joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
     template: [
-        // '<div class="html-element">',
-        // '<button class="delete">x</button>',
-        // '<label id="lab1" class = "lab1"></label><br><span class ="name1"></span><br>', 
-        // '<input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>',         
-        // '<input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> ',
-        // //requires
-        // '<br>Requires:<br>',
-        // '<div class="fullReq">',
-        // '<div class="requires"><input class = "reqResIn" type="text" placeholder="Resource" />',
-        // '.<input type="text" class = "reqAttIn" placeholder="attribute" />',
-        // '<select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        // '<input type="text" class = "reqValIn" placeholder="Value" /></div>',
-        // '<button class=" reqAdd">add</button>',
-        // '<button class=" reqSub">Submit</button>',
-        // '</div>',
-        // // uncomment to see how data is sent to graph object
-        // // '<br><span class ="test"> </span><br>',
-        // //provides
-        // '<br>Provides:<br>',
-        // '<div class="provides"><input type="text" placeholder="Resource" />.',
-        // '<input type="text" class = "provResIn"  placeholder="attribute" />',
-        // '<select class="provOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        // '<input type="text" class = "provValIn"  placeholder="Value" /></div>',
-        // '<button class=" provAdd">add</button>',
-        // '<button class=" provSub">Submit</button>',
-        // //agents
-        // '<br>Agents:<br>',
-        // '<div class="agent"><input type="text" placeholder="Resource" />.',
-        // '<input type="text" placeholder="attribute" />',
-        // '<select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select>',
-        // '<input type="text" class = ""  placeholder="Value" /></div>',
-        // '<button class=" ageAdd ">add</button>',
-        // '<button class=" ageSub">Submit</button>',
-        // // '<div class="tool"><input type="text" placeholder="Tool" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" /></div>',
-        // // '<button class="toolAdd">add</button>',
-        // '</div>'
-        // // drop down for oporators 
-    
         '<div class="html-element">',
-       ' <button type="button" class="btn btn-primary testBtn">Large modal</button>',
-       '</div>'
+        'Action Name: <span class ="name1"></span> <br>',
+        '<button type="button" class="btn btn-primary openMod ">View Details</button>',
+        '</div>'
         // drop down for oporators 
 
     ].join(''),
 
     initialize: function() {
+        var self = this;
         _.bindAll(this, 'updateBox');
         // _.bindAll(this, 'addreq');
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
@@ -475,72 +439,60 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.find('.scriptInput').on('change', _.bind(function(evt) {
             this.model.set('scriptIn', $(evt.target).val());
         }, this));
-        // this.$box.find('.reqResIn,.reqAttIn,.reqOpIn,.reqValIn,.reqRelOp').on('change', _.bind(function(evt) {
-        //     var values = "";
-        //     $(evt.target).parent().children().each(function (){
-        //         values += $(this).val() + ",";
-        //     });
-        //     this.model.set('RequiresIn', values); 
-        // }, this));
-        this.$box.find('.testBtn').on('click', this.testFunc);
+        this.$box.find('.openMod').on('click', this.openModalFunc);
         this.$box.find('select1').val(this.model.get('select'));
-        this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));$('.reqAdd').on('click' , function(){
-        $(this).siblings('.requires').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />')
-    });
-    $('.provAdd').on('click', function(){
-        $(this).siblings('.provides').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
-    });
-    $('.ageAdd').on('click', function(){
-        $(this).siblings('.agent').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
-    });
-    $('.submit').on('click', function(){
-        var requireVals = '';
-        $(this).parents('#myModal').find('.requires').children().each(function (){
-                requireVals += $(this).val() + ",";
-            });
-        var providesVals = '';
-        $(this).parents('#myModal').find('.provides').children().each(function (){
-                providesVals += $(this).val() + ",";
-            });
-        var agentsVals = '';
-        $(this).parents('#myModal').find('.agent').children().each(function (){
-                agentsVals += $(this).val() + ",";
-            });
-    })
-        // this.$box.find('.reqAdd').on('click', this.addreq);
-        // this.$box.find('.reqSub').on('click', _.bind(function(evt) {
-        //     var values = "";
-        //     $(evt.target).siblings('.requires').children().each(function (){
-        //         values += $(this).val() + ",";
-        //     });
-        //     this.model.set('RequiresIn', values); 
-        // }, this));
-        // this.$box.find('.provSub').on('click', _.bind(function(evt) {
-        //     var values = "";
-        //     $(evt.target).siblings('.provides').children().each(function (){
-        //         values += $(this).val() + ",";
-        //     });
-        //     this.model.set('ProvidesIn', values); 
-        // }, this));
-        // this.$box.find('.ageSub').on('click', _.bind(function(evt) {
-        //     var values = "";
-        //     $(evt.target).siblings('.agent').children().each(function (){
-        //         values += $(this).val() + ",";
-        //     });
-        //     this.model.set('AgentsIn', values); 
-        // }, this));
-        // this.$box.find('.provAdd').on('click', this.addpro);
-        // this.$box.find('.ageAdd').on('click', this.addact);
-        // this.$box.find('.toolAdd').on('click', this.addtool);
-        // Update the box position whenever the underlying model changes.
+        this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
+        $('.reqAdd').unbind('click');
+        $('.provAdd').unbind('click');
+        $('.ageAdd').unbind('click');
+        $('.submitData').unbind('click');
+        $('.reqAdd').on('click' , function(){
+            $(this).siblings('.requires').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />')
+        });
+        $('.provAdd').on('click', function(){
+            $(this).siblings('.provides').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+        });
+        $('.ageAdd').on('click', function(){
+            $(this).siblings('.agent').append('<br><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" />');
+        });
+        $('.submitData').on('click', function(){
+            var index = $('#paper').children().length - 2 - $(this).attr("source_id");
+            var nameVal = $(this).parents('#myModal').find('.nameAction').val();
+            var scriptVal = $(this).parents('#myModal').find('.scriptInput').val();
+            var requireVals = '';
+            $(this).parents('#myModal').find('.requires').children().each(function (){
+                    requireVals += $(this).val() + ",";
+                });
+            var providesVals = '';
+            $(this).parents('#myModal').find('.provides').children().each(function (){
+                    providesVals += $(this).val() + ",";
+                });
+            var agentsVals = '';
+            $(this).parents('#myModal').find('.agent').children().each(function (){
+                    agentsVals += $(this).val() + ",";
+                });
+            self.model.collection.models[index].set('RequiresIn', requireVals); 
+            self.model.collection.models[index].set('ProvidesIn', providesVals);
+            self.model.collection.models[index].set('AgentsIn', agentsVals); 
+            self.model.collection.models[index].set('nameIn', nameVal); 
+            self.model.collection.models[index].set('scriptIn', scriptVal); 
+        })
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
         this.model.on('remove', this.removeBox, this);
 
         this.updateBox();
+        $('#myModal').on('hidden.bs.modal', function () {
+            $(this).find("input,textarea,select").val('').end();
+
+        });
     },
-    testFunc: function(){
-        $('#myModal').modal('show'); 
+    openModalFunc: function(){
+        var self = $(this);
+        $('#myModal').find('.nameAction').text(self.parent().find('.name1'));
+        var index = $('#paper').children().index(self.parent()); 
+        $('#myModal').find('.submitData').attr("source_id",index);
+        $('#myModal').modal('show');
     },
     modalDataUpdate: function(reqVal, provVal, ageVal){
         this.model.set('RequiresIn', reqVal); 
@@ -558,7 +510,6 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         var bbox = this.model.getBBox();
         // Example of updating the HTML with a data stored in the cell model.
         this.$box.find('label').text(this.model.get('label'));
-        this.$box.find('span').text(this.model.get('RequiresIn'));
         this.$box.find('.name1').text(this.model.get('nameIn'));
         // removed height: bbox.height to allow the div to resize to fit when things added
         this.$box.css({ width: bbox.width, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
@@ -566,39 +517,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
     removeBox: function(evt) {
         grid.removeElement(evt, this);
         this.$box.remove();
-    },
-    addreq: function(){
-        jqueryEle = $(this);
-        jqueryEle.siblings('.requires').append('<br><select class = "reqRelOp"><option>||</option><option>&&</option></select><br><input class = "reqResIn" type="text" placeholder="Resource" />.<input type="text" class = "reqAttIn" placeholder="attribute" /><select class = "reqOpIn"><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option><input type="text" class = "reqValIn" placeholder="Value" />');
-        
-        // joint.dia.ElementView.prototype.addreq.apply(this, arguments);
-        // var temp = this.previousElementSibling.$box;
-        // this.previousElementSibling.$box.find('.reqResIn,.reqAttIn,.reqOpIn,.reqValIn,.reqRelOp').on('change', _.bind(function(evt) {
-        //     var values = "";
-        //     $(evt.target).parent().children().each(function (){
-        //         values += $(this).val() + ",";
-        //     });
-        //     this.model.set('RequiresIn', values); 
-        // }, this));
-        
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option></select><input type="text" placeholder="Require" />.<input type="text" placeholder="attribute" />=<input type="text" placeholder="Value" />');
-    }, 
-    addpro: function(){
-        jqueryEle = $(this);
-        jqueryEle.siblings('.provides').append('<select><option>||</option><option>&&</option><input type="text" value="Provides" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    },
-    addact: function(){
-        jqueryEle = $(this);
-        jqueryEle.siblings('.agent').append('<select><option>||</option><option>&&</option><input type="text" value="Agent" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-        // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    },
-    // addtool: function(){
-    //     jqueryEle = $(this);
-    //     jqueryEle.siblings('.tool').append('<select><option>||</option><option>&&</option><input type="text" value="Tool" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    //     // this.$box.siblings('.requires').append('<select><option>||</option><option>&&</option><input type="text" value="Require" />.<input type="text" value="attribute" />=<input type="text" value="Value" />');
-    // }
-
+    }
 });
 
 var getOutput = function() {
