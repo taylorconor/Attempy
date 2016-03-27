@@ -4,7 +4,7 @@ build:
 	git submodule update
 
 	@echo "Compiling pmlcheck"
-	cd peos && make
+	#cd peos && make
 
 	@echo "Creating virtualenv"
 	export PYTHONPATH=
@@ -15,7 +15,7 @@ build:
 	venv/bin/pip2.7 install -r requirements
 
 	@echo "building ace"
-	sudo ln -fs /usr/bin/nodejs /usr/bin/node
+	# sudo ln -fs /usr/bin/nodejs /usr/bin/node
 	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
 
 	@echo "building parser"

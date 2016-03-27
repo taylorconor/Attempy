@@ -10,7 +10,7 @@ var paper = new joint.dia.Paper({
     model: graph,
     snapLinks: true,
     linkPinning: false,
-    embeddingMode: true,
+    embeddingMode: false,
     validateEmbedding: function(childView, parentView) {
         return parentView.model instanceof joint.shapes.devs.Coupled;
     }
@@ -18,28 +18,20 @@ var paper = new joint.dia.Paper({
 var svgResize = function() {
     var  svg = $('#v-2');
     try {
-        var  bbox = paper.viewport.getBBox();
-    }catch(err){
+        var bbox = paper.viewport.getBBox();
+    } catch(err) {
         return;
     }
     var newWidth = bbox.x + bbox.width + 10;
-    if(newWidth < $('#paper').width()){
+    if (newWidth < $('#paper').width()) {
         newWidth = $('#paper').width();
     }
     var newHeight = bbox.y + bbox.height + 10;
-    if(newHeight < window.innerHeight - $('#nav-bar').height()){
+    if (newHeight < window.innerHeight - $('#nav-bar').height()) {
         newHeight = window.innerHeight - $('#nav-bar').height();
     }
     paper.setDimensions(newWidth, newHeight);
 }
-
-var connect = function(source, sourcePort, target, targetPort) {
-    var link = new joint.shapes.devs.Link({
-        source: { id: source.id, selector: source.getPortSelector(sourcePort) },
-        target: { id: target.id, selector: target.getPortSelector(targetPort) }
-    });
-    link.addTo(graph).reparent();
-};
 
 /* custom highlighting */
 
@@ -53,24 +45,68 @@ var highlighter = V('circle', {
 
 
 
-paper.off('cell:highlight cell:unhighlight').on({
+// paper.off('cell:highlight cell:unhighlight').on({
 
-    'cell:highlight': function(cellView, el, opt) {
-        if (opt.embedding) {
-            V(el).addClass('highlighted-parent');
+//     'cell:highlight': function(cellView, el, opt) {
+//             console.log(el);
+//             console.log(cellView.model)
+
+//         if (opt.embedding) {
+//             V(el).addClass('highlighted-parent');
+//         }
+//     },
+
+//     'cell:unhighlight': function(cellView, el, opt) {
+//         if (opt.embedding) {
+//             V(el).removeClass('highlighted-parent');
+//         }
+//     }
+// });
+
+var currentlyHighlighted = undefined;
+paper.on('cell:pointermove', function(cellView, evt, x, y) {
+    var elementBelow = graph.getCells().filter( function(cell) {
+        if (cell instanceof joint.dia.Link) return false; // Not interested in links.
+        if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
+        if (cell.getBBox().containsPoint(g.point(x, y))) {
+            return true;
         }
-    },
-
-    'cell:unhighlight': function(cellView, el, opt) {
-        if (opt.embedding) {
-            V(el).removeClass('highlighted-parent');
+        return false;
+    });
+    elementBelow.sort(
+        function(a, b){
+            return b.get("z") - a.get("z");
+        }
+    );
+    var hovering = false;
+    for (var i = 0; i < elementBelow.length; i++) {
+        if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
+            var hoveringOn = elementBelow[i];
+            hovering = true;
+            break;
+        }
+    }
+    if (hovering) {
+        if (currentlyHighlighted && hoveringOn.id !== currentlyHighlighted.id) {
+            V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
+        } else if (!currentlyHighlighted) {
+            V(paper.findViewByModel(hoveringOn).el).addClass('highlighted-parent');
+            currentlyHighlighted = hoveringOn;
+        }
+    } else {
+        if (currentlyHighlighted) {
+            V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
+            currentlyHighlighted = undefined;
         }
     }
 });
 
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
-
-    //Find the first element below that is not a link nor the dragged element itself.
+    if (currentlyHighlighted) {
+        V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
+        currentlyHighlighted = undefined;
+    }
+    var exParent = cellView.model.getAncestors();
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -80,114 +116,40 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         return false;
     });
 
-    //Find if it used to be a child.
-    var exParent = graph.getCells().filter( function(cell) {
-        if (cell instanceof joint.dia.Link) return false; // Not interested in links.
-        if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
-        if (cell.getBBox().containsPoint(g.point(grid.currentlyMoving.position.x, grid.currentlyMoving.position.y))) {
-            return true;
+    var embedded = false;
+    elementBelow.sort(
+        function(a, b){
+            return b.get("z") - a.get("z");
         }
-        return false;
-    });
+    );  
 
-    // Get elements "dropped" position
-    var elementPos = cellView.model.get('position');
-
-    var topLevelElements = graph.getCells().filter( function(cell) {
-        return (cell.getAncestors().length === 0 && cell.id !== cellView.model.id)
-    });
-
-
-    console.log(topLevelElements.length)
-
-    if (Object.prototype.toString.call(topLevelElements) !== "[object Array]") {
-        topLevelElements = [topLevelElements];
+    for (var i = 0; i < elementBelow.length; i++) {
+        if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
+            elementBelow[i].embed(cellView.model);
+            cellView.model.set("z", elementBelow[i].get("z") + 1);
+            var embeddedInto = elementBelow[i];
+            embedded = true;
+            break;
+        }
     }
 
-
-    if (!elementBelow.length) {
-        var distanceFromNearestLowerGrid = elementPos.x % grid.fullBlockWidth;
-        var movingUp = elementPos.x > grid.currentlyMoving.position.x;
-
-        if (movingUp && distanceFromNearestLowerGrid < grid.outerPadding) {
-            //goes before the element in this grid
-            var offSet = -1 * (grid.fullBlockWidth - distanceFromNearestLowerGrid);
-        } else if (movingUp || distanceFromNearestLowerGrid < grid.outerPadding) {
-            //goes on element in this grid and this one moves
-            var offSet = -1 * distanceFromNearestLowerGrid;
-        } else {
-            //goes after this element
-            var offSet = grid.fullBlockWidth - distanceFromNearestLowerGrid;
-        }
-
-        //set x pos
-        elementPos.x += offSet + grid.outerPadding;
-
-        //If beyond beginning or end, adjust
-        if (elementPos.x > (grid.columnsFilled - 1) * grid.fullBlockWidth) {
-            elementPos.x = (grid.columnsFilled - 1) * grid.fullBlockWidth + grid.outerPadding;
-        } else if (elementPos.x < 0) {
-            elementPos.x = grid.outerPadding;
-        }
-
-        //set y pos
-        elementPos.y = grid.outerPadding;
-        if (cellView.model instanceof joint.shapes.html.Element) {
-            elementPos.y += grid.outerPadding;
-        }
-
-
-
-        //If it moving from onw root to another
+    if (!embedded) {
         if (!exParent.length) {
-            topLevelElements.map(function(cell) {
-                //Don't move the element again
-                if (cellView.model.id === cell.id) {
-                    return;
-                } else if (movingUp) {
-                    if (cell.get("position").x <= elementPos.x && cell.get("position").x >= grid.currentlyMoving.position.x) {
-                        //If between the start and finish move down
-                        cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-                    }
-                } else { //moving down
-                    if (cell.get("position").x >= elementPos.x && cell.get("position").x <= grid.currentlyMoving.position.x) {
-                        //if between start and finish move up
-                        cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-                    }
-                }
-            });
+            outerColumns.move(cellView.model, cellView.model.get('position').x);
         } else {
-            //If it used to have a parent
-            topLevelElements.map(function(cell) {
-                //Don't move it again
-                if (cell.get("position").x >= elementPos.x) {
-                    //If higer than new pos move up
-                    cell.translate(grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-                }
-            });
-            grid.columnsFilled += cellView.model.get("columnWidth");
+            exParent[0].unembed(cellView.model);
+            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+            outerColumns.insert(movingColumn, cellView.model.get('position').x);
         }
-        //translate element to correct grid place
-        cellView.model.translate(elementPos.x - cellView.model.get('position').x, elementPos.y - cellView.model.get('position').y);
-    } else if (!exParent.length){
-        //Moving from root into an element
-        topLevelElements.map(function(cell) {
-            //If cell higher than old position move down
-            console.log(cell.get("position").x, grid.currentlyMoving.position.x)
-            if (cell.get("position").x > grid.currentlyMoving.position.x) {
-                cell.translate(-1 * grid.fullBlockWidth * grid.currentlyMoving.columnWidth, 0);
-            }
-        });
-        console.log(cellView.model.get("columnWidth"));
-        grid.columnsFilled -= cellView.model.get("columnWidth");
-    } //Nothing to do if moving from element to element
-
-});
-
-
-paper.on('cell:pointerdown', function(cellView, evt, x, y) {
-    grid.currentlyMoving.position = cellView.model.get('position');
-    grid.currentlyMoving.columnWidth = cellView.model.get('columnWidth');
+    } else {
+        if (exParent.length) {
+            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+        } else {
+            var movingColumn = outerColumns.remove(cellView.model);
+            console.log(movingColumn);
+        }
+        embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
+    }
 });
 
 //Called by user when clicking menu option
@@ -201,7 +163,12 @@ var nesting = {
     // forcibly (e.g. not top-down) resizes an element, then bubbles up the
     // hierarchy to maintain consistency
     forceResize: function(el, size) {
+        var elWidth = el.get("size").width;
         el.set("size", size);
+        // if (el.get("column")) {
+        //     el.get("column").setSize(size);
+        //     el.get("column").changeSize(size.width - elWidth);
+        // }
         // now resize the entire hierarchy to adapt to el's new size
         this.resize(el);
     },
@@ -243,14 +210,19 @@ var nesting = {
         var runningHeight = 0;
         for (var i = 0; i < children.length; i++) {
             var child = children[i];
+            var childOldWidth = child.get("size").width;
             var childSize = {
                 width: childWidth,
                 height: nesting.minHeight(child)
             };
             child.set("size", childSize);
+            // if (child.get("column")) {
+            //     child.get("column").setSize(childSize);
+            //     child.get("column").changeSize(childOldWidth - childSize.width);
+            // }
             var childPos = {
                 x: el.get("position").x + grid.childPadding,
-                y: el.get("position").y + grid.childPadding*2 + runningHeight
+                y: el.get("position").y + grid.childPadding * 2 + runningHeight
             }
             child.set("position", childPos);
             runningHeight += childSize.height + grid.childPadding;
@@ -260,11 +232,17 @@ var nesting = {
         }
     },
     _resizeWidth: function(el) {
+        var elWidth = el.get("size").width;
         var newSize = {
             width: this.minWidth(el),
             height: el.get("size").height
         }
         el.set("size", newSize);
+
+        // if (el.get("column")) {
+        //     el.get("column").setSize(newSize);
+        //     el.get("column").changeSize(elWidth - newSize.width);
+        // }
         var parent = graph.getCell(el.get("parent"));
         if (parent && parent != "") {
             this._resizeWidth(parent);
@@ -299,14 +277,15 @@ var nesting = {
     }
 };
 
+var outerColumns = new Columns();
+
 var grid = {
 
     //Block size contants
     outerPadding: 50,
     childPadding: 20,
     actionCorrection: 50,
-    actionSize: {width: 200, height: 75},
-    fullBlockWidth: 400,
+    fullBlockWidth: 350,
 
     // keep a copy of the last element whos parent has changed
     prevParentChanged: null,
@@ -314,7 +293,6 @@ var grid = {
     actionHeight: 600,
 
     columnsFilled: 0,
-    currentlyMoving: {},
 
     // minimum element size
     minHeight: 50,
@@ -333,81 +311,43 @@ var grid = {
 
         if (type == "action") {
             var el = new joint.shapes.html.Element({
-                position: self.getPos(type, 1),
-                size: self.actionSize,
+                size: self.minSize,
                 label: 'Action',
-                columnWidth: 1,
-                startColumn: self.columnsFilled,
                 nameIn: '',
                 scriptIn: [],
                 RequiresIn: [],
                 ProvidesIn:[],
                 AgentsIn:[]
             });
+            outerColumns.push(el, false);
         } else {
             var el = new joint.shapes.devs.Coupled({
-                position: self.getPos(type, 1),
                 size: self.minSize,
                 attrs: { text: { text: type } },
-                columnWidth: 1,
-                childCount: 0,
-                startColumn: self.columnsFilled
+                verticalChildCount: 0
             });
+            outerColumns.push(el);
             el.on("change:embeds", function(el, children) {
                 self.childChanged(el, children, type);
             });
-            el.on("change:parent", function(el) {
-                self.parentChanged(el, type);
-            });
         }
+        el.on("change:parent", function(el) {
+            self.parentChanged(el, type);
+        });
         svgResize();
         return el;
     },
-    getPos: function(type, blockWidth, innerPos, parent) {
-        var self = this;
-        var innerPos = innerPos || -1;
-
-
-        if (innerPos < 0) {
-            var pos = { x: this.fullBlockWidth * this.columnsFilled + this.outerPadding, y: this.outerPadding };
-            if (type == "action") {
-                pos.y += this.actionCorrection;
-            }
-            this.columnsFilled += blockWidth;
-        }
-        //THis bit needs rewriting/refactoring
-        // else {
-        //     var pos = parent.position();
-        //     pos.y += this.actionCorrection;
-        //     switch (parent) {
-        //         case "branch":
-        //         case "selection": {
-        //             pos.x += self.childPadding;
-        //             pos.y += self.childPadding  + (self.childPadding + self.actionHeight) * innerPos;
-        //         } break;
-
-        //         case "sequence":
-        //         case "iteration": {
-        //             pos.x += self.childPadding + self.outerPadding + innerPos * self.fullBlockWidth;
-        //             pos.y += self.childPadding;
-        //         } break;
-
-        //         default: return undefined;
-        //     }
-        // }
-        return pos;
-    },
-    removeOuterElement: function(elPos, size) {
-        this.columnsFilled -= size;
-    },
     childChanged: function(parent, children, type) {
-        console.log("childChanged");
-        console.log(parent.get("childCount"), children.length);
-        if (parent.get("childCount") < children.length) {
-            parent.set("childCount", parent.get("childCount")+1);
+        if (type === "branch" || type === "selection") {
+            this.verticalChildChanged(parent, children, type);
+        }
+    },
+    verticalChildChanged: function(parent, children, type) {
+        if (parent.get("verticalChildCount") < children.length) {
+            parent.set("verticalChildCount", parent.get("verticalChildCount")+1);
             this.addChild(parent, children, type);
-        } else {
-            parent.set("childCount", parent.get("childCount")-1);
+        } else if (parent.get("verticalChildCount") > children.length) {
+            parent.set("verticalChildCount", parent.get("verticalChildCount")-1);
             this.removeChild(parent, children, type);
         }
     },
@@ -442,12 +382,272 @@ var grid = {
 
         nesting.forceResize(parent, size);
         nesting.resize(parent);
-    },
-    removeElement: function(event, element){
-        console.log(arguments);
     }
 }
 
+
+//Columns deals with the movement of columns, and setting of poition NOT translations
+function Columns(element) {
+    this.columns = [];
+    this.parent = element; 
+}
+
+Columns.prototype.getYCoord = function() {
+    return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);  
+}
+
+Columns.prototype.getColumnByXCoord = function(xCoord, oldCol) {
+    var widthAcc = 0;
+    if (this.parent) {
+        xCoord -= this.parent.position().x;
+    }
+    if (xCoord < 0) {
+        return 0;
+    }
+    for (var i = 0; i < this.columns.length; i++) {
+        widthAcc += this.columns[i].width;
+        if (widthAcc > xCoord) {
+            if (i === oldCol) {
+                return undefined;
+            } else if (i > oldCol) {
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i; 
+            } else {
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i : i + 1; 
+            }
+        }
+    }
+    return this.columns.length - (oldCol < this.columns.length ? 1 : 0);
+}
+
+Columns.prototype.getColumnPosByElementId = function(id) {
+    if (typeof id === "object") {
+        id = id.id;
+    }
+    for (var i = 0; i < this.columns.length; i++) {
+        if (id === this.columns[i].element.id) {
+            return i;
+        }
+    }
+    return undefined;
+}
+
+Columns.prototype.getXCoordByColumn = function(columnNum) {
+    if (this.parent) {
+        var xPos = this.parent.position().x + grid.childPadding;
+    } else {
+        var xPos = grid.outerPadding;
+    }
+    console.log(this.columns)
+    for(var i = 0; i < columnNum; i++) {
+        xPos += this.columns[i].width;
+    }
+
+    return xPos;
+}
+
+//Can only push onto outer columns
+Columns.prototype.push = function(element) {
+    //Update Data structure
+    var length = this.columns.push(new Column(element));
+    //Set position of new element
+    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getYCoord());    
+}
+
+Columns.prototype.getMaxHeight = function() {
+    var maxHeight = 0;
+    for (var i = 0; i < this.columns.length; i++) {
+        if (this.columns[i].height > maxHeight) {
+            maxHeight = this.columns[i].height;
+        }  
+    }
+    return maxHeight;
+}  
+
+//https://jsperf.com/array-prototype-move/8
+Array.prototype.move = function(from, to) {
+    this.splice(to, 0, this.splice(from, 1)[0]);
+};
+
+Columns.prototype.move = function(element, destinationXCoord) {
+    if (!this.parent || this.parent.attr("text/text") === "sequence" || this.parent.attr("text/text") === "iteration") {
+        //Get Columns
+        var oldCol = this.getColumnPosByElementId(element.id);
+        var newCol = this.getColumnByXCoord(destinationXCoord, oldCol);
+
+        //If no column movement return
+        if (typeof newCol === "undefined") {
+            this.columns[oldCol].changePos(this.getXCoordByColumn(oldCol), this.getYCoord());
+            return;
+        }
+
+        //Snap Element to Correct Poition
+        this.columns[oldCol].changePos(this.getXCoordByColumn(newCol), this.getYCoord());
+
+        //move elements in between two columns
+        if (oldCol < newCol) {
+            for (var i = oldCol + 1; i <= newCol; i++) {
+                this.columns[i].pushDown(element.get("size").width + grid.outerPadding);
+            }
+        } else {
+            for (var i = newCol; i <= oldCol - 1; i++) {
+                this.columns[i].pushUp(element.get("size").width + grid.outerPadding);
+            }
+        }
+
+        //rearrange datastructure
+        this.columns.move(oldCol, newCol);    
+    }
+}
+
+Columns.prototype.insert = function(column, destinationXCoord) {
+    if (!this.parent || this.parent.attr("text/text") === "sequence" || this.parent.attr("text/text") === "iteration") {
+        //Get Column to insert into
+        var insertionColumn = this.getColumnByXCoord(destinationXCoord, this.columns.length);
+        console.log(insertionColumn, this.columns.length);
+        if (typeof insertionColumn === undefined) {
+            //There was no column movement
+            return;
+        }
+
+        //Make room for element
+        for (var i = insertionColumn; i < this.columns.length; i++) {
+            this.columns[i].pushUp(column.width + grid.outerPadding);
+        }
+
+        //Move element
+        console.log(this.getXCoordByColumn(insertionColumn), this.getYCoord());
+        column.changePos(this.getXCoordByColumn(insertionColumn), this.getYCoord());
+
+        //Rearrange data-structure
+        this.columns.splice(insertionColumn, 0, column);
+
+        //Update parent(s) size
+        if (this.parent) {
+            this.parent.get("column").changeSize(column.width + grid.childPadding);
+        }
+    } else {
+        this.columns.push(column);
+    }
+}
+
+Columns.prototype.remove = function(element) {
+    if (!this.parent || this.parent.attr("text/text") === "sequence" || this.parent.attr("text/text") === "iteration") {
+        //get column to remove from
+        var removalColumnIndex = this.getColumnPosByElementId(element.id);
+        //move down elements
+        for (var i = removalColumnIndex + 1; i < this.columns.length; i++) {
+            this.columns[i].pushDown(element.get("size").width + grid.outerPadding);
+        }
+
+        if (this.columns.length === 1) {
+            var removedColumn = this.columns[0];
+            this.columns = [];
+        } else {
+            var removedColumn = this.columns.splice(removalColumnIndex, 1)[0];
+        }
+        console.log(this);
+        //Remove width from parent(s)
+        if (this.parent) {
+            this.parent.get("column").changeSize(-1 * (removedColumn.width + grid.childPadding));
+        }
+
+        //Rearrange data structure
+        return removedColumn;
+    } else {
+        return this.columns.splice(this.getColumnPosByElementId(element.id), 1)[0];
+    }
+    
+}
+
+//Column deals with the element within the column position
+function Column(element) {
+    this.element = element;
+    this.width = grid.fullBlockWidth;
+    this.height = grid.minHeight;
+    this.columns = new Columns(element);
+    //Add the columns object of child to the jointjs object of child
+    element.set("column", this);   
+};
+
+Column.prototype.changePos = function(x, y) {
+    var oldPos = this.element.position();
+    var translation = {
+        x: x - oldPos.x,
+        y: y - oldPos.y
+    }
+
+    this.element.translate(translation.x, translation.y);
+
+    if (this.columns) {
+        this.moveChildren(translation);
+    }
+}
+
+Column.prototype.moveChildren = function(translation) {
+    for (var i = 0; i < this.columns.length; i++) {
+        if (this.columns[i].columns) {
+            this.columns[i].element.translate(translation.x, translation.y);
+            this.columns[i].columns.moveChildren(translation);
+        }
+    }
+}
+
+Column.prototype.pushUp = function(width) {
+    this.element.translate(width, 0);
+}
+
+Column.prototype.pushDown = function(width) {
+    this.element.translate(-1 * width, 0);
+}
+
+Column.prototype.setSize = function(size) {
+    this.width = size.width + grid.outerPadding;
+    this.height = size.height;
+}
+
+Column.prototype.changeSize = function(widthChange) {
+    console.log(this.columns.columns[0]);
+    if (this.columns.columns.length === 1) {
+        widthChange = widthChange + grid.childPadding - this.width;
+    } else if (this.columns.columns.length === 0) {
+        widthChange = grid.minSize.width + 2 * grid.childPadding - this.width;
+    }
+    this.changeSizeHelper(widthChange);
+}
+
+//Not efficiently calculating height
+Column.prototype.changeSizeHelper = function(widthChange) {   
+    
+    if (this.element.attr("text/text") === "sequence" || this.element.attr("text/text") === "iteration") { 
+        console.log(this.columns.columns);
+        if (this.columns.columns.length === 0) {
+            var maxHeight = grid.minSize.height;
+        } else {
+            var maxHeight = this.columns.getMaxHeight() + 3 * grid.childPadding; 
+        }
+        
+        this.element.resize(this.element.get("size").width + widthChange, maxHeight);
+        this.height = maxHeight;
+        this.width += widthChange;
+    }
+
+    var ancestors = this.element.getAncestors();
+    if (ancestors.length) {
+        if (ancestors[0].attr("text/text") === "sequence" || ancestors[0].attr("text/text") === "iteration"){
+            var columnChange = ancestors[0].get("column").columns.getColumnPosByElementId(this.element);
+            for (var i = columnChange + 1; i < ancestors[0].get("column").columns.columns.length; i++) {
+                ancestors[0].get("column").columns.columns[i].pushUp(widthChange);
+            } 
+        }
+        ancestors[0].get("column").changeSizeHelper(widthChange);
+    } else {
+        var columnChange = outerColumns.getColumnPosByElementId(this.element);
+        for (var i = columnChange + 1; i < outerColumns.columns.length; i++) {
+            outerColumns.columns[i].pushUp(widthChange);
+        }
+    }
+
+} 
 
 joint.shapes.html = {};
 joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
@@ -676,6 +876,7 @@ var getOutput = function() {
 }
 
 var setInput = function(jsonString) {
-    // graph.clear();
-    graph.fromJSON(jsonString);
+    graph.clear();
+    console.log(jsonString)
+    //graph.fromJSON(jsonString);
 }
