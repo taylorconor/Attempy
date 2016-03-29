@@ -878,7 +878,19 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 });
 
 var getOutput = function() {
-    $("#output").html(JSON.stringify(graph));
+    var columns = [];
+    graph.attributes.cells.models.forEach(
+        function(cell, index, cells) {
+            columns.push(cells[index].get("column"));
+            cells[index].set("column", "");
+        }
+    );
+    console.log(JSON.stringify(graph));
+    graph.attributes.cells.models.forEach(
+        function(cell, index, cells) {
+            cells[index].set("column", columns[index]);
+        }
+    );
 }
 
 var setInput = function(jsonString) {
