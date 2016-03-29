@@ -55,8 +55,10 @@ def get_pml_json():
     try:
         d = pml_to_json.parse(tmp_filename)
         return jsonify(output = 'Success', source=d)
-    except:
+    except Exception, e:
         # flash("Unable to Parse File", "danger")
+        print ("Hey")
+        print (str(e))
         return jsonify(output = 'Error')
 
 

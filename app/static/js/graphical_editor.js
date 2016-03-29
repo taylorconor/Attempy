@@ -304,6 +304,7 @@ var grid = {
 
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
     addElement: function(type) {
+        getOutput();
         var self = this;
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
@@ -879,7 +880,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.css({ width: bbox.width,height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
-        grid.removeElement(evt, this);
+        //grid.removeElement(evt, this);
+        //eden commented this out on 29th march because the function doesn't exist 
+        //could not load file due to error
         this.$box.remove();
     }
 
@@ -903,6 +906,5 @@ var getOutput = function() {
 
 var setInput = function(jsonString) {
     graph.clear();
-    console.log(jsonString)
-    //graph.fromJSON(jsonString);
+    graph.fromJSON(jsonString);
 }
