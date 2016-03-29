@@ -701,6 +701,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             var myModal = $('#myModal');
             myModal.find('.submitData').attr("source_id",colId);
             myModal.find('.nameAction').val(this.model.get('nameIn'));
+
+            var scripts = this.model.get('scriptIn');
+            if(scripts.length>0){
+                //TODO will we only ever have one script?
+                myModal.find('.scriptInput').val(scripts[0]);
+            }
             var reqs = this.model.get('RequiresIn');
             for(var i=0; i<reqs.length; i++){
                 if(i===0){
@@ -775,7 +781,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 }
             }
             var nameVal = $(this).parents('#myModal').find('.nameAction').val();
-            var scriptVal = $(this).parents('#myModal').find('.scriptInput').val();
+            var scriptVal = [];
+            scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
+
             var requireVals = [];
             $(this).parents('#myModal').find('.requires').each(function(){
                 var currentRequiresVal = {};
