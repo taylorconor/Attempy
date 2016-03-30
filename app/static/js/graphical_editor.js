@@ -87,7 +87,7 @@ paper.on('cell:pointerdblclick',
                     targets[3].value = reqs[i].value;
                 }
                 else{
-                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+reqs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
+                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+reqs[i].attribute+'" type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
                     myModal.find('.requires:last').find('select:first').val(reqs[i].relOp);
                     myModal.find('.requires:last').find('select:last').val(reqs[i].operator);
                 }
@@ -102,7 +102,7 @@ paper.on('cell:pointerdblclick',
                     targets[3].value = provs[i].value;
                 }
                 else{
-                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+provs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
+                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+provs[i].attribute+'" type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
                     myModal.find('.provides:last').find('select:first').val(provs[i].relOp);
                     myModal.find('.provides:last').find('select:last').val(provs[i].operator);
                 }
@@ -117,9 +117,24 @@ paper.on('cell:pointerdblclick',
                     targets[3].value = agents[i].value;
                 }
                 else{
-                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" />.<input value="'+agents[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
+                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+agents[i].attribute+'" type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
                     myModal.find('.agent:last').find('select:first').val(agents[i].relOp);
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
+                }
+            }
+            var tools = self.model.get('ToolsIn');
+            for(var i=0; i<tools.length; i++){
+                if(i===0){
+                    var targets = myModal.find('.tools').children();
+                    targets[0].value = tools[i].resource;
+                    targets[1].value = tools[i].attribute;
+                    targets[2].value = tools[i].operator;
+                    targets[3].value = tools[i].value;
+                }
+                else{
+                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+                    myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
+                    myModal.find('.tool:last').find('select:last').val(tools[i].operator);
                 }
             }
             $('#myModal').modal('show');
@@ -392,7 +407,8 @@ var grid = {
                 scriptIn: [],
                 RequiresIn: [],
                 ProvidesIn:[],
-                AgentsIn:[]
+                AgentsIn:[],
+                ToolsIn:[]
             });
             outerColumns.push(el, false);
         } else {
@@ -409,7 +425,7 @@ var grid = {
             outerColumns.push(el);
             el.on("change:embeds", function(el, children) {
                 self.childChanged(el, children, type);
-            }); 
+            });
         }
         el.on("change:parent", function(el) {
             self.parentChanged(el, type);
@@ -729,161 +745,61 @@ Column.prototype.changeSizeHelper = function(widthChange) {
 
 } 
 
-joint.shapes.html = {};
-joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
-    defaults: joint.util.deepSupplement({
-        type: 'html.Element',
-        attrs: {
-            rect: { stroke: 'none', 'fill-opacity': 0 }
-        }
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
-
-// Create a custom view for that element that displays an HTML div above it.
-// -------------------------------------------------------------------------
-
-joint.shapes.html.ElementView = joint.dia.ElementView.extend({
-
-    template: [
-        '<div class="html-element">',
-        '<button class="delete">x</button>',
-        '<span class="action-title">Action Name: </span><span class ="name1"></span>',
-        '<button type="button" class="btn btn-primary openMod ">View Details</button>',
-        '</div>'
-
-
-    ].join(''),
-
-    initialize: function() {
-        var self = this;
-        _.bindAll(this, 'updateBox');
-        // _.bindAll(this, 'addreq');
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
-        self = this;
-        this.$box = $(_.template(this.template)());
-        // Prevent paper from handling pointerdown.
-        this.$box.find('input,select').on('mousedown click', function(evt) { evt.stopPropagation(); });
-        // This is an example of reacting on the input change and storing the input data in the cell model.
-        this.$box.find('input').on('change', _.bind(function(evt) {
-            this.model.set('input', $(evt.target).val());
-        }, this));
-        this.$box.find('select').on('change', _.bind(function(evt) {
-            this.model.set('select1', $(evt.target).val());
-        }, this));
-        this.$box.find('.nameAction').on('change', _.bind(function(evt) {
-            this.model.set('nameIn', $(evt.target).val());
-        }, this));
-        this.$box.find('.scriptInput').on('change', _.bind(function(evt) {
-            this.model.set('scriptIn', $(evt.target).val());
-        }, this));
-        this.$box.find('.openMod').on('click', _.bind(function(evt) {
-            var colId = this.model.cid; 
-            var myModal = $('#myModal');
-            myModal.find('.submitData').attr("source_id",colId);
-            myModal.find('.nameAction').val(this.model.get('nameIn'));
-
-            var scripts = this.model.get('scriptIn');
-            if(scripts.length>0){
-                //TODO will we only ever have one script?
-                myModal.find('.scriptInput').val(scripts[0]);
-            }
-            var reqs = this.model.get('RequiresIn');
-            for(var i=0; i<reqs.length; i++){
-                if(i===0){
-                    var targets = myModal.find('.requires').children();
-                    targets[0].value = reqs[i].resource;
-                    targets[1].value = reqs[i].attribute;
-                    targets[2].value = reqs[i].operator;
-                    targets[3].value = reqs[i].value;
-                }
-                else{
-                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+reqs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
-                    myModal.find('.requires:last').find('select:first').val(reqs[i].relOp);
-                    myModal.find('.requires:last').find('select:last').val(reqs[i].operator);
-                }
-            }
-            var provs = this.model.get('ProvidesIn');
-            for(var i=0; i<provs.length; i++){
-                if(i===0){
-                    var targets = myModal.find('.provides').children();
-                    targets[0].value = provs[i].resource;
-                    targets[1].value = provs[i].attribute;
-                    targets[2].value = provs[i].operator;
-                    targets[3].value = provs[i].value;
-                }
-                else{
-                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+provs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
-                    myModal.find('.provides:last').find('select:first').val(provs[i].relOp);
-                    myModal.find('.provides:last').find('select:last').val(provs[i].operator);
-                }
-            }
-            var agents = this.model.get('AgentsIn');
-            for(var i=0; i<agents.length; i++){
-                if(i===0){
-                    var targets = myModal.find('.agent').children();
-                    targets[0].value = agents[i].resource;
-                    targets[1].value = agents[i].attribute;
-                    targets[2].value = agents[i].operator;
-                    targets[3].value = agents[i].value;
-                }
-                else{
-                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" />.<input value="'+agents[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
-                    myModal.find('.agent:last').find('select:first').val(agents[i].relOp);
-                    myModal.find('.agent:last').find('select:last').val(agents[i].operator);
-                }
-            }
-            
-            $('#myModal').modal('show');            
-        }, this));
-        this.$box.find('select1').val(this.model.get('select'));
-        this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
-        
-
-        this.model.on('change', this.updateBox, this);
-        // Remove the box when the model gets removed from the graph.
-        this.model.on('remove', this.removeBox, this);
-
-        this.updateBox();
-
-    },
-    modalDataUpdate: function(reqVal, provVal, ageVal){
-        this.model.set('RequiresIn', reqVal);
-        this.model.set('ProvidesIn', provVal);
-        this.model.set('AgentsIn', ageVal);
-    },
-    render: function() {
-        joint.dia.ElementView.prototype.render.apply(this, arguments);
-        this.paper.$el.prepend(this.$box);
-        this.updateBox();
-        svgResize();
-        return this;
-    },
-    updateBox: function() {
-        // Set the position and dimension of the box so that it covers the JointJS element.
-        var bbox = this.model.getBBox();
-        // Example of updating the HTML with a data stored in the cell model.
-        var acName = this.model.get('nameIn');
-        if(acName.length>12){
-            acName = acName.substring(0,12)+"...";
-        }
-        this.$box.find('.name1').text(acName);
-        if (acName.length) {
-            this.$box.find('.action-title').text("");
-        }  else {
-            this.$box.find('.action-title').text("Action Name: ");
-        }
-        
-        // removed height: bbox.height to allow the div to resize to fit when things added
-        this.$box.css({ width: bbox.width,height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
-    },
-    removeBox: function(evt) {
-        //grid.removeElement(evt, this);
-        //eden commented this out on 29th march because the function doesn't exist 
-        //could not load file due to error
-        this.$box.remove();
+var checkName = function(str){
+    var fstChar = str.charAt(0);
+    if(!str.match(/([A-Z]|[a-z]|_)/)){
+        addErr('All names must begin with either a letter or _');
+        return false;
     }
+    return true;
+}
 
-});
+var addErr = function (str){
+    $('#myModal').find('#errorMsg').append('<div class="alert alert-danger">'+str+'</div>')
+}
+
+var checkPred = function (targets){
+    var offset = 0;
+    if(targets.length>4){
+        offset = 2;
+    }
+    var exists = [];
+    var toCheck = targets[0 + offset].value;
+    if(toCheck.length > 0){
+        exists.push(true);
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    toCheck = targets[1+offset].value;
+    if(!exists[0] && toCheck.length>0){
+        addErr("Attributes cannot exist without resource");
+        return false;
+    }
+    if(toCheck.length>0){
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    toCheck = targets[3+offset].value;
+    if(!exists[0] && toCheck.length>0){
+        addErr("Attributes cannot exist without resource");
+        return false;
+    }
+    if(toCheck.length>0){
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    return true;               
+}
+
+var checkFilled = function(targets){
+    if(targets[2].value.length===0 && targets[3].value.length===0 && targets[5].value.length===0){
+        return false;
+    }
+    return true;
+}
 
 var getOutput = function() {
     var columns = [];
@@ -912,15 +828,20 @@ var setInput = function(jsonString) {
 // $('.ageAdd').unbind('click');
 // $('.submitData').unbind('click');
 $('.reqAdd').on('click' , function(){
-    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.provAdd').on('click', function(){
-    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.ageAdd').on('click', function(){
-    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+});
+$('.toolAdd').on('click', function(){
+    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.submitData').on('click', function(){
+    $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
+    var submitOk = true;
     var collectioon = graph.getCells();
     var cid = $(this).attr("source_id");
     var index = -1;
@@ -931,21 +852,27 @@ $('.submitData').on('click', function(){
         }
     }
     var nameVal = $(this).parents('#myModal').find('.nameAction').val();
-    if(nameVal.length > 0){
-        collectioon[index].attr('text/text', nameVal);
+    if(nameVal.length>0){
+        submitOk = checkName(nameVal);
     }
-    else{
-        collectioon[index].attr('text/text', collectioon[index].get('elType'));
-    }
-    var scriptVal = [];
-    scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
 
+    var scriptVal = [];
+    $(this).parents('#myModal').find('.scriptInput').each(function(){
+        scriptVal.push($(this).val());
+    });
     var requireVals = [];
     $(this).parents('#myModal').find('.requires').each(function(){
         var currentRequiresVal = {};
         var targets = $(this).children();
+        if(!checkPred(targets)){
+            submitOk=false;
+        }
         var offset = 0;
+        var blank = false;
         if(targets.length > 4){
+            if(!checkFilled(targets)){
+                blank = true;
+            }
             currentRequiresVal.relOp = targets[0].value;
             offset = 2; //includes op_1 and <br>
         }
@@ -953,14 +880,23 @@ $('.submitData').on('click', function(){
         currentRequiresVal.attribute = targets[1 + offset].value;
         currentRequiresVal.operator = targets[2 + offset].value;
         currentRequiresVal.value = targets[3 + offset].value;
-        requireVals.push(currentRequiresVal);
+        if(!blank){
+            requireVals.push(currentRequiresVal);
+        }
     });
     var providesVals = [];
     $(this).parents('#myModal').find('.provides').each(function (){
         var currentProvidesVal = {};
         var targets = $(this).children();
+        if(!checkPred(targets)){
+            submitOk=false;
+        }
         var offset = 0;
+        var blank = false;
         if(targets.length > 4){
+            if(!checkFilled(targets)){
+                blank = true;
+            }
             currentProvidesVal.relOp = targets[0].value;
             offset = 2; //includes op_1 and <br>
         }
@@ -968,14 +904,23 @@ $('.submitData').on('click', function(){
         currentProvidesVal.attribute = targets[1 + offset].value;
         currentProvidesVal.operator = targets[2 + offset].value;
         currentProvidesVal.value = targets[3 + offset].value;
-        providesVals.push(currentProvidesVal);
+        if(!blank){
+            providesVals.push(currentProvidesVal);
+        }
     });
     var agentsVals = [];
     $(this).parents('#myModal').find('.agent').each(function (){
         var currentAgentsVal = {};
         var targets = $(this).children();
+        if(!checkPred(targets)){
+            submitOk=false;
+        }
         var offset = 0;
+        var blank = false;
         if(targets.length > 4){
+            if(!checkFilled(targets)){
+                blank = true;
+            }
             currentAgentsVal.relOp = targets[0].value;
             offset = 2; //includes op_1 and <br>
         }
@@ -983,20 +928,57 @@ $('.submitData').on('click', function(){
         currentAgentsVal.attribute = targets[1 + offset].value;
         currentAgentsVal.operator = targets[2 + offset].value;
         currentAgentsVal.value = targets[3 + offset].value;
-        agentsVals.push(currentAgentsVal);        
+        if(!blank){
+            agentsVals.push(currentAgentsVal);        
+        }
     });
-    collectioon[index].set('RequiresIn', requireVals); 
-    collectioon[index].set('ProvidesIn', providesVals);
-    collectioon[index].set('AgentsIn', agentsVals); 
-    collectioon[index].set('nameIn', nameVal); 
-    collectioon[index].set('scriptIn', scriptVal); 
+    var toolsVals = [];
+    $(this).parents('#myModal').find('.tools').each(function (){
+        var currentToolssVal = {};
+        var targets = $(this).children();
+        if(!checkPred(targets)){
+            submitOk=false;
+        }
+        var offset = 0;
+        var blank = false;
+        if(targets.length > 4){
+            if(!checkFilled(targets)){
+                blank = true;
+            }
+            currentToolssVal.relOp = targets[0].value;
+            offset = 2; //includes op_1 and <br>
+        }
+        currentToolssVal.resource = targets[0 + offset].value;
+        currentToolssVal.attribute = targets[1 + offset].value;
+        currentToolssVal.operator = targets[2 + offset].value;
+        currentToolssVal.value = targets[3 + offset].value;
+        if(!blank){
+            toolsVals.push(currentToolssVal); 
+        }       
+    });
+    if(submitOk){
+        if(nameVal.length > 0){
+            collectioon[index].attr('text/text', nameVal);
+        }
+        else{
+             collectioon[index].attr('text/text', collectioon[index].get('elType'));
+        }
+        collectioon[index].set('RequiresIn', requireVals); 
+        collectioon[index].set('ProvidesIn', providesVals);
+        collectioon[index].set('AgentsIn', agentsVals); 
+        collectioon[index].set('ToolsIn', toolsVals); 
+        collectioon[index].set('nameIn', nameVal); 
+        collectioon[index].set('scriptIn', scriptVal); 
+        $('#myModal').modal('hide'); 
+    }
 });
 
 $('#myModal').on('hidden.bs.modal', function () {
-    $(this).find("input,textarea,select").val('').end();
+    $(this).find("input,textarea,select").val('');
     $(this).find('.requires').not(':first').remove();
     $(this).find('.provides').not(':first').remove();
     $(this).find('.agent').not(':first').remove();
+    $(this).find('.tools').not(':first').remove();
 });
 
 

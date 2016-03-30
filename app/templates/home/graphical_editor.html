@@ -22,9 +22,14 @@ Editor
     <div class="modal fade bs-example-modal-lg " id = "myModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
 	  <div class="modal-dialog modal-lg">
 	    <div class="modal-content">
-
+		<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h4 class="modal-title">Modal Options</h4>
+		</div>
+		<div class="modal-body text-center">
 	        <input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>         
 	        <input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> 
+	        <!-- <button class="scrAdd">+</button> -->
 	        <!-- //requires -->
 	        <br>Requires:<br>
 	        <div class="fullReq">
@@ -42,12 +47,13 @@ Editor
 		        </select>
 		        <input type="text" class = "reqValIn" placeholder="Value" />
 	        </div>
-	        <button class="reqAdd">add</button>
+	        <button class="reqAdd btn btn-secondary btn-sm">Add</button>
 	        </div>
 	        <!-- //provides -->
 	        <br>Provides:<br>
 	        <div class="provides">
-		        <input type="text" placeholder="Resource" />.
+		        <input type="text" placeholder="Resource" />
+		        .
 		        <input type="text" class = "provResIn"  placeholder="attribute" />
 		        <select class="provOpIn">
 		        	<option>=</option>
@@ -59,11 +65,12 @@ Editor
 		        </select>
 		        <input type="text" class = "provValIn"  placeholder="Value" />
 	        </div>
-	        <button class=" provAdd">add</button>
+	        <button class=" provAdd btn btn-secondary btn-sm">Add</button>
 	        <!-- //agents -->
 	        <br>Agents:<br>
 	        <div class="agent">
-	        	<input type="text" placeholder="Resource" />.
+	        	<input type="text" placeholder="Resource" />
+	        	.
 		        <input type="text" placeholder="attribute" />
 		        <select>
 		        	<option>=</option>
@@ -75,12 +82,31 @@ Editor
 		        </select>
 		        <input type="text" class = ""  placeholder="Value" />
 	        </div>
-	        <button class=" ageAdd ">add</button>
+	        <button class=" ageAdd btn btn-secondary btn-sm">Add</button>
+	        <!-- //tools -->
+	        <br>Tools:<br>
+	        <div class="tools">
+	        	<input type="text" placeholder="Resource" />
+	        	.
+		        <input type="text" placeholder="attribute" />
+		        <select>
+		        	<option>=</option>
+		        	<option>!=</option>
+		        	<option><</option>
+		        	<option><=</option>
+		        	<option>></option>
+		        	<option>>=</option>
+		        </select>
+		        <input type="text" class = ""  placeholder="Value" />
+	        </div>
+	        <button class=" toolAdd btn btn-secondary btn-sm">Add</button>
+		    <div id="errorMsg">
+		    </div>
 	    </div>
-
+		</div>
 	    <div class="modal-footer">
 	    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	       	<button type="button" class="btn btn-primary submitData" data-dismiss="modal">Submit</button>
+	       	<button type="button" class="btn btn-primary submitData" >Submit</button>
 	    </div>
 	  </div>
 	</div>

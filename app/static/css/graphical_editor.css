@@ -207,3 +207,8 @@
     stroke: #2ECC40;
     stroke-width: 6px;
 }
+
+#myModal .modal-body button{
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
