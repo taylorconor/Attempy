@@ -62,6 +62,22 @@ var highlighter = V('circle', {
 //         }
 //     }
 // });
+// 
+var dragStartPosition = false;
+paper.on('blank:pointerdown',
+    function(event, x, y) {
+        dragStartPosition = { x: x, y: y};
+    }
+);
+paper.on('blank:pointerup', function(cellView, x, y) {
+    dragStartPosition = false;
+});
+$("#paper").mousemove(function(event) {
+    if (dragStartPosition)
+        paper.setOrigin(
+            event.offsetX - dragStartPosition.x, 
+            event.offsetY - dragStartPosition.y);
+});
 paper.on('cell:pointerdblclick', 
     function(cellView, evt, x, y) { 
         var self = cellView;
@@ -730,17 +746,6 @@ Column.prototype.setSize = function(size) {
     this.height = size.height;
     this.element.set("size", {width: size.width - grid.outerPadding, height: size.height});
 }
-
-joint.shapes.html = {};
-joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
-    defaults: joint.util.deepSupplement({
-        type: 'html.Element',
-        attrs: {
-            rect: { stroke: 'none', 'fill-opacity': 0 }
-        }
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
-
 
 
 var checkName = function(str){
