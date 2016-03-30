@@ -1,271 +1,183 @@
-#!/usr/bin/env python
-from StringIO import StringIO
-from lxml import etree
-from pyparsing import nestedExpr
-import json, re, sys, subprocess, os, pprint
+from pyparsing import MatchFirst, cStyleComment, Suppress,Combine,ParseSyntaxException, ParseException,Forward, QuotedString, ZeroOrMore, OneOrMore, Optional, Word, Literal, Or, Keyword, Group, alphas, alphanums, nums, printables
+import sys
+import pprint
+import copy
 
-###Usage: ./pml_to_json.py <filename.pml>
-###Prints the dumped json representation
-#TODO: Ensure the output from the parser is ok before attempting to parse
-#Possibility of unsafe user input? Problems?
+level = "1"
 
-#Mapping of primary constructs which can be nested and will have the same json structure
-PRIMARY_NESTED = {
-    "PrimBr": "branch",
-    "PrimSeln": "selection",
-    "PrimIter": "iteration",
-    "PrimSeq": "sequence",
-    "PrimTask": "task"
+template = {
+    "id": level,
+    "type": None,
+    "position": {"x": 50, "y": 100},
+    "angle": 0,
+    "size": {"width": 300, "height": 300},
+    "inPorts": [],
+    "outPorts": [],
+    "columnWidth": 1,
+    "startColumn": 1,
+    "embeds": []
 }
 
-def format_xml(xml):
-    #Remove null elements
-    for elem in xml.xpath('//OpNmNull | //OptNull'):
-        elem.getparent().remove(elem)
+d = {}
+arr = []
 
-    return xml
+def add_action(string, loc, toks):
+    toks = toks[0]
+    #print toks
+    action = copy.deepcopy(template)
+    action["type"] = "html.Element"
+    action["nameIn"] = toks[1]
+    action["attrs"] = {}
+    action["label"] = "Action"
+    action["id"] = level
+    action["scriptsIn"] = ""
+    action["AgentsIn"] = []
+    action["RequiresIn"] = []
+    action["ProvidesIn"] = []
 
-def build_dict_alt(root, source, id = None, level = None):
-    d = {}
-    arr = []
-    template = {
-        "id": level,
-        "type": None,
-        "position": {"x": 0, "y": 0},
-        "angle": 0,
-        "size": {"width": 300, "height": 300},
-        "inPorts": [],
-        "outPorts": [],
-        "columnWidth": 1,
-        "startColumn": 1,
-        "embeds": [],
-        "attrs": {}
-    }
-    count = 0
-    prefix = ""
+    if len(level) > 1:
+        action["parent"] = level[:-2]
+        arr[len(arr) - int(level[-1])]["embeds"].append(level)
 
-    if level != None:
-        prefix = str(level) + "."
+    for i, item in enumerate(toks):
+        if i <= 1:
+            continue
+        if item[0] == "script":
+            action["scriptIn"] = "".join(item[1])
+        elif item[0] == "agent":
+            action["AgentsIn"].append("".join(item[1]))
+        elif item[0] == "requires":
+            action["RequiresIn"].append("".join(item[1]))
+        elif item[0] == "provides":
+            action["ProvidesIn"].append("".join(item[1]))
 
-    if root.tag == "Process":
-        contains = []
-
-        for i, child in enumerate(root.getchildren()):
-            if child.tag != "ID":
-                res = build_dict_alt(child, source, i, prefix + str(i))
-		if type(res) is list:
-		    arr.extend(res)
-		elif type(res) is dict:
-		    arr.append(res)
-                count += 1
-
-        #arr.extend(contains)
-        d["cells"] = arr
-        pp = pprint.PrettyPrinter(indent = 2)
-        pp.pprint(d)
-        return d
-
-    if root.tag in PRIMARY_NESTED.keys():
-        template["type"] = "devs.Coupled"
-        template["parent"] = "".join(level.rsplit(".", 1)[:-1])
-        contains = []
-        name = root.xpath('./OpNmId/ID/@value')
-        if name:
-            template["name"] = name[0]
-        for i, child in enumerate(root.getchildren()):
-            if child.tag != "ID":
-                template["embeds"].append(prefix + str(i))
-                res = build_dict_alt(child, source, i,  prefix + str(i))
-                if type(res) is list:
-                    arr.extend(res)
-                elif type(res) is dict:
-                    arr.append(res)
-                count += 1
-        #arr.append(template)
-        #arr.extend(contains)
-
-        return arr
-
-    if root.tag == "PrimAct":
-        name = root.xpath('./ID/@value')[0]
-        template["name"] = name
-        template["type"] = "html.Element"
-        template["parent"] = "".join(level.rsplit(".", 1)[:-1])
+    arr.append(action)
+    increment_level()
 
 
-        script = root.xpath('./SpecScript/STRING/@value')
-        agent = root.xpath('./SpecAgent//VarId/ID/@value')
+def add_primary(string, loc, toks):
+    primary = copy.deepcopy(template)
+    primary["attrs"] = {}
+    primary["childCount"] = 0
+    primary["id"] = level
+    if len(level) > 1:
+        primary["parent"] = level[:-2]
+        arr[len(arr) - int(level[-1])]["embeds"].append(level)
+    name = None
+    try:
+        name = toks[1]
+    except:
+        pass
 
-        action_split = source.split(name, 1)[-1]
-        nested = nestedExpr('{', '}').parseString(action_split).asList()[0]
-        requires = None
-        provides = None
+    primary["type"] = "devs.Coupled"
+    primary["name"] = name
+    primary["attrs"]["text"] = {"text": toks[0]}
+    primary["attrs"]["name"] = toks[0]
+    primary["size"]["width"] = 300
+    primary["size"]["height"] = 50
 
-        try:
-            requires_index = nested.index("requires")
-            requires = "".join(nested[requires_index + 1])
-            provides_index = nested.index("provides")
-            provides = "".join(nested[provides_index + 1])
-        except: #There are no requires or provides
-            pass
-
-        """
-	if script:
-            template["attrs"]["scripts"] = script[0]
-        if agent:
-            template["attrs"]["agent"] = agent
-        if requires:
-            template["attrs"]["requires"] = requires
-        if provides:
-            template["attrs"]["provides"] = provides
-        """
-	if script:
-            template["scripts"] = script[0]
-        if agent:
-            template["agent"] = agent
-        if requires:
-            template["requires"] = requires
-        if provides:
-            template["provides"] = provides
-        #let the rest just be empty lists until figured out how to parse expressions
-        return template
-
-def build_dict(root, source, level=None):
-    d = {}
-    count = 0
-    prefix = ""
-    if level != None:
-        prefix = str(level) + "."
-
-    if root.tag == "Process":
-        process = {
-            "type": "process",
-            "name": root.xpath('./ID/@value')[0],
-            "contains": {}
-        }
-#        prefix = ""
-#        if level != None:
-#            prefix = str(level) + "." # if level is 0, 0., if 1, 1. etc
-        for child in root.getchildren():
-            if child.tag != "ID":
-                process["contains"][str(count)] = build_dict(child, source, 1)
-                count += 1
-
-        d["process"] = process
-        return d
-
-    if root.tag in PRIMARY_NESTED.keys():
-        iteration = {
-            "type": PRIMARY_NESTED[root.tag],
-            "name": None,
-            "contains": {}
-        }
-        name = root.xpath('./OpNmId/ID/@value')
-        if name:
-            iteration["name"] = name[0]
-        for child in root.getchildren():
-            if child.tag != "ID":
-                iteration["contains"][str(count)] = build_dict(child, source, level + 1)
-                count += 1
-        return iteration
-
-    if root.tag == "PrimAct":
-        name = root.xpath('./ID/@value')[0]
-        action = {
-            "type": "action",
-            "name": name,
-            "script": None,
-            "agent": None,
-            "requires": None,
-            "provides": None
-        }
-        script = root.xpath('./SpecScript/STRING/@value')
-        agent = root.xpath('./SpecAgent//VarId/ID/@value')
+    arr.append(primary)
 
 
-        action_split = source.split(name, 1)[-1]
-        nested = nestedExpr('{', '}').parseString(action_split).asList()[0]
-        requires = None
-        provides = None
+def start_prim():
+    global level
 
-        try:
-            requires_index = nested.index("requires")
-            requires = "".join(nested[requires_index + 1])
-            provides_index = nested.index("provides")
-            provides = "".join(nested[provides_index + 1])
-        except: #There are no requires or provides
-            pass
+    level = level + ".1"
 
-        if script:
-            action["script"] = script[0]
-        if agent:
-            action["agent"] = agent
-        action["requires"] = requires
-        action["provides"] = provides
-        #let the rest just be empty lists until figured out how to parse expressions
-        return action
+def stop_prim():
+    global level
 
-def strip_comments(text):
-    def replacer(match):
-        s = match.group(0)
-        if s.startswith('/'):
-            return " " # note: a space and not an empty string
-        else:
-            return s
-    pattern = re.compile(
-        r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
-        re.DOTALL | re.MULTILINE
-    )
-    return re.sub(pattern, replacer, text)
+    if len(level) > 1:
+        level = level[:-2]
+    increment_level()
+
+def increment_level():
+    global level
+
+    if (len(level) < 2):
+        level = str(int(level) + 1)
+    else:
+        level = level[:-1] + str(int(level[-1]) + 1)
+
+
+quote = Literal("\"")
+underscore = Literal("_")
+open_block = Literal("{")
+close_block = Literal("}")
+end = Literal(";")
+name = Word(alphas + "_", alphanums + "_")
+
+manual = Keyword("manual")
+executable = Keyword("executable")
+action_keywords = manual | executable
+
+"""
+expr = Forward()
+expr2 = Forward()
+expr3 = Forward()
+expr4 = Forward()
+expr5 = Forward()
+attrexpr = Forward()
+varexpr = Forward()
+valexpr = Forward()
+
+expr = expr2.setResultsName("expression")
+
+DisjExpr = expr2 - "||" - expr3
+expr2 << Group(expr3 | DisjExpr)
+
+ConjExpr = expr3 - "&&"  - expr4
+expr3 << Group(expr4 | ConjExpr)
+
+RelEq = valexpr - "==" - valexpr
+RelNe = valexpr - "!=" - valexpr
+RelLt = valexpr - "<" - valexpr
+RelGt = valexpr - ">" - valexpr
+RelLe = valexpr - "<=" - valexpr
+RelGe = valexpr - ">=" - valexpr
+RelVeq = varexpr - "==" - varexpr
+RelVne = varexpr - "!=" - varexpr
+
+expr4 << Or([QuotedString("\""), expr5, RelEq, RelNe, RelLt, RelGt, RelLe, RelGe, RelVeq, RelVne])
+
+PrimVar = name
+PrimAttr = attrexpr
+PrimNot = Literal("!") + expr5
+expr5 << Group(PrimVar | PrimAttr | PrimNot)
+
+varexpr << Group(name | Literal("(") + name + Literal(")") + Optional(varexpr))
+attrexpr << varexpr + Literal(".") + name
+valexpr << Group(QuotedString("\"") | nums | attrexpr)
+"""
+
+provides_decl = Keyword("provides") - Suppress(open_block) - Group(ZeroOrMore(Word(printables, excludeChars="{}"))) - Suppress(close_block)
+requires_decl = Keyword("requires") - Suppress(open_block) - Group(ZeroOrMore(Word(printables, excludeChars="{}"))) - Suppress(close_block)
+agent_decl = Keyword("agent") + Suppress(open_block) + Group(ZeroOrMore(Word(printables, excludeChars="{}"))) + Suppress(close_block)
+script_decl = Keyword("script") + Suppress(open_block) + QuotedString("\"", multiline=True) + Suppress(close_block)
+tool_decl = Keyword("tool") + Suppress(open_block) + QuotedString("\"", multiline=True) + Suppress(close_block)
+
+action_contents = Group(provides_decl ^ requires_decl ^ agent_decl ^ script_decl ^ tool_decl)
+action_decl = Group(Keyword("action") + name.setResultsName("actionName") + Optional(action_keywords) + Suppress(open_block) - ZeroOrMore(action_contents) - Suppress(close_block)).setParseAction(add_action)
+
+primary_decl = Forward()
+block = Forward()
+primary_keyword = Or([Keyword("branch"), Keyword("iteration"), Keyword("selection"), Keyword("sequence"), Keyword("task")])
+primary_decl << Group(primary_keyword.setParseAction(add_primary) - Optional(name)("name") - Suppress(open_block).setParseAction(start_prim) - ZeroOrMore( (action_decl ^ primary_decl) ) - Suppress(close_block).setParseAction(stop_prim))
+
+
+process_decl = (Keyword("process") + name.setResultsName("processName") + Suppress(open_block) - ZeroOrMore( (primary_decl ^ action_decl )).setResultsName("block") - Suppress(close_block))
 
 def parse(filename):
-    tmp_filename = filename+".tmp"
-    #pre_processed = subprocess.check_output(["cpp", "-P", filename])
-    stripped = ""
+    d = {}
+
     with open(filename, 'r') as f:
-        stripped = strip_comments(f.read())
-    with open(tmp_filename, 'w') as f:
-        f.write(stripped)
+        pml = f.read()
 
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "parser/")
-    xml = subprocess.check_output([path + "TestPML", tmp_filename])
-    os.remove(tmp_filename)
+    process_decl.ignore(cStyleComment)
+    process_decl.parseString(pml)
 
-
-    #Uncomment the following line to instead receive input from piping
-    #xml = sys.stdin.read()
-    #remove first line
-    xml = xml.split('\n', 1)[-1]
-    if xml.find('\n') == -1:
-        xml = ""
-    xml = xml.rsplit('\n', 1)[0]
-
-    split = xml.split('[Linearized tree]')
-    xml = split[0]
-    source = split[1]
-    source = source.split('\n', 1)[-1]
-
-    #remove escaped quotes - these break the xml parser
-    xml = xml.replace("\\\"", "")
-    xml = xml.replace("\\\'", "")
-
-    parser = etree.XMLParser(recover=True)
-    tree = etree.parse(StringIO(xml), parser)
-    root = format_xml(tree.getroot())
-
-    #build_dict_alt(root, source)
-    return build_dict_alt(root, source)
+    return {"cells": arr}
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage: ./pml_to_json.py <filename.pml>"
-        sys.exit(2)
-
-    #run the parser from this script
-    filename = sys.argv[1]
-
-    res =  json.dumps(parse(filename), indent=2, sort_keys = True)
-    print res
-
-    #print( json.dumps (etree_to_dict(root) , indent = 1 ))
-
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(parse(sys.argv[1]))

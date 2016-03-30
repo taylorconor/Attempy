@@ -63,7 +63,7 @@ var highlighter = V('circle', {
 //     }
 // });
 
-var verticalNesting = ["sequence", "iteration", undefined];
+var horizontalNesting = ["sequence", "iteration", undefined];
 
 var currentlyHighlighted = undefined;
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
@@ -102,13 +102,25 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
         }
     }
 });
+var movingColumn = undefined;
+
+paper.on('cell:pointerdown', function(cellView, evt, x, y) {    
+    var exParent = cellView.model.getAncestors();
+
+    if (exParent.length) {
+        exParent[0].unembed(cellView.model);
+        movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+    } else {
+        movingColumn = outerColumns.remove(cellView.model);
+    }
+    cellView.model.set("z", 999);
+});
 
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
     if (currentlyHighlighted) {
         V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
         currentlyHighlighted = undefined;
     }
-    var exParent = cellView.model.getAncestors();
 
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
@@ -134,29 +146,15 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             break;
         }
     }
+    if (typeof embeddedInto === "undefined") {
+        cellView.model.set("z", 1);
+    }
 
-    if (!embedded) {
-        if (!exParent.length) {
-            outerColumns.move(cellView.model, cellView.model.get('position').x);
-            console.log("move outer")
-        } else {
-            exParent[0].unembed(cellView.model);
-            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
-            outerColumns.insert(movingColumn, cellView.model.get('position').x);
-            console.log("move from inner to outer")
-        }
-    } else {
-        if (exParent.length) {
-            exParent[0].unembed(cellView.model);
-            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
-            console.log(cellView.model.getAncestors());
-            console.log("move from inner to inner")
-        } else {
-            var movingColumn = outerColumns.remove(cellView.model);
-            console.log("move from outer to inner")
-        }
+    if (embedded) {
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
         embeddedInto.embed(cellView.model);
+    } else {
+        outerColumns.insert(movingColumn, cellView.model.get('position').x);
     }
 });
 
@@ -312,9 +310,11 @@ var grid = {
 
     // this is the size of a container with no contents
     minSize: {width: 300, height: 50},
+    minColumnSize: {width: 350, height: 50},
 
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
     addElement: function(type) {
+        getOutput();
         var self = this;
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
@@ -488,6 +488,7 @@ Columns.prototype.move = function(element, destinationXCoord) {
         //If no column movement return
         if (typeof newCol === "undefined") {
             this.columns[oldCol].changePos(this.getXCoordByColumn(oldCol), this.getYCoord());
+            this.redraw();
             return;
         }
 
@@ -559,20 +560,13 @@ Columns.prototype.remove = function(element) {
 //Column must be already removed/added to data structure
 //Changed parent size and repositions it's children
 Columns.prototype.redraw = function() {
-
-    var count = (Error().stack.match(/redraw/g) || []).length;
-
-    if (count > 5) {
-        console.log(this);
-        return;
-    }
-
     var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
     var xAccumulator = start;
     var y = this.getYCoord();
-
+    if (this.parent) console.log("parent x: " + this.parent.position().x);
     for (var i = 0; i < this.columns.length; i++) {
-        this.columns[i].element.set("position", {x: xAccumulator, y: y});
+
+        this.columns[i].changePos(xAccumulator, y);
         xAccumulator += this.columns[i].width;
     }
 
@@ -583,15 +577,20 @@ Columns.prototype.redraw = function() {
     if (!this.columns.length) {
         xAccumulator += grid.minSize.width;
     }
-    this.parent.get("column").setSize({width: xAccumulator - start + 2 * grid.childPadding, height: this.getMaxHeight() + 3 * grid.childPadding});
+
+    if (this.parent.get("column").columns.columns.length) {
+        this.parent.get("column").setSize({width: xAccumulator - start + (2 * grid.childPadding), height: this.getMaxHeight() + 3 * grid.childPadding});
+    } else {
+        this.parent.get("column").setSize(grid.minColumnSize);
+    }
     this.parent.get("column").parentColumns.redraw();
 }
 
 //Column deals with the element within the column position
 function Column(element, columns) {
     this.element = element;
-    this.width = grid.fullBlockWidth;
-    this.height = grid.minHeight;
+    this.width = grid.minColumnSize.width;
+    this.height = grid.minColumnSize.height;
     this.columns = new Columns(element);
     this.parentColumns = columns;
     //Add the columns object of child to the jointjs object of child
@@ -689,6 +688,12 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             var myModal = $('#myModal');
             myModal.find('.submitData').attr("source_id",colId);
             myModal.find('.nameAction').val(this.model.get('nameIn'));
+
+            var scripts = this.model.get('scriptIn');
+            if(scripts.length>0){
+                //TODO will we only ever have one script?
+                myModal.find('.scriptInput').val(scripts[0]);
+            }
             var reqs = this.model.get('RequiresIn');
             for(var i=0; i<reqs.length; i++){
                 if(i===0){
@@ -763,7 +768,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 }
             }
             var nameVal = $(this).parents('#myModal').find('.nameAction').val();
-            var scriptVal = $(this).parents('#myModal').find('.scriptInput').val();
+            var scriptVal = [];
+            scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
+
             var requireVals = [];
             $(this).parents('#myModal').find('.requires').each(function(){
                 var currentRequiresVal = {};
@@ -859,7 +866,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.css({ width: bbox.width,height: bbox.height, left: bbox.x, top: bbox.y, transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)' });
     },
     removeBox: function(evt) {
-        grid.removeElement(evt, this);
+        //grid.removeElement(evt, this);
+        //eden commented this out on 29th march because the function doesn't exist 
+        //could not load file due to error
         this.$box.remove();
     }
 
@@ -884,5 +893,5 @@ var getOutput = function() {
 var setInput = function(jsonString) {
     graph.clear();
     console.log(jsonString)
-
+    graph.fromJSON(jsonString);
 }
