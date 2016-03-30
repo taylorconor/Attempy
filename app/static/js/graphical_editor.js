@@ -62,7 +62,79 @@ var highlighter = V('circle', {
 //         }
 //     }
 // });
+paper.on('cell:pointerdblclick', 
+    function(cellView, evt, x, y) { 
+        var self = cellView;
+        switch (self.model.get('elType')) {
+        case "action":
+            var colId = self.model.cid; 
+            var myModal = $('#myModal');
+            myModal.find('.submitData').attr("source_id",colId);
+            myModal.find('.nameAction').val(self.model.get('nameIn'));
 
+            var scripts = self.model.get('scriptIn');
+            if(scripts.length>0){
+                //TODO will we only ever have one script?
+                myModal.find('.scriptInput').val(scripts[0]);
+            }
+            var reqs = self.model.get('RequiresIn');
+            for(var i=0; i<reqs.length; i++){
+                if(i===0){
+                    var targets = myModal.find('.requires').children();
+                    targets[0].value = reqs[i].resource;
+                    targets[1].value = reqs[i].attribute;
+                    targets[2].value = reqs[i].operator;
+                    targets[3].value = reqs[i].value;
+                }
+                else{
+                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+reqs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
+                    myModal.find('.requires:last').find('select:first').val(reqs[i].relOp);
+                    myModal.find('.requires:last').find('select:last').val(reqs[i].operator);
+                }
+            }
+            var provs = self.model.get('ProvidesIn');
+            for(var i=0; i<provs.length; i++){
+                if(i===0){
+                    var targets = myModal.find('.provides').children();
+                    targets[0].value = provs[i].resource;
+                    targets[1].value = provs[i].attribute;
+                    targets[2].value = provs[i].operator;
+                    targets[3].value = provs[i].value;
+                }
+                else{
+                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" />.<input value="'+provs[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
+                    myModal.find('.provides:last').find('select:first').val(provs[i].relOp);
+                    myModal.find('.provides:last').find('select:last').val(provs[i].operator);
+                }
+            }
+            var agents = self.model.get('AgentsIn');
+            for(var i=0; i<agents.length; i++){
+                if(i===0){
+                    var targets = myModal.find('.agent').children();
+                    targets[0].value = agents[i].resource;
+                    targets[1].value = agents[i].attribute;
+                    targets[2].value = agents[i].operator;
+                    targets[3].value = agents[i].value;
+                }
+                else{
+                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" />.<input value="'+agents[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
+                    myModal.find('.agent:last').find('select:first').val(agents[i].relOp);
+                    myModal.find('.agent:last').find('select:last').val(agents[i].operator);
+                }
+            }
+            $('#myModal').modal('show');
+            break;
+        default:
+            var colId = self.model.cid; 
+            var myModal = $('#non_action_modal');
+            myModal.find('.submitElementUpdate').attr("source_id",colId);
+            if(self.model.attr('text/text') != self.model.get('elType')){
+                myModal.find('.rename').val(self.model.attr('text/text'));
+            }
+            myModal.modal('show');
+        }
+    }
+);
 var currentlyHighlighted = undefined;
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
     var elementBelow = graph.getCells().filter( function(cell) {
@@ -311,9 +383,11 @@ var grid = {
         var parent = parent || null;
 
         if (type == "action") {
-            var el = new joint.shapes.html.Element({
+            var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
+                attrs: { text: { text: type } },
+                elType: type,
                 nameIn: '',
                 scriptIn: [],
                 RequiresIn: [],
@@ -324,13 +398,18 @@ var grid = {
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
-                attrs: { text: { text: type } },
+                attrs: { text: { text: type }, 
+                    rect: { class: 'body ' + type },
+                    label: {class: 'label ' + type}
+                },
+                class: 'body ' + type,
+                elType: type,
                 verticalChildCount: 0
             });
             outerColumns.push(el);
             el.on("change:embeds", function(el, children) {
                 self.childChanged(el, children, type);
-            });
+            }); 
         }
         el.on("change:parent", function(el) {
             self.parentChanged(el, type);
@@ -758,96 +837,14 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         }, this));
         this.$box.find('select1').val(this.model.get('select'));
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
-        $('.reqAdd').unbind('click');
-        $('.provAdd').unbind('click');
-        $('.ageAdd').unbind('click');
-        $('.submitData').unbind('click');
-        $('.reqAdd').on('click' , function(){
-            $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
-        });
-        $('.provAdd').on('click', function(){
-            $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
-        });
-        $('.ageAdd').on('click', function(){
-            $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
-        });
-        $('.submitData').on('click', function(){
-            var collectioon = self.model.collection;
-            var cid = $(this).attr("source_id");
-            var index = -1;
-            for(var i = 0; i<collectioon.length; i++){
-                if(collectioon.models[i].cid == cid){
-                    index = i;
-                    break;
-                }
-            }
-            var nameVal = $(this).parents('#myModal').find('.nameAction').val();
-            var scriptVal = [];
-            scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
-
-            var requireVals = [];
-            $(this).parents('#myModal').find('.requires').each(function(){
-                var currentRequiresVal = {};
-                var targets = $(this).children();
-                var offset = 0;
-                if(targets.length > 4){
-                    currentRequiresVal.relOp = targets[0].value;
-                    offset = 2; //includes op_1 and <br>
-                }
-                currentRequiresVal.resource = targets[0 + offset].value;
-                currentRequiresVal.attribute = targets[1 + offset].value;
-                currentRequiresVal.operator = targets[2 + offset].value;
-                currentRequiresVal.value = targets[3 + offset].value;
-                requireVals.push(currentRequiresVal);
-            });
-            var providesVals = [];
-            $(this).parents('#myModal').find('.provides').each(function (){
-                var currentProvidesVal = {};
-                var targets = $(this).children();
-                var offset = 0;
-                if(targets.length > 4){
-                    currentProvidesVal.relOp = targets[0].value;
-                    offset = 2; //includes op_1 and <br>
-                }
-                currentProvidesVal.resource = targets[0 + offset].value;
-                currentProvidesVal.attribute = targets[1 + offset].value;
-                currentProvidesVal.operator = targets[2 + offset].value;
-                currentProvidesVal.value = targets[3 + offset].value;
-                providesVals.push(currentProvidesVal);
-            });
-            var agentsVals = [];
-            $(this).parents('#myModal').find('.agent').each(function (){
-                var currentAgentsVal = {};
-                var targets = $(this).children();
-                var offset = 0;
-                if(targets.length > 4){
-                    currentAgentsVal.relOp = targets[0].value;
-                    offset = 2; //includes op_1 and <br>
-                }
-                currentAgentsVal.resource = targets[0 + offset].value;
-                currentAgentsVal.attribute = targets[1 + offset].value;
-                currentAgentsVal.operator = targets[2 + offset].value;
-                currentAgentsVal.value = targets[3 + offset].value;
-                agentsVals.push(currentAgentsVal);        
-            });
-            self.model.collection.models[index].set('RequiresIn', requireVals); 
-            self.model.collection.models[index].set('ProvidesIn', providesVals);
-            self.model.collection.models[index].set('AgentsIn', agentsVals); 
-            self.model.collection.models[index].set('nameIn', nameVal); 
-            self.model.collection.models[index].set('scriptIn', scriptVal); 
-        })
+        
 
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
         this.model.on('remove', this.removeBox, this);
 
         this.updateBox();
-        $('#myModal').on('hidden.bs.modal', function () {
-            $(this).find("input,textarea,select").val('').end();
-            $(this).find('.requires').not(':first').remove();
-            $(this).find('.provides').not(':first').remove();
-            $(this).find('.agent').not(':first').remove();
-        });
+
     },
     modalDataUpdate: function(reqVal, provVal, ageVal){
         this.model.set('RequiresIn', reqVal);
@@ -908,3 +905,122 @@ var setInput = function(jsonString) {
     graph.clear();
     graph.fromJSON(jsonString);
 }
+
+
+// $('.reqAdd').unbind('click');
+// $('.provAdd').unbind('click');
+// $('.ageAdd').unbind('click');
+// $('.submitData').unbind('click');
+$('.reqAdd').on('click' , function(){
+    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+});
+$('.provAdd').on('click', function(){
+    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+});
+$('.ageAdd').on('click', function(){
+    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+});
+$('.submitData').on('click', function(){
+    var collectioon = graph.getCells();
+    var cid = $(this).attr("source_id");
+    var index = -1;
+    for(var i = 0; i<collectioon.length; i++){
+        if(collectioon[i].cid == cid){
+            index = i;
+            break;
+        }
+    }
+    var nameVal = $(this).parents('#myModal').find('.nameAction').val();
+    if(nameVal.length > 0){
+        collectioon[index].attr('text/text', nameVal);
+    }
+    else{
+        collectioon[index].attr('text/text', collectioon[index].get('elType'));
+    }
+    var scriptVal = [];
+    scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
+
+    var requireVals = [];
+    $(this).parents('#myModal').find('.requires').each(function(){
+        var currentRequiresVal = {};
+        var targets = $(this).children();
+        var offset = 0;
+        if(targets.length > 4){
+            currentRequiresVal.relOp = targets[0].value;
+            offset = 2; //includes op_1 and <br>
+        }
+        currentRequiresVal.resource = targets[0 + offset].value;
+        currentRequiresVal.attribute = targets[1 + offset].value;
+        currentRequiresVal.operator = targets[2 + offset].value;
+        currentRequiresVal.value = targets[3 + offset].value;
+        requireVals.push(currentRequiresVal);
+    });
+    var providesVals = [];
+    $(this).parents('#myModal').find('.provides').each(function (){
+        var currentProvidesVal = {};
+        var targets = $(this).children();
+        var offset = 0;
+        if(targets.length > 4){
+            currentProvidesVal.relOp = targets[0].value;
+            offset = 2; //includes op_1 and <br>
+        }
+        currentProvidesVal.resource = targets[0 + offset].value;
+        currentProvidesVal.attribute = targets[1 + offset].value;
+        currentProvidesVal.operator = targets[2 + offset].value;
+        currentProvidesVal.value = targets[3 + offset].value;
+        providesVals.push(currentProvidesVal);
+    });
+    var agentsVals = [];
+    $(this).parents('#myModal').find('.agent').each(function (){
+        var currentAgentsVal = {};
+        var targets = $(this).children();
+        var offset = 0;
+        if(targets.length > 4){
+            currentAgentsVal.relOp = targets[0].value;
+            offset = 2; //includes op_1 and <br>
+        }
+        currentAgentsVal.resource = targets[0 + offset].value;
+        currentAgentsVal.attribute = targets[1 + offset].value;
+        currentAgentsVal.operator = targets[2 + offset].value;
+        currentAgentsVal.value = targets[3 + offset].value;
+        agentsVals.push(currentAgentsVal);        
+    });
+    collectioon[index].set('RequiresIn', requireVals); 
+    collectioon[index].set('ProvidesIn', providesVals);
+    collectioon[index].set('AgentsIn', agentsVals); 
+    collectioon[index].set('nameIn', nameVal); 
+    collectioon[index].set('scriptIn', scriptVal); 
+});
+
+$('#myModal').on('hidden.bs.modal', function () {
+    $(this).find("input,textarea,select").val('').end();
+    $(this).find('.requires').not(':first').remove();
+    $(this).find('.provides').not(':first').remove();
+    $(this).find('.agent').not(':first').remove();
+});
+
+
+$('#non_action_modal').on('hidden.bs.modal', function () {
+    $(this).find("input,textarea,select").val('').end();
+});
+
+
+$('.submitElementUpdate').on('click', function(){
+    var collectioon = graph.getCells();
+    var cid = $(this).attr("source_id");
+    var index = -1;
+    for(var i = 0; i<collectioon.length; i++){
+        if(collectioon[i].cid == cid){
+            index = i;
+            break;
+        }
+    }
+    var modal = $(this).parents('#non_action_modal')
+    var new_name = modal.find('.rename').val();
+    if(new_name.length > 0){
+        collectioon[index].attr('text/text', new_name);
+    }
+    else{
+        collectioon[index].attr('text/text', collectioon[index].get('elType'));
+    }
+});
