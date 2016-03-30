@@ -818,7 +818,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     submitOk=false;
                 }
                 var offset = 0;
+                var blank = false;
                 if(targets.length > 4){
+                    if(!checkFilled(targets)){
+                        blank = true;
+                    }
                     currentRequiresVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
@@ -826,7 +830,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 currentRequiresVal.attribute = targets[1 + offset].value;
                 currentRequiresVal.operator = targets[2 + offset].value;
                 currentRequiresVal.value = targets[3 + offset].value;
-                requireVals.push(currentRequiresVal);
+                if(!blank){
+                    requireVals.push(currentRequiresVal);
+                }
             });
             var providesVals = [];
             $(this).parents('#myModal').find('.provides').each(function (){
@@ -836,7 +842,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     submitOk=false;
                 }
                 var offset = 0;
+                var blank = false;
                 if(targets.length > 4){
+                    if(!checkFilled(targets)){
+                        blank = true;
+                    }
                     currentProvidesVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
@@ -844,7 +854,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 currentProvidesVal.attribute = targets[1 + offset].value;
                 currentProvidesVal.operator = targets[2 + offset].value;
                 currentProvidesVal.value = targets[3 + offset].value;
-                providesVals.push(currentProvidesVal);
+                if(!blank){
+                    providesVals.push(currentProvidesVal);
+                }
             });
             var agentsVals = [];
             $(this).parents('#myModal').find('.agent').each(function (){
@@ -854,7 +866,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     submitOk=false;
                 }
                 var offset = 0;
+                var blank = false;
                 if(targets.length > 4){
+                    if(!checkFilled(targets)){
+                        blank = true;
+                    }
                     currentAgentsVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
@@ -862,7 +878,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 currentAgentsVal.attribute = targets[1 + offset].value;
                 currentAgentsVal.operator = targets[2 + offset].value;
                 currentAgentsVal.value = targets[3 + offset].value;
-                agentsVals.push(currentAgentsVal);        
+                if(!blank){
+                    agentsVals.push(currentAgentsVal);        
+                }
             });
             var toolsVals = [];
             $(this).parents('#myModal').find('.tools').each(function (){
@@ -872,7 +890,11 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     submitOk=false;
                 }
                 var offset = 0;
+                var blank = false;
                 if(targets.length > 4){
+                    if(!checkFilled(targets)){
+                        blank = true;
+                    }
                     currentToolssVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
@@ -880,7 +902,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 currentToolssVal.attribute = targets[1 + offset].value;
                 currentToolssVal.operator = targets[2 + offset].value;
                 currentToolssVal.value = targets[3 + offset].value;
-                toolsVals.push(currentToolssVal);        
+                if(!blank){
+                    toolsVals.push(currentToolssVal); 
+                }       
             });
             if(submitOk){
                 self.model.collection.models[index].set('RequiresIn', requireVals); 
@@ -990,6 +1014,13 @@ var checkPred = function (targets){
         }
     }
     return true;               
+}
+
+var checkFilled = function(targets){
+    if(targets[2].value.length===0 && targets[3].value.length===0 && targets[5].value.length===0){
+        return false;
+    }
+    return true;
 }
 
 var getOutput = function() {
