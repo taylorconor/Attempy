@@ -791,6 +791,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             $('<input class="full scriptInput" type="text" placeholder="Enter Script" />').insertBefore(this);
         });
         $('.submitData').on('click', function(){
+            $(this).find('#errorMsg').children().remove(); //TODO not working properly
             var submitOk = true;
             var collectioon = self.model.collection;
             var cid = $(this).attr("source_id");
@@ -813,6 +814,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             $(this).parents('#myModal').find('.requires').each(function(){
                 var currentRequiresVal = {};
                 var targets = $(this).children();
+                if(!checkPred(targets)){
+                    submitOk=false;
+                }
                 var offset = 0;
                 if(targets.length > 4){
                     currentRequiresVal.relOp = targets[0].value;
@@ -828,54 +832,17 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             $(this).parents('#myModal').find('.provides').each(function (){
                 var currentProvidesVal = {};
                 var targets = $(this).children();
+                if(!checkPred(targets)){
+                    submitOk=false;
+                }
                 var offset = 0;
                 if(targets.length > 4){
                     currentProvidesVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
-                var resourceExists = true;
-                var temp = targets[0 + offset].value;
-                if(temp.length!=0){
-                    if(!checkName(temp)){
-                        submitOk=false;
-                    }
-                }
-                else{
-                    resourceExists=false;
-                }
                 currentProvidesVal.resource = targets[0 + offset].value;
-                temp = targets[1 + offset].value;
-                if(resourceExists){
-                    if(!checkName(temp)){
-                        submitOk=false;
-                    }
-                }
-                else if(temp.length !=0){
-                    submitOk=false;
-                    addErr("Attributes cannot exist without resource")
-                }
                 currentProvidesVal.attribute = targets[1 + offset].value;
-                temp = targets[2 + offset].value;
-                if(resourceExists){
-                    if(!checkName(temp)){
-                        submitOk=false;
-                    }
-                }
-                else if(temp.length !=0){
-                    submitOk=false;
-                    addErr("Attributes cannot exist without resource")
-                }
                 currentProvidesVal.operator = targets[2 + offset].value;
-                temp = targets[3 + offset].value;
-                if(resourceExists){
-                    if(!checkName(temp)){
-                        submitOk=false;
-                    }
-                }
-                else if(temp.length !=0){
-                    submitOk=false;
-                    addErr("Attributes cannot exist without resource")
-                }
                 currentProvidesVal.value = targets[3 + offset].value;
                 providesVals.push(currentProvidesVal);
             });
@@ -883,6 +850,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             $(this).parents('#myModal').find('.agent').each(function (){
                 var currentAgentsVal = {};
                 var targets = $(this).children();
+                if(!checkPred(targets)){
+                    submitOk=false;
+                }
                 var offset = 0;
                 if(targets.length > 4){
                     currentAgentsVal.relOp = targets[0].value;
@@ -898,6 +868,9 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             $(this).parents('#myModal').find('.tools').each(function (){
                 var currentToolssVal = {};
                 var targets = $(this).children();
+                if(!checkPred(targets)){
+                    submitOk=false;
+                }
                 var offset = 0;
                 if(targets.length > 4){
                     currentToolssVal.relOp = targets[0].value;
@@ -973,14 +946,50 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 var checkName = function(str){
     var fstChar = str.charAt(0);
     if(!str.match(/([A-Z]|[a-z]|_)/)){
-        $('#myModal').find('#errorMsg').html('<div>All names must begin with either a letter or _</div>')
+        $('#myModal').find('#errorMsg').append('<div>All names must begin with either a letter or _</div>')
         return false;
     }
     return true;
 }
 
 var addErr = function (str){
-    $('#myModal').find('#errorMsg').html('<div>'+str+'</div>')
+    $('#myModal').find('#errorMsg').append('<div>'+str+'</div>')
+}
+
+var checkPred = function (targets){
+    var offset = 0;
+    if(targets.length>4){
+        offset = 2;
+    }
+    var exists = [];
+    var toCheck = targets[0 + offset].value;
+    if(toCheck.length > 0){
+        exists.push(true);
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    toCheck = targets[1+offset].value;
+    if(!exists[0] && toCheck.length>0){
+        addErr("Attributes cannot exist without resource");
+        return false;
+    }
+    if(toCheck.length>0){
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    toCheck = targets[3+offset].value;
+    if(!exists[0] && toCheck.length>0){
+        addErr("Attributes cannot exist without resource");
+        return false;
+    }
+    if(toCheck.length>0){
+        if(!checkName(toCheck)){
+            return false;
+        }
+    }
+    return true;               
 }
 
 var getOutput = function() {
