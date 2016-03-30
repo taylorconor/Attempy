@@ -906,3 +906,57 @@ var setInput = function(jsonString) {
     console.log(jsonString)
     //graph.fromJSON(jsonString);
 }
+
+paper.$el.on('mousewheel DOMMouseScroll', function onMouseWheel(e) {
+  //function onMouseWheel(e){
+  e.preventDefault();
+  e = e.originalEvent;
+
+  var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail))) / 50;
+  var offsetX = (e.offsetX || e.clientX - $(this).offset().left);
+
+  var offsetY = (e.offsetY || e.clientY - $(this).offset().top);
+  var p = offsetToLocalPoint(offsetX, offsetY);
+  var newScale = V(paper.viewport).scale().sx + delta;
+  // console.log(' delta' + delta + ' ' + 'offsetX' + offsetX + 'offsety--' + offsetY + 'p' + p.x + 'newScale' + newScale)
+  if (newScale > 0.4 && newScale < 2) {
+    paper.setOrigin(0, 0);
+    paper.scale(newScale, newScale, p.x, p.y);
+    scaleHtmlElements(newScale, p.x, p.y);
+  }
+});
+
+function scaleHtmlElements(scale, x, y){
+    var elements = $('#paper').find('.html-element');
+    x *= scale;
+    y *= scale;
+    elements.each(function (){
+        $(this).css({
+          '-webkit-transform' : 'scale(' + scale + ') translate(' + x + 'px, ' + y + 'px)',
+          '-moz-transform'    : 'scale(' + scale + ') translate(' + x + 'px, ' + y + 'px)',
+          '-ms-transform'     : 'scale(' + scale + ') translate(' + x + 'px, ' + y + 'px)',
+          '-o-transform'      : 'scale(' + scale + ') translate(' + x + 'px, ' + y + 'px)',
+          'transform'         : 'scale(' + scale + ') translate(' + x + 'px, ' + y + 'px)'
+        });
+        // var newX, newY;
+        // newX = 
+        // $(this).css('-webkit-transform-origin', 'x y');
+        // $(this).css('transform-origin', 'x y');
+        // $(this).css('-webkit-transform', 'scale(' + scale + ')');
+        // $(this).css('-webkit-transform-origin', '0 0');
+        // $(this).css('transform', 'scale(' + scale + ')');
+        // $(this).css('transform-origin', '0 0');
+
+        // $(this).css('-webkit-transform', 'scale('+scalex+','+scaley+')');
+        // $(this).css('transform', 'scale('+scalex+','+scaley+')');
+        
+    });    
+}
+function offsetToLocalPoint(x, y) {
+  var svgPoint = paper.svg.createSVGPoint();
+  svgPoint.x = x;
+  svgPoint.y = y;
+
+  var pointTransformed = svgPoint.matrixTransform(paper.viewport.getCTM().inverse());
+  return pointTransformed;
+}
