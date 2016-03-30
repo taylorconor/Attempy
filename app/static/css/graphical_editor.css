@@ -204,9 +204,32 @@
 }
 
 .devs .body.branch {
-    stroke: #2ECC40;
-    stroke-width: 6px;
+    stroke: #3D9970;
 }
+.devs .label.branch {
+    fill: #3D9970;
+}
+.devs .body.sequence {
+    stroke: #FF851B;
+}
+.devs .label.sequence {
+    fill: #FF851B;
+}
+.devs .body.iteration {
+    stroke: #85144b;
+}
+.devs .label.iteration {
+    fill: #85144b;
+}
+.devs .body.selection {
+    stroke: #01FF70;
+}
+.devs .label.selection {
+    fill: #01FF70;
+}
+
+
+
 
 #myModal .modal-body button{
   margin-top: 4px;

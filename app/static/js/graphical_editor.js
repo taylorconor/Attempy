@@ -414,9 +414,8 @@ var grid = {
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
-                attrs: { text: { text: type }, 
-                    rect: { class: 'body ' + type },
-                    label: {class: 'label ' + type}
+                attrs: { text: { text: type, class: 'label ' + type }, 
+                    rect: { class: 'body ' + type }
                 },
                 class: 'body ' + type,
                 elType: type,
@@ -1004,5 +1003,20 @@ $('.submitElementUpdate').on('click', function(){
     }
     else{
         collectioon[index].attr('text/text', collectioon[index].get('elType'));
+    }
+});
+
+$('.delete_element').on('click', function(){
+    $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
+    var submitOk = true;
+    var collectioon = graph.getCells();
+    var cid = $(this).parents('.modal').find('.submitData').attr("source_id");
+    var index = -1;
+    for(var i = 0; i<collectioon.length; i++){
+        if(collectioon[i].cid == cid){
+            //TODO Need to implement a delete function (hierachy might be a pain)
+            // deleteElement(collectioon[index]);
+            break;
+        }
     }
 });

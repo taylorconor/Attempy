@@ -23,7 +23,7 @@ Editor
 	  <div class="modal-dialog modal-lg">
 	    <div class="modal-content">
 		<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">&times;</button>
+	    <button type="button" class="btn btn-danger delete_element pull-right"  data-dismiss="modal">Delete</button>
 		<h4 class="modal-title">Element Options</h4>
 		</div>
 		<div class="modal-body text-center">
@@ -103,12 +103,12 @@ Editor
 		    <div id="errorMsg">
 		    </div>
 	    </div>
-		</div>
 	    <div class="modal-footer">
-	    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	    	<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 	       	<button type="button" class="btn btn-primary submitData" >Submit</button>
 	    </div>
 	  </div>
+	</div>
 	</div>
     <textarea id="current_file_name" style="display:none;"></textarea>
 
@@ -117,17 +117,17 @@ Editor
 
 	    <!-- Modal content-->
 	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal">&times;</button>
-	        <h4 class="modal-title">Element Options</h4>
-	      </div>
-	      <div class="modal-body text-center">
-		        <input type="text" placeholder="Name" class="rename"/>
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-	       	<button type="button" class="btn btn-primary submitElementUpdate" data-dismiss="modal">Submit</button>
-	      </div>
+		<div class="modal-header">
+	    	<button type="button" class="btn btn-danger delete_element pull-right"  data-dismiss="modal">Delete</button>
+			<h4 class="modal-title">Element Options</h4>
+		</div>
+		<div class="modal-body text-center">
+		    <input type="text" placeholder="Name" class="rename"/>
+		</div>
+		<div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+			<button type="button" class="btn btn-primary submitElementUpdate" data-dismiss="modal">Submit</button>
+		</div>
 	    </div>
 	  </div>
 	</div>
