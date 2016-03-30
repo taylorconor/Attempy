@@ -25,6 +25,7 @@ Editor
 
 	        <input class="full nameAction" type="text" placeholder="Enter Action Name" ></input><br>         
 	        <input class="full scriptInput" id = "script" type="text" placeholder="Enter Script" /> 
+	        <button class="scrAdd">add</button>
 	        <!-- //requires -->
 	        <br>Requires:<br>
 	        <div class="fullReq">
@@ -76,11 +77,30 @@ Editor
 		        <input type="text" class = ""  placeholder="Value" />
 	        </div>
 	        <button class=" ageAdd ">add</button>
+	        <!-- //tools -->
+	        <br>Tools:<br>
+	        <div class="tools">
+	        	<input type="text" placeholder="Resource" />.
+		        <input type="text" placeholder="attribute" />
+		        <select>
+		        	<option>=</option>
+		        	<option>!=</option>
+		        	<option><</option>
+		        	<option><=</option>
+		        	<option>></option>
+		        	<option>>=</option>
+		        </select>
+		        <input type="text" class = ""  placeholder="Value" />
+	        </div>
+	        <button class=" toolAdd ">add</button>
+	    </div>
+	    <div id="errorMsg">
+
 	    </div>
 
 	    <div class="modal-footer">
 	    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	       	<button type="button" class="btn btn-primary submitData" data-dismiss="modal">Submit</button>
+	       	<button type="button" class="btn btn-primary submitData" >Submit</button>
 	    </div>
 	  </div>
 	</div>

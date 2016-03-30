@@ -318,7 +318,8 @@ var grid = {
                 scriptIn: [],
                 RequiresIn: [],
                 ProvidesIn:[],
-                AgentsIn:[]
+                AgentsIn:[],
+                ToolsIn:[]
             });
             outerColumns.push(el, false);
         } else {
@@ -688,15 +689,6 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.$box.find('input').on('change', _.bind(function(evt) {
             this.model.set('input', $(evt.target).val());
         }, this));
-        this.$box.find('select').on('change', _.bind(function(evt) {
-            this.model.set('select1', $(evt.target).val());
-        }, this));
-        this.$box.find('.nameAction').on('change', _.bind(function(evt) {
-            this.model.set('nameIn', $(evt.target).val());
-        }, this));
-        this.$box.find('.scriptInput').on('change', _.bind(function(evt) {
-            this.model.set('scriptIn', $(evt.target).val());
-        }, this));
         this.$box.find('.openMod').on('click', _.bind(function(evt) {
             var colId = this.model.cid; 
             var myModal = $('#myModal');
@@ -704,10 +696,15 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
             myModal.find('.nameAction').val(this.model.get('nameIn'));
 
             var scripts = this.model.get('scriptIn');
-            if(scripts.length>0){
-                //TODO will we only ever have one script?
-                myModal.find('.scriptInput').val(scripts[0]);
+            for(var i=0; i<scripts.length; i++){
+                if(i===0){
+                    myModal.find('.scriptInput')[0].value = scripts[i];
+                }
+                else{
+                    $('<input class="full scriptInput" class = "script" type="text" placeholder="Enter Script" value="'+scripts[i]+'"/>').insertBefore('.scrAdd');
+                }   
             }
+
             var reqs = this.model.get('RequiresIn');
             for(var i=0; i<reqs.length; i++){
                 if(i===0){
@@ -753,6 +750,21 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
                 }
             }
+            var tools = this.model.get('ToolsIn');
+            for(var i=0; i<tools.length; i++){
+                if(i===0){
+                    var targets = myModal.find('.tools').children();
+                    targets[0].value = tools[i].resource;
+                    targets[1].value = tools[i].attribute;
+                    targets[2].value = tools[i].operator;
+                    targets[3].value = tools[i].value;
+                }
+                else{
+                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" />.<input value="'+tools[i].attribute+'" type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+                    myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
+                    myModal.find('.tool:last').find('select:last').val(tools[i].operator);
+                }
+            }
             
             $('#myModal').modal('show');            
         }, this));
@@ -761,6 +773,7 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         $('.reqAdd').unbind('click');
         $('.provAdd').unbind('click');
         $('.ageAdd').unbind('click');
+        $('.toolAdd').unbind('click');
         $('.submitData').unbind('click');
         $('.reqAdd').on('click' , function(){
             $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
@@ -771,7 +784,14 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         $('.ageAdd').on('click', function(){
             $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
         });
+        $('.toolAdd').on('click', function(){
+            $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" />.<input type="text" placeholder="attribute" /><select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select><input type="text" placeholder="Value" /></div>').insertBefore(this);
+        });
+        $('.scrAdd').on('click', function(){
+            $('<input class="full scriptInput" type="text" placeholder="Enter Script" />').insertBefore(this);
+        });
         $('.submitData').on('click', function(){
+            var submitOk = true;
             var collectioon = self.model.collection;
             var cid = $(this).attr("source_id");
             var index = -1;
@@ -782,9 +802,13 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 }
             }
             var nameVal = $(this).parents('#myModal').find('.nameAction').val();
+            if(nameVal.length!=0){
+                submitOk = checkName(nameVal);
+            }
             var scriptVal = [];
-            scriptVal.push($(this).parents('#myModal').find('.scriptInput').val());
-
+            $(this).parents('#myModal').find('.scriptInput').each(function(){
+                scriptVal.push($(this).val());
+            });
             var requireVals = [];
             $(this).parents('#myModal').find('.requires').each(function(){
                 var currentRequiresVal = {};
@@ -809,9 +833,49 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                     currentProvidesVal.relOp = targets[0].value;
                     offset = 2; //includes op_1 and <br>
                 }
+                var resourceExists = true;
+                var temp = targets[0 + offset].value;
+                if(temp.length!=0){
+                    if(!checkName(temp)){
+                        submitOk=false;
+                    }
+                }
+                else{
+                    resourceExists=false;
+                }
                 currentProvidesVal.resource = targets[0 + offset].value;
+                temp = targets[1 + offset].value;
+                if(resourceExists){
+                    if(!checkName(temp)){
+                        submitOk=false;
+                    }
+                }
+                else if(temp.length !=0){
+                    submitOk=false;
+                    addErr("Attributes cannot exist without resource")
+                }
                 currentProvidesVal.attribute = targets[1 + offset].value;
+                temp = targets[2 + offset].value;
+                if(resourceExists){
+                    if(!checkName(temp)){
+                        submitOk=false;
+                    }
+                }
+                else if(temp.length !=0){
+                    submitOk=false;
+                    addErr("Attributes cannot exist without resource")
+                }
                 currentProvidesVal.operator = targets[2 + offset].value;
+                temp = targets[3 + offset].value;
+                if(resourceExists){
+                    if(!checkName(temp)){
+                        submitOk=false;
+                    }
+                }
+                else if(temp.length !=0){
+                    submitOk=false;
+                    addErr("Attributes cannot exist without resource")
+                }
                 currentProvidesVal.value = targets[3 + offset].value;
                 providesVals.push(currentProvidesVal);
             });
@@ -830,11 +894,30 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
                 currentAgentsVal.value = targets[3 + offset].value;
                 agentsVals.push(currentAgentsVal);        
             });
-            self.model.collection.models[index].set('RequiresIn', requireVals); 
-            self.model.collection.models[index].set('ProvidesIn', providesVals);
-            self.model.collection.models[index].set('AgentsIn', agentsVals); 
-            self.model.collection.models[index].set('nameIn', nameVal); 
-            self.model.collection.models[index].set('scriptIn', scriptVal); 
+            var toolsVals = [];
+            $(this).parents('#myModal').find('.tools').each(function (){
+                var currentToolssVal = {};
+                var targets = $(this).children();
+                var offset = 0;
+                if(targets.length > 4){
+                    currentToolssVal.relOp = targets[0].value;
+                    offset = 2; //includes op_1 and <br>
+                }
+                currentToolssVal.resource = targets[0 + offset].value;
+                currentToolssVal.attribute = targets[1 + offset].value;
+                currentToolssVal.operator = targets[2 + offset].value;
+                currentToolssVal.value = targets[3 + offset].value;
+                toolsVals.push(currentToolssVal);        
+            });
+            if(submitOk){
+                self.model.collection.models[index].set('RequiresIn', requireVals); 
+                self.model.collection.models[index].set('ProvidesIn', providesVals);
+                self.model.collection.models[index].set('AgentsIn', agentsVals); 
+                self.model.collection.models[index].set('ToolsIn', toolsVals); 
+                self.model.collection.models[index].set('nameIn', nameVal); 
+                self.model.collection.models[index].set('scriptIn', scriptVal);
+                $('#myModal').modal('hide'); 
+            }
         })
 
         this.model.on('change', this.updateBox, this);
@@ -842,17 +925,16 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         this.model.on('remove', this.removeBox, this);
 
         this.updateBox();
+
         $('#myModal').on('hidden.bs.modal', function () {
             $(this).find("input,textarea,select").val('').end();
+            $(this).find('.scriptInput').not(':first').remove();
             $(this).find('.requires').not(':first').remove();
             $(this).find('.provides').not(':first').remove();
             $(this).find('.agent').not(':first').remove();
+            $(this).find('.tools').not(':first').remove();
+            $(this).find('#errorMsg').children().remove();
         });
-    },
-    modalDataUpdate: function(reqVal, provVal, ageVal){
-        this.model.set('RequiresIn', reqVal);
-        this.model.set('ProvidesIn', provVal);
-        this.model.set('AgentsIn', ageVal);
     },
     render: function() {
         joint.dia.ElementView.prototype.render.apply(this, arguments);
@@ -885,8 +967,21 @@ joint.shapes.html.ElementView = joint.dia.ElementView.extend({
         //could not load file due to error
         this.$box.remove();
     }
-
 });
+
+
+var checkName = function(str){
+    var fstChar = str.charAt(0);
+    if(!str.match(/([A-Z]|[a-z]|_)/)){
+        $('#myModal').find('#errorMsg').html('<div>All names must begin with either a letter or _</div>')
+        return false;
+    }
+    return true;
+}
+
+var addErr = function (str){
+    $('#myModal').find('#errorMsg').html('<div>'+str+'</div>')
+}
 
 var getOutput = function() {
     var columns = [];
