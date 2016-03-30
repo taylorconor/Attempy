@@ -62,7 +62,6 @@ var highlighter = V('circle', {
 //         }
 //     }
 // });
-// 
 var dragStartPosition = false;
 paper.on('blank:pointerdown',
     function(event, x, y) {
@@ -166,9 +165,6 @@ paper.on('cell:pointerdblclick',
         }
     }
 );
-
-var horizontalNesting = ["sequence", "iteration", undefined];
-
 var currentlyHighlighted = undefined;
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
     var elementBelow = graph.getCells().filter( function(cell) {
@@ -206,26 +202,13 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
         }
     }
 });
-var movingColumn = undefined;
-
-paper.on('cell:pointerdown', function(cellView, evt, x, y) {    
-    var exParent = cellView.model.getAncestors();
-
-    if (exParent.length) {
-        exParent[0].unembed(cellView.model);
-        movingColumn = exParent[0].get("column").columns.remove(cellView.model);
-    } else {
-        movingColumn = outerColumns.remove(cellView.model);
-    }
-    cellView.model.set("z", 999);
-});
 
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
     if (currentlyHighlighted) {
         V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
         currentlyHighlighted = undefined;
     }
-
+    var exParent = cellView.model.getAncestors();
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -244,21 +227,30 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     for (var i = 0; i < elementBelow.length; i++) {
         if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
+            elementBelow[i].embed(cellView.model);
             cellView.model.set("z", elementBelow[i].get("z") + 1);
             var embeddedInto = elementBelow[i];
             embedded = true;
             break;
         }
     }
-    if (typeof embeddedInto === "undefined") {
-        cellView.model.set("z", 1);
-    }
 
-    if (embedded) {
-        embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
-        embeddedInto.embed(cellView.model);
+    if (!embedded) {
+        if (!exParent.length) {
+            outerColumns.move(cellView.model, cellView.model.get('position').x);
+        } else {
+            exParent[0].unembed(cellView.model);
+            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+            outerColumns.insert(movingColumn, cellView.model.get('position').x);
+        }
     } else {
-        outerColumns.insert(movingColumn, cellView.model.get('position').x);
+        if (exParent.length) {
+            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+        } else {
+            var movingColumn = outerColumns.remove(cellView.model);
+            console.log(movingColumn);
+        }
+        embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
 });
 
@@ -269,14 +261,16 @@ var insert = function(type) {
 }
 
 
-
-
 var nesting = {
     // forcibly (e.g. not top-down) resizes an element, then bubbles up the
     // hierarchy to maintain consistency
     forceResize: function(el, size) {
         var elWidth = el.get("size").width;
         el.set("size", size);
+        // if (el.get("column")) {
+        //     el.get("column").setSize(size);
+        //     el.get("column").changeSize(size.width - elWidth);
+        // }
         // now resize the entire hierarchy to adapt to el's new size
         this.resize(el);
     },
@@ -323,12 +317,7 @@ var nesting = {
                 width: childWidth,
                 height: nesting.minHeight(child)
             };
-
-            if (horizontalNesting.indexOf(child.get("elType")) !== -1) {
-                child.get("column").columns.updateSize()
-            } else {
-                child.set("size", childSize);
-            }
+            child.set("size", childSize);
             // if (child.get("column")) {
             //     child.get("column").setSize(childSize);
             //     child.get("column").changeSize(childOldWidth - childSize.width);
@@ -392,6 +381,9 @@ var nesting = {
 
 var outerColumns = new Columns();
 
+//for agent coloured actions 
+var colourAgent = [];
+var currentColour = [20,20,20]
 
 var grid = {
 
@@ -429,7 +421,10 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
-                attrs: { text: { text: type } },
+                attrs: { 
+                    text: { text: type }, 
+                    rect: { fill: 'rgb(255,255,255)' }
+                },
                 elType: type,
                 nameIn: '',
                 scriptIn: [],
@@ -443,8 +438,9 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 attrs: { text: { text: type, class: 'label ' + type }, 
-                    rect: { class: 'body ' + type }
+                    rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
+                class: 'body ' + type,
                 elType: type,
                 verticalChildCount: 0
             });
@@ -628,6 +624,7 @@ Columns.prototype.insert = function(column, destinationXCoord) {
         var insertionColumn = this.getColumnByXCoord(destinationXCoord);
 
         //Move element
+        console.log(this.getXCoordByColumn(insertionColumn), this.getYCoord());
         column.changePos(this.getXCoordByColumn(insertionColumn), this.getYCoord());
 
         //Rearrange data-structure
@@ -748,6 +745,7 @@ Column.prototype.setSize = function(size) {
 }
 
 
+
 var checkName = function(str){
     var fstChar = str.charAt(0);
     if(!str.match(/([A-Z]|[a-z]|_)/)){
@@ -760,6 +758,7 @@ var checkName = function(str){
 var addErr = function (str){
     $('#myModal').find('#errorMsg').append('<div class="alert alert-danger">'+str+'</div>')
 }
+
 var checkPred = function (targets){
     var offset = 0;
     if(targets.length>4){
@@ -802,6 +801,7 @@ var checkFilled = function(targets){
     }
     return true;
 }
+
 var getOutput = function() {
     var columns = [];
     graph.attributes.cells.models.forEach(
@@ -822,6 +822,23 @@ var setInput = function(jsonString) {
     graph.clear();
     console.log(jsonString)
     graph.fromJSON(jsonString);
+}
+
+var newColour = function() {
+    //DON'T DELETE!!! I might want it later.... Théa 
+    // var sumColour = 0;
+    // for(var i=0; i<currentColour.length; i++){
+    //     sumColour+=currentColour[i];
+    // }
+    // if(sumColour>600){
+    //     currentColour[0] = Math.floor((Math.random() * 50) + 25);
+    //     currentColour[1] = Math.floor((Math.random() * 50) + 25);
+    //     currentColour[2] = Math.floor((Math.random() * 50) + 25);
+    // }
+    var index = Math.floor((Math.random() * 2) );
+    var add = Math.floor((Math.random() * 240) + 20);
+    currentColour[index]=add;
+    return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
 }
 
 
@@ -911,6 +928,7 @@ $('.submitData').on('click', function(){
         }
     });
     var agentsVals = [];
+    var agentNames = [];
     $(this).parents('#myModal').find('.agent').each(function (){
         var currentAgentsVal = {};
         var targets = $(this).children();
@@ -931,6 +949,13 @@ $('.submitData').on('click', function(){
         currentAgentsVal.operator = targets[2 + offset].value;
         currentAgentsVal.value = targets[3 + offset].value;
         if(!blank){
+        // push agent with new colour to array 
+            if(currentAgentsVal.resource.length>0){
+                if(colourAgent[targets[0 + offset].value] === undefined){
+                    colourAgent[targets[0 + offset].value] = newColour();
+                }
+                agentNames.push(currentAgentsVal.resource);
+            }
             agentsVals.push(currentAgentsVal);        
         }
     });
@@ -964,6 +989,19 @@ $('.submitData').on('click', function(){
         }
         else{
              collectioon[index].attr('text/text', collectioon[index].get('elType'));
+        }
+        if(agentNames.length>0){
+            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]); 
+            var stops = [];
+            var gap = 100/agentNames.length;
+            for(var j=0; j<agentNames.length; j++){
+                var percent = j*gap;
+                stops.push({offset:''+percent+'%',color:''+colourAgent[agentNames[j]]+''})
+            }
+            collectioon[index].attr('rect/fill', {
+                                                type: 'linearGradient',
+                                                stops: stops
+                                            });
         }
         collectioon[index].set('RequiresIn', requireVals); 
         collectioon[index].set('ProvidesIn', providesVals);
@@ -1017,7 +1055,6 @@ $('.delete_element').on('click', function(){
     var index = -1;
     for(var i = 0; i<collectioon.length; i++){
         if(collectioon[i].cid == cid){
-            var temp = collectioon[i].get("column");
             collectioon[i].get("column").columns.remove(collectioon[i]);
             collectioon[i].remove();
             break;
