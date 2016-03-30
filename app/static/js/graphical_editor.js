@@ -1010,12 +1010,12 @@ $('.delete_element').on('click', function(){
     $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
     var submitOk = true;
     var collectioon = graph.getCells();
-    var cid = $(this).parents('.modal').find('.submitData').attr("source_id");
+    var cid = $(this).parents('.modal').find('.submitData,.submitElementUpdate').attr("source_id");
     var index = -1;
     for(var i = 0; i<collectioon.length; i++){
         if(collectioon[i].cid == cid){
-            //TODO Need to implement a delete function (hierachy might be a pain)
-            // deleteElement(collectioon[index]);
+            collectioon[i].get("column").remove();
+            collectioon[i].remove();
             break;
         }
     }
