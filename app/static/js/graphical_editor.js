@@ -366,6 +366,10 @@ var nesting = {
 
 var outerColumns = new Columns();
 
+//for agent coloured actions 
+var colourAgent = [];
+var currentColour = [20,20,20]
+
 var grid = {
 
     //Block size contants
@@ -401,7 +405,10 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
-                attrs: { text: { text: type } },
+                attrs: { 
+                    text: { text: type }, 
+                    rect: { fill: 'rgb(200,0,200)' }
+                },
                 elType: type,
                 nameIn: '',
                 scriptIn: [],
@@ -415,7 +422,7 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 attrs: { text: { text: type, class: 'label ' + type }, 
-                    rect: { class: 'body ' + type }
+                    rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
                 class: 'body ' + type,
                 elType: type,
@@ -821,6 +828,23 @@ var setInput = function(jsonString) {
     graph.fromJSON(jsonString);
 }
 
+var newColour = function() {
+    //DON'T DELETE!!! I might want it later.... Théa 
+    // var sumColour = 0;
+    // for(var i=0; i<currentColour.length; i++){
+    //     sumColour+=currentColour[i];
+    // }
+    // if(sumColour>600){
+    //     currentColour[0] = Math.floor((Math.random() * 50) + 25);
+    //     currentColour[1] = Math.floor((Math.random() * 50) + 25);
+    //     currentColour[2] = Math.floor((Math.random() * 50) + 25);
+    // }
+    var index = Math.floor((Math.random() * 2) );
+    var add = Math.floor((Math.random() * 240) + 20);
+    currentColour[index]=add;
+    return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
+}
+
 
 // $('.reqAdd').unbind('click');
 // $('.provAdd').unbind('click');
@@ -908,6 +932,7 @@ $('.submitData').on('click', function(){
         }
     });
     var agentsVals = [];
+    var agentNames = [];
     $(this).parents('#myModal').find('.agent').each(function (){
         var currentAgentsVal = {};
         var targets = $(this).children();
@@ -928,6 +953,13 @@ $('.submitData').on('click', function(){
         currentAgentsVal.operator = targets[2 + offset].value;
         currentAgentsVal.value = targets[3 + offset].value;
         if(!blank){
+        // push agent with new colour to array 
+            if(currentAgentsVal.resource.length>0){
+                if(colourAgent[targets[0 + offset].value] === undefined){
+                    colourAgent[targets[0 + offset].value] = newColour();
+                }
+                agentNames.push(currentAgentsVal.resource);
+            }
             agentsVals.push(currentAgentsVal);        
         }
     });
@@ -961,6 +993,19 @@ $('.submitData').on('click', function(){
         }
         else{
              collectioon[index].attr('text/text', collectioon[index].get('elType'));
+        }
+        if(agentNames.length>0){
+            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]); 
+            var stops = [];
+            var gap = 100/agentNames.length;
+            for(var j=0; j<agentNames.length; j++){
+                var percent = j*gap;
+                stops.push({offset:''+percent+'%',color:''+colourAgent[agentNames[j]]+''})
+            }
+            collectioon[index].attr('rect/fill', {
+                                                type: 'linearGradient',
+                                                stops: stops
+                                            });
         }
         collectioon[index].set('RequiresIn', requireVals); 
         collectioon[index].set('ProvidesIn', providesVals);
