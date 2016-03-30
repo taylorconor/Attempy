@@ -63,6 +63,8 @@ var highlighter = V('circle', {
 //     }
 // });
 
+var verticalNesting = ["sequence", "iteration", undefined];
+
 var currentlyHighlighted = undefined;
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
     var elementBelow = graph.getCells().filter( function(cell) {
@@ -107,6 +109,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         currentlyHighlighted = undefined;
     }
     var exParent = cellView.model.getAncestors();
+
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -125,7 +128,6 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     for (var i = 0; i < elementBelow.length; i++) {
         if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
-            elementBelow[i].embed(cellView.model);
             cellView.model.set("z", elementBelow[i].get("z") + 1);
             var embeddedInto = elementBelow[i];
             embedded = true;
@@ -136,19 +138,25 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     if (!embedded) {
         if (!exParent.length) {
             outerColumns.move(cellView.model, cellView.model.get('position').x);
+            console.log("move outer")
         } else {
             exParent[0].unembed(cellView.model);
             var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
             outerColumns.insert(movingColumn, cellView.model.get('position').x);
+            console.log("move from inner to outer")
         }
     } else {
         if (exParent.length) {
+            exParent[0].unembed(cellView.model);
             var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+            console.log(cellView.model.getAncestors());
+            console.log("move from inner to inner")
         } else {
             var movingColumn = outerColumns.remove(cellView.model);
-            console.log(movingColumn);
+            console.log("move from outer to inner")
         }
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
+        embeddedInto.embed(cellView.model);
     }
 });
 
@@ -159,16 +167,14 @@ var insert = function(type) {
 }
 
 
+
+
 var nesting = {
     // forcibly (e.g. not top-down) resizes an element, then bubbles up the
     // hierarchy to maintain consistency
     forceResize: function(el, size) {
         var elWidth = el.get("size").width;
         el.set("size", size);
-        // if (el.get("column")) {
-        //     el.get("column").setSize(size);
-        //     el.get("column").changeSize(size.width - elWidth);
-        // }
         // now resize the entire hierarchy to adapt to el's new size
         this.resize(el);
     },
@@ -215,7 +221,12 @@ var nesting = {
                 width: childWidth,
                 height: nesting.minHeight(child)
             };
-            child.set("size", childSize);
+
+            if (horizontalNesting.indexOf(child.attr("text/text")) !== -1) {
+                child.get("column").columns.updateSize()
+            } else {
+                child.set("size", childSize);
+            }
             // if (child.get("column")) {
             //     child.get("column").setSize(childSize);
             //     child.get("column").changeSize(childOldWidth - childSize.width);
@@ -408,7 +419,7 @@ Columns.prototype.getColumnByXCoord = function(xCoord, oldCol) {
         widthAcc += this.columns[i].width;
         if (widthAcc > xCoord) {
             if (i === oldCol) {
-                return undefined;
+                return i;
             } else if (i > oldCol) {
                 return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i; 
             } else {
@@ -448,7 +459,7 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
 //Can only push onto outer columns
 Columns.prototype.push = function(element) {
     //Update Data structure
-    var length = this.columns.push(new Column(element));
+    var length = this.columns.push(new Column(element, this));
     //Set position of new element
     this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getYCoord());    
 }
@@ -502,29 +513,20 @@ Columns.prototype.move = function(element, destinationXCoord) {
 Columns.prototype.insert = function(column, destinationXCoord) {
     if (!this.parent || this.parent.attr("text/text") === "sequence" || this.parent.attr("text/text") === "iteration") {
         //Get Column to insert into
-        var insertionColumn = this.getColumnByXCoord(destinationXCoord, this.columns.length);
-        console.log(insertionColumn, this.columns.length);
-        if (typeof insertionColumn === undefined) {
-            //There was no column movement
-            return;
-        }
-
-        //Make room for element
-        for (var i = insertionColumn; i < this.columns.length; i++) {
-            this.columns[i].pushUp(column.width + grid.outerPadding);
-        }
+        var insertionColumn = this.getColumnByXCoord(destinationXCoord);
 
         //Move element
-        console.log(this.getXCoordByColumn(insertionColumn), this.getYCoord());
         column.changePos(this.getXCoordByColumn(insertionColumn), this.getYCoord());
 
         //Rearrange data-structure
         this.columns.splice(insertionColumn, 0, column);
 
-        //Update parent(s) size
-        if (this.parent) {
-            this.parent.get("column").changeSize(column.width + grid.childPadding);
-        }
+        //Update parent columns
+        column.parentColumns = this;
+
+        //Resize and reposition
+        this.redraw();
+
     } else {
         this.columns.push(column);
     }
@@ -534,41 +536,69 @@ Columns.prototype.remove = function(element) {
     if (!this.parent || this.parent.attr("text/text") === "sequence" || this.parent.attr("text/text") === "iteration") {
         //get column to remove from
         var removalColumnIndex = this.getColumnPosByElementId(element.id);
-        //move down elements
-        for (var i = removalColumnIndex + 1; i < this.columns.length; i++) {
-            this.columns[i].pushDown(element.get("size").width + grid.outerPadding);
-        }
 
+        //Rearrange Data Structure
         if (this.columns.length === 1) {
             var removedColumn = this.columns[0];
             this.columns = [];
         } else {
             var removedColumn = this.columns.splice(removalColumnIndex, 1)[0];
         }
-        console.log(this);
-        //Remove width from parent(s)
-        if (this.parent) {
-            this.parent.get("column").changeSize(-1 * (removedColumn.width + grid.childPadding));
-        }
 
-        //Rearrange data structure
+        removedColumn.parentColumns = undefined;
+
+        //Resize and reposition
+        this.redraw();
+
         return removedColumn;
     } else {
         return this.columns.splice(this.getColumnPosByElementId(element.id), 1)[0];
     }
-    
+}
+
+//Column must be already removed/added to data structure
+//Changed parent size and repositions it's children
+Columns.prototype.redraw = function() {
+
+    var count = (Error().stack.match(/redraw/g) || []).length;
+
+    if (count > 5) {
+        console.log(this);
+        return;
+    }
+
+    var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
+    var xAccumulator = start;
+    var y = this.getYCoord();
+
+    for (var i = 0; i < this.columns.length; i++) {
+        this.columns[i].element.set("position", {x: xAccumulator, y: y});
+        xAccumulator += this.columns[i].width;
+    }
+
+    if (!this.parent) {
+        return;
+    }
+
+    if (!this.columns.length) {
+        xAccumulator += grid.minSize.width;
+    }
+    this.parent.get("column").setSize({width: xAccumulator - start + 2 * grid.childPadding, height: this.getMaxHeight() + 3 * grid.childPadding});
+    this.parent.get("column").parentColumns.redraw();
 }
 
 //Column deals with the element within the column position
-function Column(element) {
+function Column(element, columns) {
     this.element = element;
     this.width = grid.fullBlockWidth;
     this.height = grid.minHeight;
     this.columns = new Columns(element);
+    this.parentColumns = columns;
     //Add the columns object of child to the jointjs object of child
     element.set("column", this);   
 };
 
+//Used only for a dragged element.
 Column.prototype.changePos = function(x, y) {
     var oldPos = this.element.position();
     var translation = {
@@ -583,6 +613,7 @@ Column.prototype.changePos = function(x, y) {
     }
 }
 
+//Used only for a dragged element.
 Column.prototype.moveChildren = function(translation) {
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].columns) {
@@ -601,53 +632,10 @@ Column.prototype.pushDown = function(width) {
 }
 
 Column.prototype.setSize = function(size) {
-    this.width = size.width + grid.outerPadding;
+    this.width = size.width;
     this.height = size.height;
+    this.element.set("size", {width: size.width - grid.outerPadding, height: size.height});
 }
-
-Column.prototype.changeSize = function(widthChange) {
-    console.log(this.columns.columns[0]);
-    if (this.columns.columns.length === 1) {
-        widthChange = widthChange + grid.childPadding - this.width;
-    } else if (this.columns.columns.length === 0) {
-        widthChange = grid.minSize.width + 2 * grid.childPadding - this.width;
-    }
-    this.changeSizeHelper(widthChange);
-}
-
-//Not efficiently calculating height
-Column.prototype.changeSizeHelper = function(widthChange) {   
-    
-    if (this.element.attr("text/text") === "sequence" || this.element.attr("text/text") === "iteration") { 
-        console.log(this.columns.columns);
-        if (this.columns.columns.length === 0) {
-            var maxHeight = grid.minSize.height;
-        } else {
-            var maxHeight = this.columns.getMaxHeight() + 3 * grid.childPadding; 
-        }
-        
-        this.element.resize(this.element.get("size").width + widthChange, maxHeight);
-        this.height = maxHeight;
-        this.width += widthChange;
-    }
-
-    var ancestors = this.element.getAncestors();
-    if (ancestors.length) {
-        if (ancestors[0].attr("text/text") === "sequence" || ancestors[0].attr("text/text") === "iteration"){
-            var columnChange = ancestors[0].get("column").columns.getColumnPosByElementId(this.element);
-            for (var i = columnChange + 1; i < ancestors[0].get("column").columns.columns.length; i++) {
-                ancestors[0].get("column").columns.columns[i].pushUp(widthChange);
-            } 
-        }
-        ancestors[0].get("column").changeSizeHelper(widthChange);
-    } else {
-        var columnChange = outerColumns.getColumnPosByElementId(this.element);
-        for (var i = columnChange + 1; i < outerColumns.columns.length; i++) {
-            outerColumns.columns[i].pushUp(widthChange);
-        }
-    }
-
-} 
 
 joint.shapes.html = {};
 joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
@@ -896,5 +884,5 @@ var getOutput = function() {
 var setInput = function(jsonString) {
     graph.clear();
     console.log(jsonString)
-    //graph.fromJSON(jsonString);
+
 }
