@@ -65,13 +65,19 @@ The graphical editor can be accessed from the navigation bar view->graphical edi
 Scripts can be filled in inside all action boxes.
 
 ###Resources
-Resources can be filled in in all action boxes. Resources are broken down into requires, provides and tools. Each field is filled in separately.
+Resources can be filled in in all action boxes. Resources are broken down into requires, provides and tools. Each field is filled in separately. To access double click on action, fill in required details then click submit.
 
 ###Agents
-Agents can  be filled in in all action boxes.
+Agents can  be filled in in all action boxes. To access double click on action, fill in required details then click submit.
 
 ###Predicates
-Predicates can be added in Resources and Agents.
+Predicates can be added in Resources (requires, provides & tools) and Agents.
+
+###Agent Coloured Actions
+Actions will be coloured based on the agents associated with them. If multiple agents are associated with an action multiple colours will be applied to that action in a linear gradient.
+
+###Syntax Enforcement
+The design of boxes and arrows makes illegal syntax impossible. Syntax is enforced on the input fields in that incorrect names (that do not begin with a letter or '_' are not allowed) and attributes cannot exist without resources. If an incorrect value is entered in a field the data will not be allowed to be submited and an error message will appear. 
 
 ###Basic PML Display
 This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. Basic implementation of it currently present.
