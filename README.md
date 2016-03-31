@@ -91,5 +91,3 @@ To create a new, empty, file, click the file button next to Your Files on the le
 A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.
 
 Deleting a recently "uploaded" file and then reloading the page will resurrect the file.
-
-Tests are currently failing for keybinding emulation, keybinding emulation is currently working. The tests need to be updated.
