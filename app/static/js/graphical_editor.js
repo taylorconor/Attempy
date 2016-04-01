@@ -14,9 +14,7 @@ $('#paper').mouseenter(function() {
     } else {
         document.attachEvent('oncontextmenu', ieListener);
     }
-});
-
-$('#paper').mouseleave(function() {
+}).mouseleave(function() {
     if (document.addEventListener) {
         document.removeEventListener('contextmenu', listener);
     } else {
