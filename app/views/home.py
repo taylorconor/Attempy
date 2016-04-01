@@ -50,15 +50,22 @@ def graphical_editor():
 def get_pml_json():
     filename = secure_filename(request.form["data"])
     checkIfUserDirectoryExists()
+        
+    #run the file through pmlcheck
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
     tmp_filename = os.path.join(tmp_filename, filename)
     
-    parse_res = pml_check(filename)
-    if parse_res["return_code"] > 0:
+    checkIfUserDirectoryExists()
+    print(tmp_filename)
+    try:
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    except OSError as e:
+        return jsonify(output="Error", reason = str(e))
+    prog_out, error = p.communicate()
+    if p.returncode > 0:
         return jsonify(output="Error", reason = parse_res["output"])
     
-    print (tmp_filename)
-
+    #continue and parse      
     try:
         d = pml_to_json.parse(tmp_filename)
         return jsonify(output = 'Success', source=d)
@@ -77,9 +84,13 @@ def handler_changed():
     db_session.commit()
     return jsonify(output = 'Success')
     
-def pml_check(filename):
+@home.route('/pml_source_submit', methods=['POST'])
+@login_required
+def pml_source_submit():
+    file_name = request.form["data"]
+    file_name = secure_filename(file_name)
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
-    tmp_filename = os.path.join(tmp_filename, filename)
+    tmp_filename = os.path.join(tmp_filename, file_name)
     checkIfUserDirectoryExists()
     try:
         p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -87,15 +98,8 @@ def pml_check(filename):
         return render_template("home/pml_res_fatal_error.html", error = e)
 
     prog_out, error = p.communicate()
-    return {"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode}
-
-@home.route('/pml_source_submit', methods=['POST'])
-@login_required
-def pml_source_submit():
-    file_name = request.form["data"]
-    file_name = secure_filename(file_name)
+    return jsonify({"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
     
-    return jsonify(pml_check(file_name))
     
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
