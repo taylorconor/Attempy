@@ -60,12 +60,12 @@
 /* highlighting */
 
 .devs.highlighted-parent .body {
-    stroke: #fe854f;
+    stroke: #333 !important;
     transition: stroke 1s;
 }
 
 .devs.highlighted-parent .label {
-    fill: #fe854f;
+    fill: #333 !important;
     transition: fill 1s;
     text-decoration: underline;
 }

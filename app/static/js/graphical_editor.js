@@ -68,23 +68,7 @@ var highlighter = V('circle', {
 
 
 
-// paper.off('cell:highlight cell:unhighlight').on({
 
-//     'cell:highlight': function(cellView, el, opt) {
-//             console.log(el);
-//             console.log(cellView.model)
-
-//         if (opt.embedding) {
-//             V(el).addClass('highlighted-parent');
-//         }
-//     },
-
-//     'cell:unhighlight': function(cellView, el, opt) {
-//         if (opt.embedding) {
-//             V(el).removeClass('highlighted-parent');
-//         }
-//     }
-// });
 var dragStartPosition = false;
 paper.on('blank:pointerdown',
     function(event, x, y) {
@@ -196,7 +180,9 @@ paper.on('cell:contextmenu',
 
 
 var currentlyHighlighted = undefined;
+
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
+
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -222,6 +208,8 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
     if (hovering) {
         if (currentlyHighlighted && hoveringOn.id !== currentlyHighlighted.id) {
             V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
+            V(paper.findViewByModel(hoveringOn).el).addClass('highlighted-parent');
+            currentlyHighlighted = hoveringOn;
         } else if (!currentlyHighlighted) {
             V(paper.findViewByModel(hoveringOn).el).addClass('highlighted-parent');
             currentlyHighlighted = hoveringOn;
