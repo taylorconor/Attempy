@@ -759,6 +759,24 @@ var getOutput = function() {
     );
 }
 
+var getJSON = function() {
+    var json = {};
+	var columns = [];
+    graph.attributes.cells.models.forEach(
+        function(cell, index, cells) {
+            columns.push(cells[index].get("column"));
+            cells[index].set("column", "");
+        }
+    );
+    json = JSON.stringify(graph);
+    graph.attributes.cells.models.forEach(
+        function(cell, index, cells) {
+            cells[index].set("column", columns[index]);
+        }
+    );
+	return json;
+}
+
 var setInput = function(jsonString) {
     graph.clear();
     console.log(jsonString)

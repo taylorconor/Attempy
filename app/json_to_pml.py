@@ -1,4 +1,82 @@
-import json, sys
+import json, sys, copy
+
+def joint_to_json(arr, name):
+	d = {"process": {
+		"type": "process",
+		"name": name,
+		"contains" : {} 
+		}
+	}
+	contains = {}
+	count = 0
+	#keep track of processed ID's. map them to the path in the main dictionary
+	processed = {}
+	
+	def action(item):
+		script = "".join(item["scriptIn"]) #Expects string below, convert to string
+		agents = ",".join(item["AgentsIn"]) #Expects string too... potential conflict with representations
+		requires = "".join(item["RequiresIn"])
+		provides = "".join(item["ProvidesIn"])
+		return {
+			"type": "action",
+			"name": item["nameIn"],
+			"contains": {},
+			"script": script,
+			"agents": agents,
+			"requires": requires,
+			"provides": provides
+		}
+
+	def other(item):
+		item = copy.deepcopy(item)
+		name = ""
+		itemtype = ""
+		try: 
+			itemtype = item["attrs"]["text"]["text"]
+		except:
+			pass
+		try:
+			name = item["name"]
+		except:
+			pass
+		return {
+			"type": itemtype,
+			"name": name,
+			"contains": {}
+		}
+	
+	while arr:
+		delete = []
+		for i, item in enumerate(arr):	
+			itemDict = {}
+			if item["type"] == "html.Element":
+				itemDict = action(item)					
+			else:
+				itemDict = other(item)
+
+			try: #nested
+				print processed
+				if item["parent"] in processed.keys():
+					processed[item["parent"]][len(processed[item["parent"]].keys())] = copy.deepcopy(itemDict)
+				else:
+					continue
+			except: #root level 
+				key = str(len(d["process"]["contains"].keys()))
+				d["process"]["contains"][key] = itemDict
+				if "embeds" in item.keys():
+					processed[item["id"]] = d["process"]["contains"][key]["contains"]
+
+			delete.append(i)
+
+		for x in delete[::-1]:
+			print x
+			arr.pop(x)
+
+	return json.dumps(d)		
+			
+
+
+		
 
 def parse_process(proc_obj, indent_amt):
     output = ""
@@ -47,6 +125,9 @@ def parse_branch(branch_obj, indent_amt):
 def parse_sequence(seq_obj, indent_amt):
     return parse_generic_container(seq_obj, indent_amt, "sequence")
 
+def parse_selection(sel_obj, indent_amt):
+	return parse_generic_container(sel_obj, indent_amt, "selection")
+
 def parse_action(action_obj, indent_amt):
     output = ""
     indent = "\t"*indent_amt
@@ -82,6 +163,8 @@ def switchboard(json_obj, indent_amt):
         return parse_iteration(json_obj, indent_amt)
     elif type == "sequence":
         return parse_sequence(json_obj, indent_amt)
+    elif type == "selection":
+		return parse_selection(json_obj, indent_amt)
     elif type == "action":
         return parse_action(json_obj, indent_amt)
     else:
@@ -93,12 +176,26 @@ def json_to_pml(json_str):
         return False, "Root object 'process' not found"
     return parse_process(json_obj["process"], 0)
 
+def parse(arr, name):
+	json_obj = joint_to_json(arr, name)
+	return json_to_pml(json_obj)
+	
 if __name__ == '__main__':
-    file_name = sys.argv[1]
+	test = [
+{"type":"devs.Coupled","size":{"width":300,"height":110},"inPorts":[],"outPorts":[],"position":{"x":89.99996948242188,"y":90},"angle":0,"verticalChildCount":1,"id":"dd5b87fd-dc2a-406d-bdd9-fea0376430b8","column":"","z":2,"embeds":["a8f85853-30f6-4d3f-93e3-d049d22a68e0"],"attrs":{"text":{"text":"branch"}}},
+{"type":"html.Element","position":{"x":109.99996948242188,"y":130},"size":{"width":260,"height":50},"angle":0,"label":"Action","nameIn":"Action","scriptIn":[],"RequiresIn":[],"ProvidesIn":[],"AgentsIn":[],"id":"a8f85853-30f6-4d3f-93e3-d049d22a68e0","column":"","z":3,"parent":"dd5b87fd-dc2a-406d-bdd9-fea0376430b8","attrs":{}},
+{"type":"devs.Coupled","size":{"width":300,"height":50},"inPorts":[],"outPorts":[],"position":{"x":440,"y":90},"angle":0,"verticalChildCount":0,"id":"064c3e32-2953-4875-bc20-acba96246141","column":"","z":3,"attrs":{"text":{"text":"iteration"}}},
+{"type":"devs.Coupled","size":{"width":300,"height":50},"inPorts":[],"outPorts":[],"position":{"x":790,"y":90},"angle":0,"verticalChildCount":0,"id":"81abd23f-0d27-493f-84cf-04dbbd9d9a15","column":"","z":4,"attrs":{"text":{"text":"selection"}}}] 
+	
+	json_str = joint_to_json(test, "test")
+	print json_to_pml(json_str)
+
+
+	"""file_name = sys.argv[1]
     fp = open(file_name)
     contents = fp.read()
     valid,output = json_to_pml(contents)
     if not valid:
         print "ERROR: "+output
     else:
-        print output
+        print output"""
