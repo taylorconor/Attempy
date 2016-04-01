@@ -12,7 +12,7 @@ var paper = new joint.dia.Paper({
     linkPinning: false,
     embeddingMode: false,
     validateEmbedding: function(childView, parentView) {
-        return parentView.model instanceof joint.shapes.devs.Coupled;
+        return grid.canEmbedInto(parentView.model);
     }
 });
 var svgResize = function() {
@@ -180,9 +180,10 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
             return b.get("z") - a.get("z");
         }
     );
+
     var hovering = false;
     for (var i = 0; i < elementBelow.length; i++) {
-        if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
+        if (grid.canEmbedInto(elementBelow[i])) {
             var hoveringOn = elementBelow[i];
             hovering = true;
             break;
@@ -203,12 +204,61 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
     }
 });
 
+var movingColumn = undefined;
+
+paper.on('cell:pointerdown', 
+    function(cellView, evt, x, y) {
+        setTopZ(cellView.model, 900);
+        if (cellView.model.get("column").parentColumns.parent) {
+            cellView.model.get("column").parentColumns.parent.unembed(cellView.model);
+        }
+        movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
+        addElementClass(cellView.model, "dragging", true);
+    }
+);
+
+//Recursively sets an element and it's children to have top Z values
+var setTopZ = function(element, value) {
+    element.set("z", value);
+    element.getEmbeddedCells().map(
+        function(cell) {
+            setTopZ(cell, value + 1);
+        }
+    );
+}
+
+//Will add an svg css class to an elment and will recur if option is set
+var addElementClass = function(element, cssClass, shouldRecur) {
+    V(paper.findViewByModel(element).el).addClass(cssClass);
+    if (shouldRecur) {
+        element.getEmbeddedCells().map(
+            function(cell) {
+                addElementClass(cell, cssClass, shouldRecur);
+            }
+        );
+    }
+}
+
+//Will remove an svg css class to an elment and will recur if option is set
+var removeElementClass = function(element, cssClass, shouldRecur) {
+    V(paper.findViewByModel(element).el).removeClass(cssClass);
+    if (shouldRecur) {
+        element.getEmbeddedCells().map(
+            function(cell) {
+                removeElementClass(cell, cssClass, shouldRecur);
+            }
+        );
+    }
+}
+
 paper.on('cell:pointerup', function(cellView, evt, x, y) {
     if (currentlyHighlighted) {
         V(paper.findViewByModel(currentlyHighlighted).el).removeClass('highlighted-parent');
         currentlyHighlighted = undefined;
     }
-    var exParent = cellView.model.getAncestors();
+
+    removeElementClass(cellView.model, "dragging", true);
+
     var elementBelow = graph.getCells().filter( function(cell) {
         if (cell instanceof joint.dia.Link) return false; // Not interested in links.
         if (cell.id === cellView.model.id) return false; // The same element as the dropped one.
@@ -226,7 +276,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     );  
 
     for (var i = 0; i < elementBelow.length; i++) {
-        if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
+        if (grid.canEmbedInto(elementBelow[i])) {
             var embeddedInto = elementBelow[i];
             embedded = true;
             break;
@@ -234,24 +284,15 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     }
 
     if (!embedded) {
-        if (!exParent.length) {
-            outerColumns.move(cellView.model, cellView.model.get('position').x);
-        } else {
-            exParent[0].unembed(cellView.model);
-            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
-            outerColumns.insert(movingColumn, cellView.model.get('position').x);
-        }
+        outerColumns.insert(movingColumn, cellView.model.get('position').x);
+        cellView.model.set("z", 1);
     } else {
-        if (exParent.length) {
-            var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
-            exParent[0].unembed(cellView.model);    
-        } else {
-            var movingColumn = outerColumns.remove(cellView.model);
-        }
-        elementBelow[i].embed(cellView.model);
+        embeddedInto.embed(cellView.model);
         cellView.model.set("z", embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
+
+    movingColumn = undefined;
 });
 
 //Called by user when clicking menu option
@@ -409,9 +450,12 @@ var grid = {
     minSize: {width: 300, height: 50},
     minColumnSize: {width: 350, height: 50},
 
+    canEmbedInto: function(element) {
+        return element.get("elType") !== "action";
+    },
+
     //Can be used to add an element dynamically or to get properties and set up  the object for a json input.
     addElement: function(type) {
-        getOutput();
         var self = this;
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
@@ -507,7 +551,7 @@ var grid = {
 //Columns deals with the movement of columns, and setting of poition NOT translations
 function Columns(element) {
     this.columns = [];
-    this.parent = element; 
+    this.parent = element;
 }
 
 Columns.prototype.getYCoord = function() {
@@ -1049,11 +1093,8 @@ $('.submitElementUpdate').on('click', function(){
 
 $('.delete_element').on('click', function(){
     $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
-    var submitOk = true;
-    var collectioon = graph.getCells();
     var cid = $(this).parents('.modal').find('.submitData,.submitElementUpdate').attr("source_id");
-    var index = -1;
-    var cellToDelete = graph.getCell(cid);
-    cellToDelete.remove();
-    cellToDelete.get("column").parentColumns.remove(cellToDelete.get("column"));
+    var elementToRemove = graph.getCell(cid);
+    elementToRemove.get("column").parentColumns.remove(elementToRemove);
+    elementToRemove.remove();
 });
