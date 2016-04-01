@@ -70,6 +70,14 @@
     text-decoration: underline;
 }
 
+.devs.dragging .body {
+  opacity: 0.3;
+}
+
+.dev.dragging .label {
+  opacity: 0.3;
+}
+
 #paper {
     border: 3px solid #DDD;
     position: absolute;
