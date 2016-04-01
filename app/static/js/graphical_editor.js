@@ -74,7 +74,7 @@ paper.on('blank:pointerdown',
     function(event, x, y) {
         var scale = V(paper.viewport).scale();
         dragStartPosition = { x: x * scale.sx, y: y * scale.sy};
-        $('#paper').css('cursor', 'hand');
+        $('#paper').css('cursor', 'move');
     }
 );
 paper.on('blank:pointerup', function(cellView, x, y) {
