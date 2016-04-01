@@ -209,9 +209,6 @@ var movingColumn = undefined;
 paper.on('cell:pointerdown', 
     function(cellView, evt, x, y) {
         setTopZ(cellView.model, 900);
-        if (cellView.model.get("column").parentColumns.parent) {
-            cellView.model.get("column").parentColumns.parent.unembed(cellView.model);
-        }
         movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
         addElementClass(cellView.model, "dragging", true);
     }
@@ -227,7 +224,7 @@ var setTopZ = function(element, value) {
     );
 }
 
-//Will add an svg css class to an elment and will recur if option is set
+//Will add an svg css class to an element and will recur if option is set
 var addElementClass = function(element, cssClass, shouldRecur) {
     V(paper.findViewByModel(element).el).addClass(cssClass);
     if (shouldRecur) {
@@ -239,7 +236,7 @@ var addElementClass = function(element, cssClass, shouldRecur) {
     }
 }
 
-//Will remove an svg css class to an elment and will recur if option is set
+//Will remove an svg css class to an element and will recur if option is set
 var removeElementClass = function(element, cssClass, shouldRecur) {
     V(paper.findViewByModel(element).el).removeClass(cssClass);
     if (shouldRecur) {
@@ -287,7 +284,6 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         outerColumns.insert(movingColumn, cellView.model.get('position').x);
         cellView.model.set("z", 1);
     } else {
-        embeddedInto.embed(cellView.model);
         cellView.model.set("z", embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
@@ -300,125 +296,6 @@ var insert = function(type) {
     type = type || "branch";
     graph.addCell(grid.addElement(type));
 }
-
-
-var nesting = {
-    // forcibly (e.g. not top-down) resizes an element, then bubbles up the
-    // hierarchy to maintain consistency
-    forceResize: function(el, size) {
-        var elWidth = el.get("size").width;
-        el.set("size", size);
-        // if (el.get("column")) {
-        //     el.get("column").setSize(size);
-        //     el.get("column").changeSize(size.width - elWidth);
-        // }
-        // now resize the entire hierarchy to adapt to el's new size
-        this.resize(el);
-    },
-    resize: function(el) {
-        var ancestors = el.getAncestors();
-        var toResize = null;
-        if (!ancestors || ancestors.length == 0)
-            toResize = el;
-        else {
-            toResize = ancestors[0];
-        }
-        var childMinHeight = nesting.minHeight(toResize);
-        if (toResize.get("size").height == childMinHeight) {
-            this._resizeHeight(toResize);
-        }
-        else {
-            var newSize = {
-                width: toResize.get("size").width,
-                height: childMinHeight
-            };
-            nesting.forceResize(toResize, newSize);
-        }
-    },
-    // recursively resize all children inside an element. this is very useful
-    // if the parent of a deeply nested structure resizes; it will allow the
-    // entire structure to adapt.
-    _resizeHeight: function(el) {
-        var children = el.getEmbeddedCells();
-        if (children == "") {
-            // no children to resize
-            if (el.get("size").width < grid.minWidth) {
-                console.log("Width is smaller!");
-                this._resizeWidth(el);
-            }
-            return;
-        }
-
-        var childWidth = el.get("size").width - grid.childPadding*2;
-        var runningHeight = 0;
-        for (var i = 0; i < children.length; i++) {
-            var child = children[i];
-            var childOldWidth = child.get("size").width;
-            var childSize = {
-                width: childWidth,
-                height: nesting.minHeight(child)
-            };
-            child.set("size", childSize);
-            // if (child.get("column")) {
-            //     child.get("column").setSize(childSize);
-            //     child.get("column").changeSize(childOldWidth - childSize.width);
-            // }
-            var childPos = {
-                x: el.get("position").x + grid.childPadding,
-                y: el.get("position").y + grid.childPadding * 2 + runningHeight
-            }
-            child.set("position", childPos);
-            runningHeight += childSize.height + grid.childPadding;
-
-            // recurse with the current child as the parent
-            nesting._resizeHeight(child);
-        }
-    },
-    _resizeWidth: function(el) {
-        var elWidth = el.get("size").width;
-        var newSize = {
-            width: this.minWidth(el),
-            height: el.get("size").height
-        }
-        el.set("size", newSize);
-
-        // if (el.get("column")) {
-        //     el.get("column").setSize(newSize);
-        //     el.get("column").changeSize(elWidth - newSize.width);
-        // }
-        var parent = graph.getCell(el.get("parent"));
-        if (parent && parent != "") {
-            this._resizeWidth(parent);
-        }
-    },
-    // find the minimum possible width of an element
-    minWidth: function(el) {
-        var children = el.getEmbeddedCells();
-        if (children == "") {
-            return grid.minWidth;
-        }
-        var maxChildWidth = 0;
-        for (var i = 0; i < children.length; i++) {
-            if (children[i].get("size").width > maxChildWidth) {
-                maxChildWidth = children[i].get("size").width;
-            }
-        }
-        return maxChildWidth + (grid.childPadding*2);
-    },
-    // finds the minimum possible height of an element
-    minHeight: function(el) {
-        var children = el.getEmbeddedCells();
-        if (children == "") {
-            return grid.minHeight;
-        }
-
-        var minChildHeight = grid.childPadding*2;
-        for (var i = 0; i < children.length; i++) {
-            minChildHeight += nesting.minHeight(children[i]) + grid.childPadding;
-        }
-        return minChildHeight;
-    }
-};
 
 var outerColumns = new Columns();
 
@@ -448,7 +325,7 @@ var grid = {
 
     // this is the size of a container with no contents
     minSize: {width: 300, height: 50},
-    minColumnSize: {width: 350, height: 50},
+    minColumnSize: {width: 350, height: 70},
 
     canEmbedInto: function(element) {
         return element.get("elType") !== "action";
@@ -489,61 +366,9 @@ var grid = {
                 verticalChildCount: 0
             });
             outerColumns.push(el);
-            el.on("change:embeds", function(el, children) {
-                self.childChanged(el, children, type);
-            });
         }
-        el.on("change:parent", function(el) {
-            self.parentChanged(el, type);
-        });
         svgResize();
         return el;
-    },
-        childChanged: function(parent, children, type) {
-        if (type === "branch" || type === "selection") {
-            this.verticalChildChanged(parent, children, type);
-        }
-    },
-    verticalChildChanged: function(parent, children, type) {
-        if (parent.get("verticalChildCount") < children.length) {
-            parent.set("verticalChildCount", parent.get("verticalChildCount")+1);
-            this.addChild(parent, children, type);
-        } else if (parent.get("verticalChildCount") > children.length) {
-            parent.set("verticalChildCount", parent.get("verticalChildCount")-1);
-            this.removeChild(parent, children, type);
-        }
-    },
-    parentChanged: function(element, type) {
-        this.prevParentChanged = element;
-    },
-    addChild: function(parent, children, type) {
-        switch(type) {
-            case "branch":
-            case "selection": {
-                var size = {
-                    width: parent.get("size").width,
-                    height: nesting.minHeight(parent)
-                }
-                nesting.forceResize(parent, size);
-            }
-        }
-    },
-    removeChild: function(parent, children, type) {
-        var self = this;
-        // prevParentChanged is the object that has been removed
-        var removed = this.prevParentChanged;
-        var removedSize = removed.getBBox();
-
-        var size = {
-            width: parent.get("size").width,
-            height: parent.get("size").height - removedSize.height - self.childPadding
-        };
-        if (children.length == 0) {
-            size.height = this.minHeight;
-        }
-
-        nesting.forceResize(parent, size);
-        nesting.resize(parent);
     }
 }
 
@@ -552,13 +377,33 @@ var grid = {
 function Columns(element) {
     this.columns = [];
     this.parent = element;
+    if (this.parent) {
+        this.isVertical = element.get("elType") === "branch" || element.get("elType") === "selection";
+    }
 }
 
-Columns.prototype.getYCoord = function() {
+//This function is only for sequence and iteration
+Columns.prototype.getHorizontalYCoord = function() {
+    if (this.isVertical) return undefined;
     return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);  
 }
 
+Columns.prototype.getVerticalXCoord = function() {
+    if (!this.isVertical) return undefined;
+    return this.parent.get("position").x + grid.childPadding;
+}
+
+Columns.prototype.getYCoordByColumnPos = function(pos) {
+    var yAccumulator = this.parent.get("position").y + grid.childPadding * 2;
+    for (var i = 0; i < pos; i++) {
+        yAccumulator += this.columns[i].height;
+    }
+    return yAccumulator;
+}
+
+//This function is only for sequence and iteration
 Columns.prototype.getColumnByXCoord = function(xCoord, oldCol) {
+    if (this.isVertical) return undefined;
     var widthAcc = 0;
     if (this.parent) {
         xCoord -= this.parent.position().x;
@@ -593,7 +438,10 @@ Columns.prototype.getColumnPosByElementId = function(id) {
     return undefined;
 }
 
+//This function is only for sequence and iteration
 Columns.prototype.getXCoordByColumn = function(columnNum) {
+    if (this.isVertical) return undefined;
+
     if (this.parent) {
         var xPos = this.parent.position().x + grid.childPadding;
     } else {
@@ -609,13 +457,19 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
 
 //Can only push onto outer columns
 Columns.prototype.push = function(element) {
+    if (this.parent) {
+        return undefined;
+    }
     //Update Data structure
     var length = this.columns.push(new Column(element, this));
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getYCoord());    
+    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord());    
 }
 
+//This function is only for sequence and iteration
 Columns.prototype.getMaxHeight = function() {
+    if (this.isVertical) return undefined;
+
     var maxHeight = 0;
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].height > maxHeight) {
@@ -625,117 +479,124 @@ Columns.prototype.getMaxHeight = function() {
     return maxHeight;
 }  
 
-//https://jsperf.com/array-prototype-move/8
-Array.prototype.move = function(from, to) {
-    this.splice(to, 0, this.splice(from, 1)[0]);
-};
+//This function is only for branch and selection
+Columns.prototype.getMaxWidth = function() {
+    if (!this.isVertical) return undefined;
 
-Columns.prototype.move = function(element, destinationXCoord) {
-    if (!this.parent || this.parent.get("elType") === "sequence" || this.parent.get("elType") === "iteration") {
-        //Get Columns
-        var oldCol = this.getColumnPosByElementId(element.id);
-        var newCol = this.getColumnByXCoord(destinationXCoord, oldCol);
-
-        //If no column movement return
-        if (typeof newCol === "undefined") {
-            this.columns[oldCol].changePos(this.getXCoordByColumn(oldCol), this.getYCoord());
-            this.redraw();
-            return;
-        }
-
-        //Snap Element to Correct Poition
-        this.columns[oldCol].changePos(this.getXCoordByColumn(newCol), this.getYCoord());
-
-        //move elements in between two columns
-        if (oldCol < newCol) {
-            for (var i = oldCol + 1; i <= newCol; i++) {
-                this.columns[i].pushDown(element.get("size").width + grid.outerPadding);
-            }
-        } else {
-            for (var i = newCol; i <= oldCol - 1; i++) {
-                this.columns[i].pushUp(element.get("size").width + grid.outerPadding);
-            }
-        }
-
-        //rearrange datastructure
-        this.columns.move(oldCol, newCol);    
+    var maxWidth = 0;
+    for (var i = 0; i < this.columns.length; i++) {
+        if (this.columns[i].width > maxWidth) {
+            maxWidth = this.columns[i].width;
+        }  
     }
-}
+    console.log(maxWidth);
+    return maxWidth;
+} 
 
 Columns.prototype.insert = function(column, destinationXCoord) {
-    if (!this.parent || this.parent.get("elType") === "sequence" || this.parent.get("elType") === "iteration") {
+    if (!this.isVertical) {
         //Get Column to insert into
         var insertionColumn = this.getColumnByXCoord(destinationXCoord);
 
         //Move element
-        console.log(this.getXCoordByColumn(insertionColumn), this.getYCoord());
-        column.changePos(this.getXCoordByColumn(insertionColumn), this.getYCoord());
+        column.changePos(this.getXCoordByColumn(insertionColumn), this.getHorizontalYCoord());
 
         //Rearrange data-structure
         this.columns.splice(insertionColumn, 0, column);
-
-        //Update parent columns
-        column.parentColumns = this;
-
-        //Resize and reposition
-        this.redraw();
-
     } else {
-        this.columns.push(column);
+        //Update Data structure
+        var length = this.columns.push(column);
+        //Set position of new element
+        this.columns[length - 1].changePos(this.getVerticalXCoord(), this.getYCoordByColumnPos(length - 1)); 
     }
+
+    //Embed element
+    if (this.parent) {
+        this.parent.embed(column.element);
+    } 
+
+    //Update parent columns
+    column.parentColumns = this;
+
+    //Resize and reposition
+    this.redraw();
 }
 
 Columns.prototype.remove = function(element) {
-    if (!this.parent || this.parent.get("elType") === "sequence" || this.parent.get("elType") === "iteration") {
-        //get column to remove from
-        var removalColumnIndex = this.getColumnPosByElementId(element.id);
-        var removedColumn;
-        //Rearrange Data Structure
-        if (this.columns.length === 1) {
-            removedColumn = this.columns[0];
-            this.columns = [];
-        } else {
-            removedColumn = this.columns.splice(removalColumnIndex, 1)[0];
-        }
-
-        removedColumn.parentColumns = undefined;
-
-        //Resize and reposition
-        this.redraw();
-
-        return removedColumn;
+    //get column to remove from
+    var removalColumnIndex = this.getColumnPosByElementId(element.id);
+    var removedColumn;
+    //Rearrange Data Structure
+    if (this.columns.length === 1) {
+        removedColumn = this.columns[0];
+        this.columns = [];
     } else {
-        return this.columns.splice(this.getColumnPosByElementId(element.id), 1)[0];
+        removedColumn = this.columns.splice(removalColumnIndex, 1)[0];
     }
+
+    //unembed element
+    if (this.parent) {
+        this.parent.unembed(element);
+    } 
+
+    //Update parent columns
+    removedColumn.parentColumns = undefined;
+
+    //Resize and reposition
+    this.redraw();
+
+    return removedColumn;
 }
 
 //Column must be already removed/added to data structure
 //Changed parent size and repositions it's children
 Columns.prototype.redraw = function() {
-    var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
-    var xAccumulator = start;
-    var y = this.getYCoord();
-    if (this.parent) console.log("parent x: " + this.parent.position().x);
-    for (var i = 0; i < this.columns.length; i++) {
+    if (!this.isVertical) {
+        var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
+        var xAccumulator = start;
+        var y = this.getHorizontalYCoord();
+        if (this.parent) console.log("parent x: " + this.parent.position().x);
+        for (var i = 0; i < this.columns.length; i++) {
 
-        this.columns[i].changePos(xAccumulator, y);
-        xAccumulator += this.columns[i].width;
-    }
+            this.columns[i].changePos(xAccumulator, y);
+            xAccumulator += this.columns[i].width;
+        }
 
-    if (!this.parent) {
-        return;
-    }
+        if (!this.parent) {
+            return;
+        }
 
-    if (!this.columns.length) {
-        xAccumulator += grid.minSize.width;
-    }
+        if (!this.columns.length) {
+            xAccumulator += grid.minSize.width;
+        }
 
-    if (this.parent.get("column").columns.columns.length) {
-        this.parent.get("column").setSize({width: xAccumulator - start + (2 * grid.childPadding), height: this.getMaxHeight() + 3 * grid.childPadding});
+        if (this.parent.get("column").columns.columns.length) {
+            this.parent.get("column").setSize({width: xAccumulator - start + (2 * grid.childPadding), height: this.getMaxHeight() + 3 * grid.childPadding});
+        } else {
+            this.parent.get("column").setSize(grid.minColumnSize);
+        }
+        this.parent.get("column").parentColumns.redraw();
     } else {
-        this.parent.get("column").setSize(grid.minColumnSize);
+        var yAccumulator = this.parent.position().y + 2 * grid.childPadding;
+        var x = this.getVerticalXCoord();
+
+        for (var i = 0; i < this.columns.length; i++) {
+            this.columns[i].changePos(x, yAccumulator);
+            yAccumulator += this.columns[i].height;
+        }
+
+        if (!this.columns.length) {
+            yAccumulator += grid.minSize.height;
+        }
+        console.log(yAccumulator)
+        if (this.parent.get("column").columns.columns.length) {
+            this.parent.get("column").setSize({width: this.getMaxWidth() + 2 * grid.childPadding, height: yAccumulator - this.parent.position().y + grid.childPadding});
+        } else {
+            this.parent.get("column").setSize(grid.minColumnSize);
+        }
+        this.parent.get("column").parentColumns.redraw();
     }
-    this.parent.get("column").parentColumns.redraw();
+    
 }
 
 //Column deals with the element within the column position
@@ -783,9 +644,10 @@ Column.prototype.pushDown = function(width) {
 }
 
 Column.prototype.setSize = function(size) {
+    console.log(size);
     this.width = size.width;
     this.height = size.height;
-    this.element.set("size", {width: size.width - grid.outerPadding, height: size.height});
+    this.element.set("size", {width: size.width - grid.outerPadding, height: size.height - grid.childPadding});
 }
 
 
