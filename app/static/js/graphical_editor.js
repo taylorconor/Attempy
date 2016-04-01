@@ -74,16 +74,22 @@ paper.on('blank:pointerdown',
     function(event, x, y) {
         var scale = V(paper.viewport).scale();
         dragStartPosition = { x: x * scale.sx, y: y * scale.sy};
-        $('#paper').css('cursor', 'move');
+        $('#paper').css('cursor', 'hand');
     }
 );
 paper.on('blank:pointerup', function(cellView, x, y) {
     dragStartPosition = false;
     $('#paper').css('cursor', 'default');
 });
+
 $("#paper").mousemove(function(event) {
     if (dragStartPosition) {
-          paper.setOrigin( event.offsetX - dragStartPosition.x, event.offsetY - dragStartPosition.y);
+          var scale = V(paper.viewport).scale();
+          paper.setOrigin(
+            Math.min(($('#paper').width() * (1-scale.sx)), event.offsetX - dragStartPosition.x),
+            Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
+          );
+
     } 
 });
 
