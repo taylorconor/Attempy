@@ -72,18 +72,24 @@ var highlighter = V('circle', {
 var dragStartPosition = false;
 paper.on('blank:pointerdown',
     function(event, x, y) {
-        dragStartPosition = { x: x, y: y};
+        var scale = V(paper.viewport).scale();
+        dragStartPosition = { x: x * scale.sx, y: y * scale.sy};
+        $('#paper').css('cursor', 'move');
     }
 );
 paper.on('blank:pointerup', function(cellView, x, y) {
     dragStartPosition = false;
+    $('#paper').css('cursor', 'default');
 });
+
 $("#paper").mousemove(function(event) {
     if (dragStartPosition) {
-        paper.setOrigin(
-            Math.min(0, event.offsetX - dragStartPosition.x), 
-            Math.min(0, event.offsetY - dragStartPosition.y)
-        );
+          var scale = V(paper.viewport).scale();
+          paper.setOrigin(
+            Math.min(($('#paper').width() * (1-scale.sx)), event.offsetX - dragStartPosition.x),
+            Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
+          );
+
     } 
 });
 
@@ -170,8 +176,8 @@ paper.on('cell:contextmenu',
             var colId = self.model.cid; 
             var myModal = $('#non_action_modal');
             myModal.find('.submitElementUpdate').attr("source_id",colId);
-            if(self.model.attr('text/text') != self.model.get('elType')){
-                myModal.find('.rename').val(self.model.attr('text/text'));
+            if(self.model.get('nameIn') != self.model.get('elType')){
+                myModal.find('.rename').val(self.model.get('nameIn'));
             }
             myModal.modal('show');
         }
@@ -397,6 +403,7 @@ var grid = {
                     rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
                 class: 'body ' + type,
+                nameIn: type,
                 elType: type,
                 verticalChildCount: 0
             });
@@ -944,7 +951,7 @@ $('.submitData').on('click', function(){
     });
     if(submitOk){
         if(nameVal.length > 0){
-            collectioon[index].attr('text/text', nameVal);
+            collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(nameVal));
         }
         else{
              collectioon[index].attr('text/text', collectioon[index].get('elType'));
@@ -972,6 +979,15 @@ $('.submitData').on('click', function(){
     }
 });
 
+function shortenLongNames(name){
+  var maxNameLength = 15;
+  if(name.length > maxNameLength){
+    return name.substr(0,maxNameLength-3)+'...'
+  }
+  else{
+    return name;
+  }
+}
 $('#myModal').on('hidden.bs.modal', function () {
     $(this).find("input,textarea,select").val('');
     $(this).find('.requires').not(':first').remove();
@@ -999,7 +1015,9 @@ $('.submitElementUpdate').on('click', function(){
     var modal = $(this).parents('#non_action_modal')
     var new_name = modal.find('.rename').val();
     if(new_name.length > 0){
-        collectioon[index].attr('text/text', new_name);
+        
+        collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(new_name));
+        collectioon[index].set('nameIn', new_name);
     }
     else{
         collectioon[index].attr('text/text', collectioon[index].get('elType'));
@@ -1013,3 +1031,29 @@ $('.delete_element').on('click', function(){
     elementToRemove.get("column").parentColumns.remove(elementToRemove);
     elementToRemove.remove();
 });
+
+paper.$el.on('mousewheel DOMMouseScroll', function onMouseWheel(e) {
+  e.preventDefault();
+  e = e.originalEvent;
+
+  var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail))) / 50;
+  var offsetX = (e.offsetX || e.clientX - $(this).offset().left);
+
+  var offsetY = (e.offsetY || e.clientY - $(this).offset().top);
+  var p = offsetToLocalPoint(offsetX, offsetY);
+  var newScale = V(paper.viewport).scale().sx + delta;
+  if (newScale > 0.4 && newScale < 1) {
+    paper.setOrigin(0, 0);
+    paper.scale(newScale, newScale, p.x, p.y);
+  }
+});
+
+
+function offsetToLocalPoint(x, y) {
+  var svgPoint = paper.svg.createSVGPoint();
+  svgPoint.x = x;
+  svgPoint.y = y;
+
+  var pointTransformed = svgPoint.matrixTransform(paper.viewport.getCTM().inverse());
+  return pointTransformed;
+}
