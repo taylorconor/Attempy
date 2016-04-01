@@ -1,5 +1,30 @@
 "use strict";
 
+var listener = function(e){
+    e.preventDefault();
+}
+
+var ieListener = function() {
+    window.event.returnValue = false;
+}
+
+$('#paper').mouseenter(function() {
+    if (document.addEventListener) {
+        document.addEventListener('contextmenu', listener);
+    } else {
+        document.attachEvent('oncontextmenu', ieListener);
+    }
+});
+
+$('#paper').mouseleave(function() {
+    if (document.addEventListener) {
+        document.removeEventListener('contextmenu', listener);
+    } else {
+        document.detachEvent('oncontextmenu', ieListener);
+    }
+});
+
+
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
@@ -72,13 +97,18 @@ paper.on('blank:pointerup', function(cellView, x, y) {
     dragStartPosition = false;
 });
 $("#paper").mousemove(function(event) {
-    if (dragStartPosition)
+    if (dragStartPosition) {
         paper.setOrigin(
-            event.offsetX - dragStartPosition.x, 
-            event.offsetY - dragStartPosition.y);
+            Math.min(0, event.offsetX - dragStartPosition.x), 
+            Math.min(0, event.offsetY - dragStartPosition.y)
+        );
+    } 
 });
-paper.on('cell:pointerdblclick', 
+
+var isDoubleClick = false;
+paper.on('cell:contextmenu', 
     function(cellView, evt, x, y) { 
+        isDoubleClick = true;
         var self = cellView;
         switch (self.model.get('elType')) {
         case "action":
@@ -165,6 +195,8 @@ paper.on('cell:pointerdblclick',
         }
     }
 );
+
+
 var currentlyHighlighted = undefined;
 paper.on('cell:pointermove', function(cellView, evt, x, y) {
     var elementBelow = graph.getCells().filter( function(cell) {
@@ -208,9 +240,14 @@ var movingColumn = undefined;
 
 paper.on('cell:pointerdown', 
     function(cellView, evt, x, y) {
-        setTopZ(cellView.model, 900);
-        movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
-        addElementClass(cellView.model, "dragging", true);
+        window.setTimeout(function(){
+            if (!isDoubleClick) {
+                setTopZ(cellView.model, 900);
+                movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
+                addElementClass(cellView.model, "dragging", true);
+            }
+        }, 
+        10);
     }
 );
 
@@ -254,6 +291,18 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         currentlyHighlighted = undefined;
     }
 
+    window.setTimeout(function(){
+        if (isDoubleClick) {
+            isDoubleClick = false;
+        } else {
+            pointerup(cellView, evt, x, y);
+        }
+    }, 
+    11);
+    
+});
+
+var pointerup = function(cellView, evt, x, y) {
     removeElementClass(cellView.model, "dragging", true);
 
     var elementBelow = graph.getCells().filter( function(cell) {
@@ -289,7 +338,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     }
 
     movingColumn = undefined;
-});
+}
 
 //Called by user when clicking menu option
 var insert = function(type) {
