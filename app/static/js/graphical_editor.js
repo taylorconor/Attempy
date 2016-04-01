@@ -227,8 +227,6 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
 
     for (var i = 0; i < elementBelow.length; i++) {
         if (elementBelow[i] instanceof joint.shapes.devs.Coupled) {
-            elementBelow[i].embed(cellView.model);
-            cellView.model.set("z", elementBelow[i].get("z") + 1);
             var embeddedInto = elementBelow[i];
             embedded = true;
             break;
@@ -246,10 +244,12 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
     } else {
         if (exParent.length) {
             var movingColumn = exParent[0].get("column").columns.remove(cellView.model);
+            exParent[0].unembed(cellView.model);    
         } else {
             var movingColumn = outerColumns.remove(cellView.model);
-            console.log(movingColumn);
         }
+        elementBelow[i].embed(cellView.model);
+        cellView.model.set("z", embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
 });
@@ -1053,11 +1053,7 @@ $('.delete_element').on('click', function(){
     var collectioon = graph.getCells();
     var cid = $(this).parents('.modal').find('.submitData,.submitElementUpdate').attr("source_id");
     var index = -1;
-    for(var i = 0; i<collectioon.length; i++){
-        if(collectioon[i].cid == cid){
-            collectioon[i].get("column").columns.remove(collectioon[i]);
-            collectioon[i].remove();
-            break;
-        }
-    }
+    var cellToDelete = graph.getCell(cid);
+    cellToDelete.remove();
+    cellToDelete.get("column").parentColumns.remove(cellToDelete.get("column"));
 });
