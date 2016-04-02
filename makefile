@@ -15,11 +15,7 @@ build:
 	venv/bin/pip2.7 install -r requirements
 
 	@echo "building ace"
-	# sudo ln -fs /usr/bin/nodejs /usr/bin/node
 	cd app/static/ace && sudo npm install && node ./Makefile.dryice.js
-
-	@echo "building parser"
-	cd app/pml_to_json/parser/ && make
 
 	mkdir -p uploads
 	mkdir -p tests/uploads
