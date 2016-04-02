@@ -83,8 +83,23 @@
     bottom: 0;
     right: 0;
     top: 50px;
-    overflow: scroll;
+    overflow: hidden;
     background-color: black;
+}
+
+#overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    top: 0px;
+    height: 100%;
+    pointer-events: none;
+    display: table;
+}
+
+#overlay-vertical {
+    display: table-cell;
+    vertical-align: middle;
 }
 
 #folder-sidebar{

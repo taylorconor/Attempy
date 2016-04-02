@@ -11,10 +11,19 @@ Editor
 {% block content %}
     {{ super() }}
 	<div class="container-fluid">
-			<div class="row">
-				<div id="folder-sidebar" class="col-md-2 col-sm-3 col-xs-4 pull-left"></div>
-			    <div id="paper" class="col-md-10 col-sm-9 col-xs-8 pull-left"></div>
-			</div>
+		<div class="row">
+			<div id="folder-sidebar" class="col-md-2 col-sm-3 col-xs-4 pull-left"></div>
+		    <div id="paper" class="col-md-10 col-sm-9 col-xs-8 pull-left"></div>
+            <div id="overlay" class="col-md-10 col-sm-9 col-xs-8 pull-left">
+                <div id="overlay-vertical">
+                    <div>
+                        <center>
+                            Use the insert menu to add elements
+                        <center>
+                    </div>
+                </div>
+            </div>
+		</div>
 	</div>
 
     <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
@@ -25,8 +34,8 @@ Editor
 		<h4 class="modal-title">Element Options</h4>
 		</div>
 		<div class="modal-body text-center">
-	        <input class="full nameAction" type="text" placeholder="Enter Action Name"><br>         
-	        <input class="full scriptInput" id="script" type="text" placeholder="Enter Script"> 
+	        <input class="full nameAction" type="text" placeholder="Enter Action Name"><br>
+	        <input class="full scriptInput" id="script" type="text" placeholder="Enter Script">
 	        <!-- <button class="scrAdd">+</button> -->
 	        <!-- //requires -->
 	        <br>Requires:<br>
@@ -204,6 +213,3 @@ Editor
 {% block javascipt %}
     {{ super() }}
 {% endblock %}
-
-
- 

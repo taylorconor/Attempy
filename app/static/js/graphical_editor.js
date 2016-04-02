@@ -90,17 +90,17 @@ $("#paper").mousemove(function(event) {
             Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
           );
 
-    } 
+    }
 });
 
 var isDoubleClick = false;
-paper.on('cell:contextmenu', 
-    function(cellView, evt, x, y) { 
+paper.on('cell:contextmenu',
+    function(cellView, evt, x, y) {
         isDoubleClick = true;
         var self = cellView;
         switch (self.model.get('elType')) {
         case "action":
-            var colId = self.model.cid; 
+            var colId = self.model.cid;
             var myModal = $('#myModal');
             myModal.find('.submitData').attr("source_id",colId);
             myModal.find('.nameAction').val(self.model.get('nameIn'));
@@ -173,7 +173,7 @@ paper.on('cell:contextmenu',
             $('#myModal').modal('show');
             break;
         default:
-            var colId = self.model.cid; 
+            var colId = self.model.cid;
             var myModal = $('#non_action_modal');
             myModal.find('.submitElementUpdate').attr("source_id",colId);
             if(self.model.get('nameIn') != self.model.get('elType')){
@@ -230,7 +230,7 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
 
 var movingColumn = undefined;
 
-paper.on('cell:pointerdown', 
+paper.on('cell:pointerdown',
     function(cellView, evt, x, y) {
         window.setTimeout(function(){
             if (!isDoubleClick) {
@@ -238,7 +238,7 @@ paper.on('cell:pointerdown',
                 movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
                 addElementClass(cellView.model, "dragging", true);
             }
-        }, 
+        },
         10);
     }
 );
@@ -289,9 +289,9 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         } else {
             pointerup(cellView, evt, x, y);
         }
-    }, 
+    },
     11);
-    
+
 });
 
 var pointerup = function(cellView, evt, x, y) {
@@ -311,7 +311,7 @@ var pointerup = function(cellView, evt, x, y) {
         function(a, b){
             return b.get("z") - a.get("z");
         }
-    );  
+    );
 
     for (var i = 0; i < elementBelow.length; i++) {
         if (grid.canEmbedInto(elementBelow[i])) {
@@ -335,12 +335,13 @@ var pointerup = function(cellView, evt, x, y) {
 //Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
+    $("#overlay").css("display","none");
     graph.addCell(grid.addElement(type));
 }
 
 var outerColumns = new Columns();
 
-//for agent coloured actions 
+//for agent coloured actions
 var colourAgent = [];
 var currentColour = [20,20,20]
 
@@ -383,8 +384,8 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
-                attrs: { 
-                    text: { text: type }, 
+                attrs: {
+                    text: { text: type },
                     rect: { fill: 'rgb(255,255,255)' }
                 },
                 elType: type,
@@ -399,7 +400,7 @@ var grid = {
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
-                attrs: { text: { text: type, class: 'label ' + type }, 
+                attrs: { text: { text: type, class: 'label ' + type },
                     rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
                 class: 'body ' + type,
@@ -427,7 +428,7 @@ function Columns(element) {
 //This function is only for sequence and iteration
 Columns.prototype.getHorizontalYCoord = function() {
     if (this.isVertical) return undefined;
-    return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);  
+    return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);
 }
 
 Columns.prototype.getVerticalXCoord = function() {
@@ -459,9 +460,9 @@ Columns.prototype.getColumnByXCoord = function(xCoord, oldCol) {
             if (i === oldCol) {
                 return i;
             } else if (i > oldCol) {
-                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i; 
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i;
             } else {
-                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i : i + 1; 
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i : i + 1;
             }
         }
     }
@@ -505,7 +506,7 @@ Columns.prototype.push = function(element) {
     //Update Data structure
     var length = this.columns.push(new Column(element, this));
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);    
+    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);
 }
 
 //This function is only for sequence and iteration
@@ -516,10 +517,10 @@ Columns.prototype.getMaxHeight = function() {
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].height > maxHeight) {
             maxHeight = this.columns[i].height;
-        }  
+        }
     }
     return maxHeight;
-}  
+}
 
 //This function is only for branch and selection
 Columns.prototype.getMaxWidth = function() {
@@ -529,11 +530,11 @@ Columns.prototype.getMaxWidth = function() {
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].width > maxWidth) {
             maxWidth = this.columns[i].width;
-        }  
+        }
     }
     console.log(maxWidth);
     return maxWidth;
-} 
+}
 
 Columns.prototype.insert = function(column, destinationXCoord) {
     if (!this.isVertical) {
@@ -549,13 +550,13 @@ Columns.prototype.insert = function(column, destinationXCoord) {
         //Update Data structure
         var length = this.columns.push(column);
         //Set position of new element
-        this.columns[length - 1].changePos(this.getVerticalXCoord(), this.getYCoordByColumnPos(length - 1)); 
+        this.columns[length - 1].changePos(this.getVerticalXCoord(), this.getYCoordByColumnPos(length - 1));
     }
 
     //Embed element
     if (this.parent) {
         this.parent.embed(column.element);
-    } 
+    }
 
     //Update parent columns
     column.parentColumns = this;
@@ -579,7 +580,7 @@ Columns.prototype.remove = function(element) {
     //unembed element
     if (this.parent) {
         this.parent.unembed(element);
-    } 
+    }
 
     //Update parent columns
     removedColumn.parentColumns = undefined;
@@ -638,7 +639,7 @@ Columns.prototype.redraw = function() {
         }
         this.parent.get("column").parentColumns.redraw();
     }
-    
+
 }
 
 //Column deals with the element within the column position
@@ -654,7 +655,7 @@ function Column(element, columns) {
         duration: 50,
         timingFunction: function(t) { return t*t; },
         valueFunction: function(a, b) { return function(t) { return a + (b - a) * t }}
-    };    
+    };
 };
 
 //Used only for a dragged element.
@@ -744,7 +745,7 @@ var checkPred = function (targets){
             return false;
         }
     }
-    return true;               
+    return true;
 }
 
 var checkFilled = function(targets){
@@ -795,7 +796,7 @@ var setInput = function(jsonString) {
 }
 
 var newColour = function() {
-    //DON'T DELETE!!! I might want it later.... Théa 
+    //DON'T DELETE!!! I might want it later.... Théa
     // var sumColour = 0;
     // for(var i=0; i<currentColour.length; i++){
     //     sumColour+=currentColour[i];
@@ -919,14 +920,14 @@ $('.submitData').on('click', function(){
         currentAgentsVal.operator = targets[2 + offset].value;
         currentAgentsVal.value = targets[3 + offset].value;
         if(!blank){
-        // push agent with new colour to array 
+        // push agent with new colour to array
             if(currentAgentsVal.resource.length>0){
                 if(colourAgent[targets[0 + offset].value] === undefined){
                     colourAgent[targets[0 + offset].value] = newColour();
                 }
                 agentNames.push(currentAgentsVal.resource);
             }
-            agentsVals.push(currentAgentsVal);        
+            agentsVals.push(currentAgentsVal);
         }
     });
     var toolsVals = [];
@@ -950,8 +951,8 @@ $('.submitData').on('click', function(){
         currentToolssVal.operator = targets[2 + offset].value;
         currentToolssVal.value = targets[3 + offset].value;
         if(!blank){
-            toolsVals.push(currentToolssVal); 
-        }       
+            toolsVals.push(currentToolssVal);
+        }
     });
     if(submitOk){
         if(nameVal.length > 0){
@@ -961,7 +962,7 @@ $('.submitData').on('click', function(){
              collectioon[index].attr('text/text', collectioon[index].get('elType'));
         }
         if(agentNames.length>0){
-            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]); 
+            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]);
             var stops = [];
             var gap = 100/agentNames.length;
             for(var j=0; j<agentNames.length; j++){
@@ -973,13 +974,13 @@ $('.submitData').on('click', function(){
                                                 stops: stops
                                             });
         }
-        collectioon[index].set('RequiresIn', requireVals); 
+        collectioon[index].set('RequiresIn', requireVals);
         collectioon[index].set('ProvidesIn', providesVals);
-        collectioon[index].set('AgentsIn', agentsVals); 
-        collectioon[index].set('ToolsIn', toolsVals); 
-        collectioon[index].set('nameIn', nameVal); 
-        collectioon[index].set('scriptIn', scriptVal); 
-        $('#myModal').modal('hide'); 
+        collectioon[index].set('AgentsIn', agentsVals);
+        collectioon[index].set('ToolsIn', toolsVals);
+        collectioon[index].set('nameIn', nameVal);
+        collectioon[index].set('scriptIn', scriptVal);
+        $('#myModal').modal('hide');
     }
 });
 
@@ -1019,7 +1020,7 @@ $('.submitElementUpdate').on('click', function(){
     var modal = $(this).parents('#non_action_modal')
     var new_name = modal.find('.rename').val();
     if(new_name.length > 0){
-        
+
         collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(new_name));
         collectioon[index].set('nameIn', new_name);
     }
