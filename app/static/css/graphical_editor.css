@@ -50,7 +50,7 @@
     fill: #31D0C6;
 }
 .link .marker-arrowhead:hover {
-    fill: #F39C12;    
+    fill: #F39C12;
 }
 
 .link-tools .tool-remove circle {
@@ -79,7 +79,6 @@
 }
 
 #paper {
-    border: 3px solid #DDD;
     position: absolute;
     bottom: 0;
     right: 0;
@@ -112,7 +111,7 @@
   margin-left: 5px;
 }
 #folder-sidebar a{
-  display: inline-block; 
+  display: inline-block;
   margin-left: 15px;
   text-indent: 5px;
   min-width: 80%;
@@ -123,7 +122,7 @@
 }
 #folder-sidebar li:hover > .delete_icon{
   visibility: visible;
-} 
+}
 
 
 /*make html pretty */
@@ -154,7 +153,7 @@
 .html-element input,
 .html-element button {
    /* Enable interacting with inputs only. */
-   pointer-events: auto; 
+   pointer-events: auto;
 }
 .html-element button.delete {
    color: white;
@@ -193,7 +192,7 @@
    color: #333;
    padding: 5px;
    width: 65px;
-   font-size: 12px;  
+   font-size: 12px;
 
 }
 .html-element input.full{
