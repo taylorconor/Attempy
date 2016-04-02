@@ -36,7 +36,7 @@
       margin-left: 5px;
     }
     #folder-sidebar a{
-      display: inline-block; 
+      display: inline-block;
       margin-left: 15px;
       text-indent: 5px;
       min-width: 80%;
@@ -47,7 +47,7 @@
     }
     #folder-sidebar li:hover > .delete_icon{
       visibility: visible;
-    } 
+    }
     #syn_out_text{
       min-width: 500px
     }
@@ -58,8 +58,8 @@
     }
 
 
-    .inner-addon { 
-    position: relative; 
+    .inner-addon {
+    position: relative;
 }
 
 /* style icon */
@@ -137,11 +137,27 @@
             <!-- <li>
               <a onclick="getOutput()" role="button" aria-haspopup="true" aria-expanded="false">GetOutput</a>
             </li> -->
-            
+
           </ul>
- 
+
           <ul class="nav navbar-nav navbar-right">
 
+            <li id="btn_help">
+                <a href="#"
+                data-toggle="popover"
+                data-html="true"
+                data-placement="bottom"
+                data-content="
+                    <div style='max-height:60vh;overflow-y:auto;'>
+                    <div><b>Inserting elements:</b> Elements can be inserted using the 'Insert' menu.</div><br>
+                    <div><b>Removing elements:</b> Elements can be removed by right clicking on the element and clicking 'delete'. This will also remove all of the elements children.</div><br>
+                    <div><b>Arranging elements:</b> Click and drag elements to arrange them. Drag an element into a container element to nest it.</div><br>
+                    <div><b>Adding properties:</b> Additional element properties can be set by right-clicking on the element.</div><br>
+                    <div><b>Zooming:</b> Zoom in and out to see less or more of the canvas by scrolling up or down over the canvas.</div><br>
+                    <div><b>Moving around:</b> Move around the canvas by clicking and dragging some empty space.</div>
+                    </div>"
+                title="Graphical editor help">Help</a>
+            </li>
 
             {% if current_user.is_authenticated %}
 		            <li><a>{{name}}</a></li>
@@ -165,4 +181,11 @@
   <script src="{{ url_for('static', filename='js/libraries/joint.js') }}"></script>
   <script src="{{ url_for('static', filename='js/file_management.js') }}"></script>
   <script src="{{ url_for('static', filename='js/graphical_editor.js') }}"></script>
+  <script>
+    $(document).ready(function(){
+        $('[data-toggle="popover"]').popover({
+            container: 'body'
+        });
+    });
+  </script>
 {% endblock %}
