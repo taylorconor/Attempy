@@ -228,7 +228,7 @@ paper.on('cell:pointerdown',
     function(cellView, evt, x, y) {
         window.setTimeout(function(){
             if (!isDoubleClick) {
-                setTopZ(cellView.model, 900);
+                setZ(cellView.model, 900);
                 movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
                 addElementClass(cellView.model, "dragging", true);
             }
@@ -238,11 +238,11 @@ paper.on('cell:pointerdown',
 );
 
 //Recursively sets an element and it's children to have top Z values
-var setTopZ = function(element, value) {
+var setZ = function(element, value) {
     element.set("z", value);
     element.getEmbeddedCells().map(
         function(cell) {
-            setTopZ(cell, value + 1);
+            setZ(cell, value + 1);
         }
     );
 }
@@ -317,9 +317,9 @@ var pointerup = function(cellView, evt, x, y) {
 
     if (!embedded) {
         outerColumns.insert(movingColumn, cellView.model.get('position').x);
-        cellView.model.set("z", 1);
+        setZ(cellView.model, 1);
     } else {
-        cellView.model.set("z", embeddedInto.get("z") + 1);
+        setZ(cellView.model, embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
 
@@ -498,7 +498,7 @@ Columns.prototype.push = function(element) {
     //Update Data structure
     var length = this.columns.push(new Column(element, this));
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord());    
+    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);    
 }
 
 //This function is only for sequence and iteration
@@ -642,18 +642,22 @@ function Column(element, columns) {
     this.columns = new Columns(element);
     this.parentColumns = columns;
     //Add the columns object of child to the jointjs object of child
-    element.set("column", this);   
+    element.set("column", this);
+    this.transition = {
+        duration: 50,
+        timingFunction: function(t) { return t*t; },
+        valueFunction: function(a, b) { return function(t) { return a + (b - a) * t }}
+    };    
 };
 
 //Used only for a dragged element.
-Column.prototype.changePos = function(x, y) {
+Column.prototype.changePos = function(x, y, noTransition) {
     var oldPos = this.element.position();
     var translation = {
         x: x - oldPos.x,
         y: y - oldPos.y
     }
-
-    this.element.translate(translation.x, translation.y);
+    this.element.translate(translation.x, translation.y, noTransition ? {} : {transition: this.transition});
 
     if (this.columns) {
         this.moveChildren(translation);
@@ -662,10 +666,10 @@ Column.prototype.changePos = function(x, y) {
 
 //Used only for a dragged element.
 Column.prototype.moveChildren = function(translation) {
-    for (var i = 0; i < this.columns.length; i++) {
-        if (this.columns[i].columns) {
-            this.columns[i].element.translate(translation.x, translation.y);
-            this.columns[i].columns.moveChildren(translation);
+    for (var i = 0; i < this.columns.columns.length; i++) {
+        if (this.columns.columns[i]) {
+            this.columns.columns[i].element.translate(translation.x, translation.y, {transition: this.transition});
+            this.columns.columns[i].moveChildren(translation);
         }
     }
 }
