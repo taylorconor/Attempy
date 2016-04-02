@@ -5,10 +5,10 @@ from subprocess import Popen, PIPE
 from flask.ext.login import login_required, current_user
 from app.models import User
 from app.database import db_session
-from app import app
+from app import app, json_to_pml
 from werkzeug import secure_filename
 from app.pml_to_json import pml_to_json
-import os, io
+import os, io, json
 
 
 home = Blueprint('home', __name__)
@@ -50,8 +50,22 @@ def graphical_editor():
 def get_pml_json():
     filename = secure_filename(request.form["data"])
     checkIfUserDirectoryExists()
+        
+    #run the file through pmlcheck
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
     tmp_filename = os.path.join(tmp_filename, filename)
+    
+    checkIfUserDirectoryExists()
+    print(tmp_filename)
+    try:
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    except OSError as e:
+        return jsonify(output="Error", reason = str(e))
+    prog_out, error = p.communicate()
+    if p.returncode > 0:
+        return jsonify(output="Error", reason = parse_res["output"])
+    
+    #continue and parse      
     try:
         d = pml_to_json.parse(tmp_filename)
         return jsonify(output = 'Success', source=d)
@@ -59,7 +73,7 @@ def get_pml_json():
         # flash("Unable to Parse File", "danger")
         print ("Hey")
         print (str(e))
-        return jsonify(output = 'Error')
+        return jsonify(output = 'Error', reason = "PML to JSON parser broke")
 
 
 @home.route('/handler_changed', methods=['POST'])
@@ -69,7 +83,7 @@ def handler_changed():
     current_user.set_keyboard_handler(new_handler)
     db_session.commit()
     return jsonify(output = 'Success')
-
+    
 @home.route('/pml_source_submit', methods=['POST'])
 @login_required
 def pml_source_submit():
@@ -84,8 +98,9 @@ def pml_source_submit():
         return render_template("home/pml_res_fatal_error.html", error = e)
 
     prog_out, error = p.communicate()
-    return jsonify( {"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
-
+    return jsonify({"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
+    
+    
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
 def pml_save_file():
@@ -111,6 +126,30 @@ def pml_save_file():
         return jsonify(output = "Failed", reason = "Opening File Failed")
     return jsonify(output = 'Success')
 
+@home.route('/save_graphical_file', methods=["POST"])
+@login_required
+def save_graphical_file():
+    path = secure_filename(request.json["path"])
+    filename = path.split("/")[-1]
+    filename = path.split(".")[0]
+    joint_json = json.loads(request.json["json"])
+    joint_json = joint_json["cells"]
+    
+    (res, output) = json_to_pml.parse(joint_json, filename)
+    if res == False:
+        return jsonify(output="Failed", reason=output)
+        
+    checkIfUserDirectoryExists()
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), path)
+    try:
+        with open(tmp_filename, 'w') as f:
+            f.write(output)
+            f.close()
+    except: 
+        return jsonify(output = "Failed", reason = "Opening file failed")
+    return jsonify(output = "Success")
+
+
 @home.route('/pml_load_file', methods=['POST'])
 @login_required
 def pml_load_file():
@@ -125,6 +164,7 @@ def pml_load_file():
     contents = f.read()
     f.close()
     return jsonify(output = contents)
+
 
 @home.route('/createFile', methods=['POST'])
 @login_required

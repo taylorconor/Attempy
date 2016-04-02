@@ -129,6 +129,37 @@ $('#submit_save').on('click', function() {
     get_path_save_file();
 });
 
+$('#submit_graphical_save').on('click', function(){
+    console.log("hello");
+    $('#getNewFileName').modal('show');
+});
+
+$('#createNewGraphicalName').on('click', function(){
+    if(!checkIfInputFilled($(this))){
+        return;
+    }
+
+    var name = $('#newFileName').val();
+    if(!name.match(/\.pml$/)){
+        name += ".pml";
+    }
+
+	var json = getJSON();
+	var info = {'path': name, 'json': json};
+	console.log(info);
+	$.ajax({
+		url: "/save_graphical_file",
+		method: "POST",
+		data: JSON.stringify(info),
+		contentType: 'application/json;charset=UTF-8',
+		success: function(data) {
+			file_saved = true;
+			loadSideBar();
+		}
+	});
+	
+});
+
 $('#createNewName').on('click', function() {
     if(!checkIfInputFilled($(this))){
         return;
@@ -298,7 +329,7 @@ function load_graphic_file(path){
                 //TODO Replace this with something nice
                 var elm = $('<div class="alert alert-danger alert-dismissible" role="alert">'+
                     '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
-                                    'Unable to Parse' +
+                                    data.reason +
                                   '</div>');
                 $('body').prepend(elm);
                 setTimeout(function() {
