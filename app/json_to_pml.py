@@ -177,8 +177,9 @@ def json_to_pml(json_str):
     return parse_process(json_obj["process"], 0)
 
 def parse(arr, name):
-	json_obj = joint_to_json(arr, name)
-	return json_to_pml(json_obj)
+    json_obj = joint_to_json(arr, name)
+    print json_obj
+    return json_to_pml(json_obj)
 	
 if __name__ == '__main__':
 	test = [

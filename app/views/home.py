@@ -63,7 +63,7 @@ def get_pml_json():
         return jsonify(output="Error", reason = str(e))
     prog_out, error = p.communicate()
     if p.returncode > 0:
-        return jsonify(output="Error", reason = parse_res["output"])
+        return jsonify(output="Error", reason = error)
     
     #continue and parse      
     try:
