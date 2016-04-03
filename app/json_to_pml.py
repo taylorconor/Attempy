@@ -11,12 +11,31 @@ def joint_to_json(arr, name):
 	count = 0
 	#keep track of processed ID's. map them to the path in the main dictionary
 	processed = {}
-	
+	def actionString(items, action_type):
+		res = ""
+		if(action_type is "agent"):
+				res += "\""
+		for item in items:
+			if("relOp" in item):
+				res += " " + item["relOp"] + " "
+			if(action_type is "requires" or action_type is "provides"):
+				res += item["resource"] + "." + item["attribute"] + " " + item["operator"] + " \"" + item["value"]	+ "\""	
+			else:
+				res += item["resource"] + "." + item["attribute"] + " " + item["operator"] + " " + item["value"]		
+		if(action_type is "agent"):
+				res += "\""
+		return res
+
 	def action(item):
-		script = "".join(item["scriptIn"]) #Expects string below, convert to string
-		agents = ",".join(item["AgentsIn"]) #Expects string too... potential conflict with representations
-		requires = "".join(item["RequiresIn"])
-		provides = "".join(item["ProvidesIn"])
+		print(str(item))
+		script = "\"" + "".join(item["scriptIn"]) + "\"" #Expects string below, convert to string
+		# agents = ",".join(item["AgentsIn"]) #Expects string too... potential conflict with representations
+				# requires = "".join(item["RequiresIn"])
+		# provides = "".join(item["ProvidesIn"])
+		agents = actionString(item["AgentsIn"], "agent") 
+		requires = actionString(item["RequiresIn"], "requires")
+		provides = actionString(item["ProvidesIn"], "provides")
+
 		return {
 			"type": "action",
 			"name": item["nameIn"],
@@ -32,11 +51,11 @@ def joint_to_json(arr, name):
 		name = ""
 		itemtype = ""
 		try: 
-			itemtype = item["attrs"]["text"]["text"]
+			itemtype = item["elType"]
 		except:
 			pass
 		try:
-			name = item["name"]
+			name = item["nameIn"]
 		except:
 			pass
 		return {
@@ -49,7 +68,7 @@ def joint_to_json(arr, name):
 		delete = []
 		for i, item in enumerate(arr):	
 			itemDict = {}
-			if item["type"] == "html.Element":
+			if item["elType"] == "action":
 				itemDict = action(item)					
 			else:
 				itemDict = other(item)
@@ -135,14 +154,14 @@ def parse_action(action_obj, indent_amt):
         return False,"Attribute 'name' missing from Action object"
 
     output += indent+"action "+action_obj["name"]+" {\n"
-    if action_obj.has_key("script"):
-        output += indent+"\tscript {"+action_obj["script"]+"}\n"
-    if action_obj.has_key("agents"):
-        output += indent+"\tagents {"+action_obj["agents"]+"}\n"
     if action_obj.has_key("requires"):
         output += indent+"\trequires {"+action_obj["requires"]+"}\n"
     if action_obj.has_key("provides"):
         output += indent+"\tprovides {"+action_obj["provides"]+"}\n"
+    if action_obj.has_key("agents"):
+        output += indent+"\tagent {"+action_obj["agents"]+"}\n"
+    if action_obj.has_key("script"):
+        output += indent+"\tscript {"+action_obj["script"]+"}\n"
     if action_obj.has_key("tool"):
         output += indent+"\ttool {"+action_obj["tool"]+"}\n"
     output += indent+"}\n"

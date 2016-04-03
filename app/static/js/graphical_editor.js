@@ -120,7 +120,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = reqs[i].value;
                 }
                 else{
-                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+reqs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
+                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+reqs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
                     myModal.find('.requires:last').find('select:first').val(reqs[i].relOp);
                     myModal.find('.requires:last').find('select:last').val(reqs[i].operator);
                 }
@@ -135,7 +135,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = provs[i].value;
                 }
                 else{
-                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+provs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
+                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+provs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
                     myModal.find('.provides:last').find('select:first').val(provs[i].relOp);
                     myModal.find('.provides:last').find('select:last').val(provs[i].operator);
                 }
@@ -150,7 +150,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = agents[i].value;
                 }
                 else{
-                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+agents[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
+                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+agents[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
                     myModal.find('.agent:last').find('select:first').val(agents[i].relOp);
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
                 }
@@ -165,7 +165,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = tools[i].value;
                 }
                 else{
-                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
                     myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
                     myModal.find('.tool:last').find('select:last').val(tools[i].operator);
                 }
@@ -818,16 +818,16 @@ var newColour = function() {
 // $('.ageAdd').unbind('click');
 // $('.submitData').unbind('click');
 $('.reqAdd').on('click' , function(){
-    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.provAdd').on('click', function(){
-    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.ageAdd').on('click', function(){
-    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.toolAdd').on('click', function(){
-    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.submitData').on('click', function(){
     $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
