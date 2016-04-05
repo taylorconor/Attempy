@@ -130,7 +130,6 @@ $('#submit_save').on('click', function() {
 });
 
 $('#submit_graphical_save').on('click', function(){
-    console.log("hello");
     $('#getNewFileName').modal('show');
 });
 
@@ -153,7 +152,19 @@ $('#createNewGraphicalName').on('click', function(){
 		data: JSON.stringify(info),
 		contentType: 'application/json;charset=UTF-8',
 		success: function(data) {
-			file_saved = true;
+			if(data.output === "Error"){
+                var elm = $('<div class="alert alert-danger alert-dismissible" role="alert">'+
+                    '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
+                                    data.reason +
+                                  '</div>');
+                $('body').prepend(elm);
+                setTimeout(function() {
+                    elm.fadeOut("slow", function(){
+                        elm.remove();
+                    });
+                }, 2000);      
+            } 
+            file_saved = true;
 			loadSideBar();
 		}
 	});
