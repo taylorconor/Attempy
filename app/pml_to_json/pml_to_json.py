@@ -232,9 +232,9 @@ def parse(filename):
     process_decl.ignore(cStyleComment)
     process_decl.parseString(pml)
     
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(arr_to_json(glob_arr))
- 
+    #pp = pprint.PrettyPrinter(indent=2)
+    #pp.pprint(arr_to_json(glob_arr))
+
     return {"cells": glob_arr}
 
 if __name__ == "__main__":

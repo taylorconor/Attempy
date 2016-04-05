@@ -45,6 +45,7 @@ def index():
 def graphical_editor():
     return render_template("home/graphical_editor.html", name=current_user.name)
 
+#return the graphical file as the joint js array 
 @home.route('/get_pml_json', methods=["GET", "POST"])
 @login_required
 def get_pml_json():
@@ -55,8 +56,6 @@ def get_pml_json():
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
     tmp_filename = os.path.join(tmp_filename, filename)
     
-    checkIfUserDirectoryExists()
-    print(tmp_filename)
     try:
         p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
@@ -71,10 +70,35 @@ def get_pml_json():
         return jsonify(output = 'Success', source=d)
     except Exception, e:
         # flash("Unable to Parse File", "danger")
-        print ("Hey")
-        print (str(e))
         return jsonify(output = 'Error', reason = "PML to JSON parser broke")
 
+#return the graphical file in the intermediate json representation
+@home.route('/load_graphical_file', methods = ["POST"])
+@login_required
+def load_graphical_file():
+    filename = secure_filename(request.form["data"])
+    checkIfUserDirectoryExists()
+
+    tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"], current_user.get_id())
+    tmp_filename = os.path.join(tmp_filename, filename)
+
+    try:
+        p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    except OSError as e:
+        return jsonify(output="Error", reason = str(e))
+    prog_out, error = p.communicate()
+    if p.returncode > 0:
+        return jsonify(output="Error", reason = error)
+    
+    #continue and parse      
+    try:
+        arr = pml_to_json.parse(tmp_filename)
+        arr = pml_to_json.arr_to_json(arr["cells"])
+
+        return jsonify(output = 'Success', source=arr)
+    except Exception, e:
+        # flash("Unable to Parse File", "danger")
+        return jsonify(output = 'Error', reason = str(e) + "PML to JSON parser broke")
 
 @home.route('/handler_changed', methods=['POST'])
 @login_required
