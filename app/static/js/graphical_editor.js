@@ -490,7 +490,6 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
     } else {
         var xPos = grid.outerPadding;
     }
-    console.log(this.columns)
     for(var i = 0; i < columnNum; i++) {
         xPos += this.columns[i].width;
     }
@@ -532,7 +531,6 @@ Columns.prototype.getMaxWidth = function() {
             maxWidth = this.columns[i].width;
         }
     }
-    console.log(maxWidth);
     return maxWidth;
 }
 
@@ -598,7 +596,6 @@ Columns.prototype.redraw = function() {
         var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
         var xAccumulator = start;
         var y = this.getHorizontalYCoord();
-        if (this.parent) console.log("parent x: " + this.parent.position().x);
         for (var i = 0; i < this.columns.length; i++) {
 
             this.columns[i].changePos(xAccumulator, y);
@@ -631,7 +628,6 @@ Columns.prototype.redraw = function() {
         if (!this.columns.length) {
             yAccumulator += grid.minSize.height;
         }
-        console.log(yAccumulator)
         if (this.parent.get("column").columns.columns.length) {
             this.parent.get("column").setSize({width: this.getMaxWidth() + 2 * grid.childPadding, height: yAccumulator - this.parent.position().y + grid.childPadding});
         } else {
@@ -674,6 +670,7 @@ Column.prototype.changePos = function(x, y, noTransition) {
 
 //Used only for a dragged element.
 Column.prototype.moveChildren = function(translation) {
+    translation = {x: Math.round(translation.x), y: Math.round(translation.y)};
     for (var i = 0; i < this.columns.columns.length; i++) {
         if (this.columns.columns[i]) {
             this.columns.columns[i].element.translate(translation.x, translation.y, {transition: this.transition});
@@ -691,7 +688,6 @@ Column.prototype.pushDown = function(width) {
 }
 
 Column.prototype.setSize = function(size) {
-    console.log(size);
     this.width = size.width;
     this.height = size.height;
     this.element.set("size", {width: size.width - grid.outerPadding, height: size.height - grid.childPadding});
@@ -763,7 +759,6 @@ var getOutput = function() {
             cells[index].set("column", "");
         }
     );
-    console.log(JSON.stringify(graph));
     graph.attributes.cells.models.forEach(
         function(cell, index, cells) {
             cells[index].set("column", columns[index]);
@@ -791,7 +786,6 @@ var getJSON = function() {
 
 var setInput = function(jsonString) {
     graph.clear();
-    console.log(jsonString)
     graph.fromJSON(jsonString);
 }
 
