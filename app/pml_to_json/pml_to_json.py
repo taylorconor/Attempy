@@ -226,6 +226,8 @@ def arr_to_json(orig_arr):
     return d 
 
 def parse(filename):
+    global glob_arr
+    glob_arr = []
     with open(filename, 'r') as f:
         pml = f.read()
 
