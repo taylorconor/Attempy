@@ -1091,6 +1091,7 @@ function offsetToLocalPoint(x, y) {
 
 //keybindings
 $( document ).keypress(function( e ) {
+  if ($(e.target).is('input, textarea, select')) { return; }
   var a = 97, b = 98, i = 105, q = 113, s = 115;
   switch(e.which){
     case 97: //a
