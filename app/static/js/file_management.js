@@ -130,8 +130,7 @@ $('#submit_save').on('click', function() {
 });
 
 $('#submit_graphical_save').on('click', function(){
-    console.log("hello");
-    $('#getNewFileName').modal('show');
+    get_path_save_file();
 });
 
 $('#createNewGraphicalName').on('click', function(){
@@ -143,23 +142,42 @@ $('#createNewGraphicalName').on('click', function(){
     if(!name.match(/\.pml$/)){
         name += ".pml";
     }
-
-	var json = getJSON();
-	var info = {'path': name, 'json': json};
-	console.log(info);
-	$.ajax({
-		url: "/save_graphical_file",
-		method: "POST",
-		data: JSON.stringify(info),
-		contentType: 'application/json;charset=UTF-8',
-		success: function(data) {
-			file_saved = true;
-			loadSideBar();
-		}
-	});
+    var json = getJSON();
+    var info = {'path': name, 'json': json};
+    save_graphical_file(info);
+	
 	
 });
-
+function save_graphical_file(info){
+    console.log(info);
+    $.ajax({
+        url: "/save_graphical_file",
+        method: "POST",
+        data: JSON.stringify(info),
+        contentType: 'application/json;charset=UTF-8',
+        success: function(data) {
+            if(data.output === "Error"){
+                var elm = $('<div class="alert alert-danger alert-dismissible" role="alert">'+
+                    '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
+                                    data.reason +
+                                  '</div>');
+                $('body').prepend(elm);
+                setTimeout(function() {
+                    elm.fadeOut("slow", function(){
+                        elm.remove();
+                    });
+                }, 2000);      
+            } 
+            else{
+                var paths = info['path'].split("/");
+                window.location.hash = "#" + paths[paths.length - 1];
+                $('#current_file_name').val(paths[paths.length - 1]);
+                file_saved = true;
+                loadSideBar();
+            }
+        }
+    });
+}
 $('#createNewName').on('click', function() {
     if(!checkIfInputFilled($(this))){
         return;
@@ -301,7 +319,14 @@ function get_path_save_file(){
         $('#getNewFileName').modal('show');
         return;
     }
-    save_file(path);
+    if ($('#editor').length){
+        save_file(path);
+    }
+    else if($('#paper').length){
+        var json = getJSON();
+        var info = {'path': path, 'json': json};
+        save_graphical_file(path);
+    }
 }
 
 function new_file(){

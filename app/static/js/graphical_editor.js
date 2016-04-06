@@ -90,17 +90,17 @@ $("#paper").mousemove(function(event) {
             Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
           );
 
-    } 
+    }
 });
 
 var isDoubleClick = false;
-paper.on('cell:contextmenu', 
-    function(cellView, evt, x, y) { 
+paper.on('cell:contextmenu',
+    function(cellView, evt, x, y) {
         isDoubleClick = true;
         var self = cellView;
         switch (self.model.get('elType')) {
         case "action":
-            var colId = self.model.cid; 
+            var colId = self.model.cid;
             var myModal = $('#myModal');
             myModal.find('.submitData').attr("source_id",colId);
             myModal.find('.nameAction').val(self.model.get('nameIn'));
@@ -120,7 +120,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = reqs[i].value;
                 }
                 else{
-                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+reqs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
+                    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input value="'+ reqs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+reqs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+reqs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.reqAdd');
                     myModal.find('.requires:last').find('select:first').val(reqs[i].relOp);
                     myModal.find('.requires:last').find('select:last').val(reqs[i].operator);
                 }
@@ -135,7 +135,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = provs[i].value;
                 }
                 else{
-                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+provs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
+                    $('<div class="provides"><select><option>||</option><option>&&</option></select><br><input value="'+ provs[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+provs[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+provs[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.provAdd');
                     myModal.find('.provides:last').find('select:first').val(provs[i].relOp);
                     myModal.find('.provides:last').find('select:last').val(provs[i].operator);
                 }
@@ -150,7 +150,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = agents[i].value;
                 }
                 else{
-                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+agents[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
+                    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input value="'+ agents[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+agents[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+agents[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.ageAdd');
                     myModal.find('.agent:last').find('select:first').val(agents[i].relOp);
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
                 }
@@ -165,7 +165,7 @@ paper.on('cell:contextmenu',
                     targets[3].value = tools[i].value;
                 }
                 else{
-                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
                     myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
                     myModal.find('.tool:last').find('select:last').val(tools[i].operator);
                 }
@@ -173,7 +173,7 @@ paper.on('cell:contextmenu',
             $('#myModal').modal('show');
             break;
         default:
-            var colId = self.model.cid; 
+            var colId = self.model.cid;
             var myModal = $('#non_action_modal');
             myModal.find('.submitElementUpdate').attr("source_id",colId);
             if(self.model.get('nameIn') != self.model.get('elType')){
@@ -230,25 +230,25 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
 
 var movingColumn = undefined;
 
-paper.on('cell:pointerdown', 
+paper.on('cell:pointerdown',
     function(cellView, evt, x, y) {
         window.setTimeout(function(){
             if (!isDoubleClick) {
-                setTopZ(cellView.model, 900);
+                setZ(cellView.model, 900);
                 movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
                 addElementClass(cellView.model, "dragging", true);
             }
-        }, 
+        },
         10);
     }
 );
 
 //Recursively sets an element and it's children to have top Z values
-var setTopZ = function(element, value) {
+var setZ = function(element, value) {
     element.set("z", value);
     element.getEmbeddedCells().map(
         function(cell) {
-            setTopZ(cell, value + 1);
+            setZ(cell, value + 1);
         }
     );
 }
@@ -289,9 +289,9 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
         } else {
             pointerup(cellView, evt, x, y);
         }
-    }, 
+    },
     11);
-    
+
 });
 
 var pointerup = function(cellView, evt, x, y) {
@@ -311,7 +311,7 @@ var pointerup = function(cellView, evt, x, y) {
         function(a, b){
             return b.get("z") - a.get("z");
         }
-    );  
+    );
 
     for (var i = 0; i < elementBelow.length; i++) {
         if (grid.canEmbedInto(elementBelow[i])) {
@@ -323,9 +323,9 @@ var pointerup = function(cellView, evt, x, y) {
 
     if (!embedded) {
         outerColumns.insert(movingColumn, cellView.model.get('position').x);
-        cellView.model.set("z", 1);
+        setZ(cellView.model, 1);
     } else {
-        cellView.model.set("z", embeddedInto.get("z") + 1);
+        setZ(cellView.model, embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
 
@@ -335,12 +335,13 @@ var pointerup = function(cellView, evt, x, y) {
 //Called by user when clicking menu option
 var insert = function(type) {
     type = type || "branch";
+    $("#overlay").css("display","none");
     graph.addCell(grid.addElement(type));
 }
 
 var outerColumns = new Columns();
 
-//for agent coloured actions 
+//for agent coloured actions
 var colourAgent = [];
 var currentColour = [20,20,20]
 
@@ -383,8 +384,8 @@ var grid = {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
-                attrs: { 
-                    text: { text: type }, 
+                attrs: {
+                    text: { text: type },
                     rect: { fill: 'rgb(255,255,255)' }
                 },
                 elType: type,
@@ -399,7 +400,7 @@ var grid = {
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
-                attrs: { text: { text: type, class: 'label ' + type }, 
+                attrs: { text: { text: type, class: 'label ' + type },
                     rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
                 class: 'body ' + type,
@@ -427,7 +428,7 @@ function Columns(element) {
 //This function is only for sequence and iteration
 Columns.prototype.getHorizontalYCoord = function() {
     if (this.isVertical) return undefined;
-    return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);  
+    return (this.parent ? this.parent.get("position").y + 2 * grid.childPadding : grid.outerPadding + 2 * grid.childPadding);
 }
 
 Columns.prototype.getVerticalXCoord = function() {
@@ -459,9 +460,9 @@ Columns.prototype.getColumnByXCoord = function(xCoord, oldCol) {
             if (i === oldCol) {
                 return i;
             } else if (i > oldCol) {
-                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i; 
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i - 1 : i;
             } else {
-                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i : i + 1; 
+                return (widthAcc - xCoord > this.columns.width - grid.outerPadding) ? i : i + 1;
             }
         }
     }
@@ -489,7 +490,6 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
     } else {
         var xPos = grid.outerPadding;
     }
-    console.log(this.columns)
     for(var i = 0; i < columnNum; i++) {
         xPos += this.columns[i].width;
     }
@@ -505,7 +505,7 @@ Columns.prototype.push = function(element) {
     //Update Data structure
     var length = this.columns.push(new Column(element, this));
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord());    
+    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);
 }
 
 //This function is only for sequence and iteration
@@ -516,10 +516,10 @@ Columns.prototype.getMaxHeight = function() {
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].height > maxHeight) {
             maxHeight = this.columns[i].height;
-        }  
+        }
     }
     return maxHeight;
-}  
+}
 
 //This function is only for branch and selection
 Columns.prototype.getMaxWidth = function() {
@@ -529,11 +529,10 @@ Columns.prototype.getMaxWidth = function() {
     for (var i = 0; i < this.columns.length; i++) {
         if (this.columns[i].width > maxWidth) {
             maxWidth = this.columns[i].width;
-        }  
+        }
     }
-    console.log(maxWidth);
     return maxWidth;
-} 
+}
 
 Columns.prototype.insert = function(column, destinationXCoord) {
     if (!this.isVertical) {
@@ -549,13 +548,13 @@ Columns.prototype.insert = function(column, destinationXCoord) {
         //Update Data structure
         var length = this.columns.push(column);
         //Set position of new element
-        this.columns[length - 1].changePos(this.getVerticalXCoord(), this.getYCoordByColumnPos(length - 1)); 
+        this.columns[length - 1].changePos(this.getVerticalXCoord(), this.getYCoordByColumnPos(length - 1));
     }
 
     //Embed element
     if (this.parent) {
         this.parent.embed(column.element);
-    } 
+    }
 
     //Update parent columns
     column.parentColumns = this;
@@ -579,7 +578,7 @@ Columns.prototype.remove = function(element) {
     //unembed element
     if (this.parent) {
         this.parent.unembed(element);
-    } 
+    }
 
     //Update parent columns
     removedColumn.parentColumns = undefined;
@@ -597,7 +596,6 @@ Columns.prototype.redraw = function() {
         var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
         var xAccumulator = start;
         var y = this.getHorizontalYCoord();
-        if (this.parent) console.log("parent x: " + this.parent.position().x);
         for (var i = 0; i < this.columns.length; i++) {
 
             this.columns[i].changePos(xAccumulator, y);
@@ -630,7 +628,6 @@ Columns.prototype.redraw = function() {
         if (!this.columns.length) {
             yAccumulator += grid.minSize.height;
         }
-        console.log(yAccumulator)
         if (this.parent.get("column").columns.columns.length) {
             this.parent.get("column").setSize({width: this.getMaxWidth() + 2 * grid.childPadding, height: yAccumulator - this.parent.position().y + grid.childPadding});
         } else {
@@ -638,7 +635,7 @@ Columns.prototype.redraw = function() {
         }
         this.parent.get("column").parentColumns.redraw();
     }
-    
+
 }
 
 //Column deals with the element within the column position
@@ -649,18 +646,22 @@ function Column(element, columns) {
     this.columns = new Columns(element);
     this.parentColumns = columns;
     //Add the columns object of child to the jointjs object of child
-    element.set("column", this);   
+    element.set("column", this);
+    this.transition = {
+        duration: 50,
+        timingFunction: function(t) { return t*t; },
+        valueFunction: function(a, b) { return function(t) { return a + (b - a) * t }}
+    };
 };
 
 //Used only for a dragged element.
-Column.prototype.changePos = function(x, y) {
+Column.prototype.changePos = function(x, y, noTransition) {
     var oldPos = this.element.position();
     var translation = {
         x: x - oldPos.x,
         y: y - oldPos.y
     }
-
-    this.element.translate(translation.x, translation.y);
+    this.element.translate(translation.x, translation.y, noTransition ? {} : {transition: this.transition});
 
     if (this.columns) {
         this.moveChildren(translation);
@@ -669,10 +670,11 @@ Column.prototype.changePos = function(x, y) {
 
 //Used only for a dragged element.
 Column.prototype.moveChildren = function(translation) {
-    for (var i = 0; i < this.columns.length; i++) {
-        if (this.columns[i].columns) {
-            this.columns[i].element.translate(translation.x, translation.y);
-            this.columns[i].columns.moveChildren(translation);
+    translation = {x: Math.round(translation.x), y: Math.round(translation.y)};
+    for (var i = 0; i < this.columns.columns.length; i++) {
+        if (this.columns.columns[i]) {
+            this.columns.columns[i].element.translate(translation.x, translation.y, {transition: this.transition});
+            this.columns.columns[i].moveChildren(translation);
         }
     }
 }
@@ -686,7 +688,6 @@ Column.prototype.pushDown = function(width) {
 }
 
 Column.prototype.setSize = function(size) {
-    console.log(size);
     this.width = size.width;
     this.height = size.height;
     this.element.set("size", {width: size.width - grid.outerPadding, height: size.height - grid.childPadding});
@@ -740,7 +741,7 @@ var checkPred = function (targets){
             return false;
         }
     }
-    return true;               
+    return true;
 }
 
 var checkFilled = function(targets){
@@ -759,7 +760,6 @@ var getOutput = function() {
             cells[index].set("column", "");
         }
     );
-    console.log(JSON.stringify(graph));
     graph.attributes.cells.models.forEach(
         function(cell, index, cells) {
             cells[index].set("column", columns[index]);
@@ -787,12 +787,11 @@ var getJSON = function() {
 
 var setInput = function(jsonString) {
     graph.clear();
-    console.log(jsonString)
     graph.fromJSON(jsonString);
 }
 
 var newColour = function() {
-    //DON'T DELETE!!! I might want it later.... Théa 
+    //DON'T DELETE!!! I might want it later.... Théa
     // var sumColour = 0;
     // for(var i=0; i<currentColour.length; i++){
     //     sumColour+=currentColour[i];
@@ -817,16 +816,16 @@ var newColour = function() {
 // $('.ageAdd').unbind('click');
 // $('.submitData').unbind('click');
 $('.reqAdd').on('click' , function(){
-    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="requires"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.provAdd').on('click', function(){
-    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="provides"> <select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.ageAdd').on('click', function(){
-    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="agent"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.toolAdd').on('click', function(){
-    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>=</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
+    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input type="text" placeholder="Resource" /> . <input type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input type="text" placeholder="Value" /></div>').insertBefore(this);
 });
 $('.submitData').on('click', function(){
     $('#myModal').find('#errorMsg').children().remove(); //TODO not working properly
@@ -924,14 +923,14 @@ $('.submitData').on('click', function(){
         currentAgentsVal.operator = targets[2 + offset].value;
         currentAgentsVal.value = targets[3 + offset].value;
         if(!blank){
-        // push agent with new colour to array 
+        // push agent with new colour to array
             if(currentAgentsVal.resource.length>0){
                 if(colourAgent[targets[0 + offset].value] === undefined){
                     colourAgent[targets[0 + offset].value] = newColour();
                 }
                 agentNames.push(currentAgentsVal.resource);
             }
-            agentsVals.push(currentAgentsVal);        
+            agentsVals.push(currentAgentsVal);
         }
     });
     var toolsVals = [];
@@ -955,8 +954,8 @@ $('.submitData').on('click', function(){
         currentToolssVal.operator = targets[2 + offset].value;
         currentToolssVal.value = targets[3 + offset].value;
         if(!blank){
-            toolsVals.push(currentToolssVal); 
-        }       
+            toolsVals.push(currentToolssVal);
+        }
     });
     if(submitOk){
         if(nameVal.length > 0){
@@ -966,7 +965,7 @@ $('.submitData').on('click', function(){
              collectioon[index].attr('text/text', collectioon[index].get('elType'));
         }
         if(agentNames.length>0){
-            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]); 
+            collectioon[index].attr('rect/fill', colourAgent[agentNames[0]]);
             var stops = [];
             var gap = 100/agentNames.length;
             for(var j=0; j<agentNames.length; j++){
@@ -980,13 +979,13 @@ $('.submitData').on('click', function(){
                                                 stops: stops
                                             });
         }
-        collectioon[index].set('RequiresIn', requireVals); 
+        collectioon[index].set('RequiresIn', requireVals);
         collectioon[index].set('ProvidesIn', providesVals);
-        collectioon[index].set('AgentsIn', agentsVals); 
-        collectioon[index].set('ToolsIn', toolsVals); 
-        collectioon[index].set('nameIn', nameVal); 
-        collectioon[index].set('scriptIn', scriptVal); 
-        $('#myModal').modal('hide'); 
+        collectioon[index].set('AgentsIn', agentsVals);
+        collectioon[index].set('ToolsIn', toolsVals);
+        collectioon[index].set('nameIn', nameVal);
+        collectioon[index].set('scriptIn', scriptVal);
+        $('#myModal').modal('hide');
     }
 });
 
@@ -1026,7 +1025,7 @@ $('.submitElementUpdate').on('click', function(){
     var modal = $(this).parents('#non_action_modal')
     var new_name = modal.find('.rename').val();
     if(new_name.length > 0){
-        
+
         collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(new_name));
         collectioon[index].set('nameIn', new_name);
     }

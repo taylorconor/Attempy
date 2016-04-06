@@ -15,13 +15,18 @@ template = {
     "outPorts": [],
     "columnWidth": 1,
     "startColumn": 1,
-    "embeds": []
 }
 
-d = {}
-arr = []
+glob_d = {"process": {
+    "name": "",
+    "type": "process",
+    "contains": {}  
+}}
+glob_arr = []
+glob_cur_path = glob_d["process"]["contains"]
 
 def add_action(string, loc, toks):
+    global glob_arr
     toks = toks[0]
     #print toks
     action = copy.deepcopy(template)
@@ -30,14 +35,17 @@ def add_action(string, loc, toks):
     action["attrs"] = {}
     action["label"] = "Action"
     action["id"] = level
-    action["scriptsIn"] = ""
+    action["scriptIn"] = ""
     action["AgentsIn"] = []
     action["RequiresIn"] = []
     action["ProvidesIn"] = []
 
     if len(level) > 1:
         action["parent"] = level[:-2]
-        arr[len(arr) - int(level[-1])]["embeds"].append(level)
+        #arr[len(arr) - int(level[-1])]["embeds"].append(level)
+        for i in glob_arr:
+            if i["id"] == level[:-2]:
+                i["embeds"].append(level)
 
     for i, item in enumerate(toks):
         if i <= 1:
@@ -51,18 +59,24 @@ def add_action(string, loc, toks):
         elif item[0] == "provides":
             action["ProvidesIn"].append("".join(item[1]))
 
-    arr.append(action)
+    
+    glob_arr.append(action)
     increment_level()
-
+    
 
 def add_primary(string, loc, toks):
+    global glob_arr
     primary = copy.deepcopy(template)
     primary["attrs"] = {}
+    primary["embeds"] = []
     primary["childCount"] = 0
     primary["id"] = level
     if len(level) > 1:
         primary["parent"] = level[:-2]
-        arr[len(arr) - int(level[-1])]["embeds"].append(level)
+        #arr[len(arr) - int(level[-1])]["embeds"].append(level)
+        for i in glob_arr:
+            if i["id"] == level[:-2]:
+                i["embeds"].append(level)
     name = None
     try:
         name = toks[1]
@@ -75,9 +89,13 @@ def add_primary(string, loc, toks):
     primary["attrs"]["name"] = toks[0]
     primary["size"]["width"] = 300
     primary["size"]["height"] = 50
+    
 
-    arr.append(primary)
+    glob_arr.append(primary)
 
+def process_name(string, loc, toks):
+    global glob_d
+    glob_d["process"]["name"] = toks[0]
 
 def start_prim():
     global level
@@ -165,19 +183,61 @@ primary_keyword = Or([Keyword("branch"), Keyword("iteration"), Keyword("selectio
 primary_decl << Group(primary_keyword.setParseAction(add_primary) - Optional(name)("name") - Suppress(open_block).setParseAction(start_prim) - ZeroOrMore( (action_decl ^ primary_decl) ) - Suppress(close_block).setParseAction(stop_prim))
 
 
-process_decl = (Keyword("process") + name.setResultsName("processName") + Suppress(open_block) - ZeroOrMore( (primary_decl ^ action_decl )).setResultsName("block") - Suppress(close_block))
+process_decl = (Keyword("process") + name.setResultsName("processName").setParseAction(process_name) + Suppress(open_block) - ZeroOrMore( (primary_decl ^ action_decl )).setResultsName("block") - Suppress(close_block))
 
+def arr_to_json(orig_arr):
+    arr = copy.deepcopy(orig_arr)
+    global glob_cur_path
+    global glob_d
+    d = copy.deepcopy(glob_d)
+    cur_path = d["process"]["contains"] 
+    glob_d = {"process": {"contains": {}, "type": "process", "name": ""}}
+    glob_cur_path = glob_d["process"]["contains"]
+    stack = []
+    count = 0
+    for item in arr:
+        key = str(len(cur_path.keys()))
+        if item["type"] == "devs.Coupled":
+            cur_path[key] = {
+                "type": item["attrs"]["name"],
+                "name": item["name"],
+                "contains": {}
+            }
+        else:
+            cur_path[key] = {
+                "type": "action",
+                "name": item["nameIn"],
+                "requires": ",".join(item["RequiresIn"]),
+                "provides": ",".join(item["ProvidesIn"]),
+                "agents": ",".join(item["AgentsIn"]),
+                "script": "".join(item["scriptIn"])
+            }
+
+        if "embeds" in item.keys():
+            stack.append(cur_path)
+            count = len(item["embeds"])
+            cur_path = cur_path[key]["contains"]
+        elif count == 0:
+            cur_path = stack.pop()
+
+        count -= 1
+        
+
+    return d 
 
 def parse(filename):
-    d = {}
-
+    global glob_arr
+    glob_arr = []
     with open(filename, 'r') as f:
         pml = f.read()
 
     process_decl.ignore(cStyleComment)
     process_decl.parseString(pml)
+    
+    #pp = pprint.PrettyPrinter(indent=2)
+    #pp.pprint(arr_to_json(glob_arr))
 
-    return {"cells": arr}
+    return {"cells": glob_arr}
 
 if __name__ == "__main__":
     pp = pprint.PrettyPrinter(indent=2)
