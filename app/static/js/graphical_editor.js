@@ -866,13 +866,15 @@ $('.submitData').on('click', function(){
         }
         currentRequiresVal.resource = targets[0 + offset].value;
         currentRequiresVal.attribute = targets[1 + offset].value;
-        if(targets[3 + offset].value.length === 0){
-            currentRequiresVal.operator = targets[2 + offset].value;
+        var temp = targets[3 + offset].value.length;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentRequiresVal.value = "true";
+            currentRequiresVal.operator = "==";
         }
         else{
-            currentRequiresVal.operator = "";
+            currentRequiresVal.value = targets[3 + offset].value;
+            currentRequiresVal.operator = targets[2 + offset].value;
         }
-        currentRequiresVal.value = targets[3 + offset].value;
         if(!blank){
             requireVals.push(currentRequiresVal);
         }
@@ -895,8 +897,14 @@ $('.submitData').on('click', function(){
         }
         currentProvidesVal.resource = targets[0 + offset].value;
         currentProvidesVal.attribute = targets[1 + offset].value;
-        currentProvidesVal.operator = targets[2 + offset].value;
-        currentProvidesVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentProvidesVal.value = "true";
+            currentProvidesVal.operator = "==";
+        }
+        else{
+            currentProvidesVal.value = targets[3 + offset].value;
+            currentProvidesVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
             providesVals.push(currentProvidesVal);
         }
@@ -920,8 +928,14 @@ $('.submitData').on('click', function(){
         }
         currentAgentsVal.resource = targets[0 + offset].value;
         currentAgentsVal.attribute = targets[1 + offset].value;
-        currentAgentsVal.operator = targets[2 + offset].value;
-        currentAgentsVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0  && targets[0 + offset].value.length>0){
+            currentAgentsVal.value = "true";
+            currentAgentsVal.operator = "==";
+        }
+        else{
+            currentAgentsVal.value = targets[3 + offset].value;
+            currentAgentsVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
         // push agent with new colour to array
             if(currentAgentsVal.resource.length>0){
@@ -951,8 +965,14 @@ $('.submitData').on('click', function(){
         }
         currentToolssVal.resource = targets[0 + offset].value;
         currentToolssVal.attribute = targets[1 + offset].value;
-        currentToolssVal.operator = targets[2 + offset].value;
-        currentToolssVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentToolssVal.value = "true";
+            currentToolssVal.operator = "==";
+        }
+        else{
+            currentToolssVal.value = targets[3 + offset].value;
+            currentToolssVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
             toolsVals.push(currentToolssVal);
         }
