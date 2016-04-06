@@ -751,6 +751,7 @@ var checkFilled = function(targets){
     return true;
 }
 
+
 var getOutput = function() {
     var columns = [];
     graph.attributes.cells.models.forEach(
@@ -802,7 +803,10 @@ var newColour = function() {
     // }
     var index = Math.floor((Math.random() * 2) );
     var add = Math.floor((Math.random() * 240) + 20);
+    // var index2 = Math.floor((Math.random() * 2) );
+    // var add2 = Math.floor((Math.random() * 240) + 20);
     currentColour[index]=add;
+    // currentColour[index2]=add2;
     return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
 }
 
@@ -862,8 +866,15 @@ $('.submitData').on('click', function(){
         }
         currentRequiresVal.resource = targets[0 + offset].value;
         currentRequiresVal.attribute = targets[1 + offset].value;
-        currentRequiresVal.operator = targets[2 + offset].value;
-        currentRequiresVal.value = targets[3 + offset].value;
+        var temp = targets[3 + offset].value.length;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentRequiresVal.value = "true";
+            currentRequiresVal.operator = "==";
+        }
+        else{
+            currentRequiresVal.value = targets[3 + offset].value;
+            currentRequiresVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
             requireVals.push(currentRequiresVal);
         }
@@ -886,8 +897,14 @@ $('.submitData').on('click', function(){
         }
         currentProvidesVal.resource = targets[0 + offset].value;
         currentProvidesVal.attribute = targets[1 + offset].value;
-        currentProvidesVal.operator = targets[2 + offset].value;
-        currentProvidesVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentProvidesVal.value = "true";
+            currentProvidesVal.operator = "==";
+        }
+        else{
+            currentProvidesVal.value = targets[3 + offset].value;
+            currentProvidesVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
             providesVals.push(currentProvidesVal);
         }
@@ -911,8 +928,14 @@ $('.submitData').on('click', function(){
         }
         currentAgentsVal.resource = targets[0 + offset].value;
         currentAgentsVal.attribute = targets[1 + offset].value;
-        currentAgentsVal.operator = targets[2 + offset].value;
-        currentAgentsVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0  && targets[0 + offset].value.length>0){
+            currentAgentsVal.value = "true";
+            currentAgentsVal.operator = "==";
+        }
+        else{
+            currentAgentsVal.value = targets[3 + offset].value;
+            currentAgentsVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
         // push agent with new colour to array
             if(currentAgentsVal.resource.length>0){
@@ -942,8 +965,14 @@ $('.submitData').on('click', function(){
         }
         currentToolssVal.resource = targets[0 + offset].value;
         currentToolssVal.attribute = targets[1 + offset].value;
-        currentToolssVal.operator = targets[2 + offset].value;
-        currentToolssVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            currentToolssVal.value = "true";
+            currentToolssVal.operator = "==";
+        }
+        else{
+            currentToolssVal.value = targets[3 + offset].value;
+            currentToolssVal.operator = targets[2 + offset].value;
+        }
         if(!blank){
             toolsVals.push(currentToolssVal);
         }
@@ -961,7 +990,9 @@ $('.submitData').on('click', function(){
             var gap = 100/agentNames.length;
             for(var j=0; j<agentNames.length; j++){
                 var percent = j*gap;
+                var percentEnd = (j+1)*gap;
                 stops.push({offset:''+percent+'%',color:''+colourAgent[agentNames[j]]+''})
+                stops.push({offset:''+percentEnd+'%',color:''+colourAgent[agentNames[j]]+''})
             }
             collectioon[index].attr('rect/fill', {
                                                 type: 'linearGradient',
