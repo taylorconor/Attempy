@@ -45,7 +45,6 @@ def joint_to_json(arr, name):
 			"provides": provides
 		}
 
-
 	def other(item):
 		item = copy.deepcopy(item)
 		name = ""
@@ -63,7 +62,6 @@ def joint_to_json(arr, name):
 			"name": name,
 			"contains": {}
 		}
-	
 	while arr:
             delete = []
             for i, item in enumerate(arr):	
@@ -90,12 +88,7 @@ def joint_to_json(arr, name):
             for x in delete[::-1]:
                 arr.pop(x)
         
-
 	return json.dumps(d)		
-			
-
-
-		
 
 def parse_process(proc_obj, indent_amt):
     output = ""
