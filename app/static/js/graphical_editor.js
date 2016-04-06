@@ -86,8 +86,8 @@ $("#paper").mousemove(function(event) {
     if (dragStartPosition) {
           var scale = V(paper.viewport).scale();
           paper.setOrigin(
-            Math.min(($('#paper').width() * (1-scale.sx)), event.offsetX - dragStartPosition.x),
-            Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
+            Math.min(0, event.offsetX - dragStartPosition.x),
+            Math.min(0, event.offsetY - dragStartPosition.y)
           );
 
     }
@@ -1073,8 +1073,8 @@ paper.$el.on('mousewheel DOMMouseScroll', function onMouseWheel(e) {
   var p = offsetToLocalPoint(offsetX, offsetY);
   var newScale = V(paper.viewport).scale().sx + delta;
   if (newScale > 0.4 && newScale < 1) {
-    paper.setOrigin(0, 0);
-    paper.scale(newScale, newScale, p.x, p.y);
+    // paper.setOrigin(0, 0);
+    paper.scale(newScale, newScale, 0, 0);
   }
 });
 
