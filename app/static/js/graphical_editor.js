@@ -1056,3 +1056,31 @@ function offsetToLocalPoint(x, y) {
   var pointTransformed = svgPoint.matrixTransform(paper.viewport.getCTM().inverse());
   return pointTransformed;
 }
+
+
+//keybindings
+$( document ).keypress(function( e ) {
+  var a = 97, b = 98, i = 105, q = 113, s = 115;
+  switch(e.which){
+    case 97: //a
+    case 65: //A
+      insert('action');
+      break;
+    case 98: //b
+    case 66: //B
+      insert('branch');
+      break;
+    case 105: //i
+    case 73: //I
+      insert('iteration');
+      break;
+    case 113: //q
+    case 81: //Q
+      insert('sequence');
+      break;
+    case 115: //s
+    case 83: //S
+      insert('selection');
+      break;
+  }
+});
