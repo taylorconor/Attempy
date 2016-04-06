@@ -336,7 +336,9 @@ var pointerup = function(cellView, evt, x, y) {
 var insert = function(type) {
     type = type || "branch";
     $("#overlay").css("display","none");
-    graph.addCell(grid.addElement(type));
+    var column = grid.addElement(type);
+    graph.addCell(column.element);
+    return column;
 }
 
 var outerColumns = new Columns();
@@ -379,7 +381,7 @@ var grid = {
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
         var parent = parent || null;
-
+        console.log(type);
         if (type == "action") {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
@@ -396,7 +398,7 @@ var grid = {
                 AgentsIn:[],
                 ToolsIn:[]
             });
-            outerColumns.push(el, false);
+            var newCol = outerColumns.push(el, false);
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
@@ -408,10 +410,10 @@ var grid = {
                 elType: type,
                 verticalChildCount: 0
             });
-            outerColumns.push(el);
+            var newCol = outerColumns.push(el);
         }
         svgResize();
-        return el;
+        return newCol;
     }
 }
 
@@ -502,10 +504,12 @@ Columns.prototype.push = function(element) {
     if (this.parent) {
         return undefined;
     }
+    var newCol = new Column(element, this);
     //Update Data structure
-    var length = this.columns.push(new Column(element, this));
+    var length = this.columns.push(newCol);
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);
+    newCol.changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);  
+    return newCol;  
 }
 
 //This function is only for sequence and iteration
@@ -786,8 +790,40 @@ var getJSON = function() {
 
 var setInput = function(jsonString) {
     graph.clear();
-    graph.fromJSON(jsonString);
+
+    var columns = {};
+    var needsParent = [];
+    jsonString.cells.forEach(
+        function(cell, index, cells) {
+            console.log(cell.attrs);
+            var type = cell.attrs.name || "action";
+            console.log(type);
+            columns[cell.id] = insert(type);
+            if (cell.parent) {
+                if (columns[cell.parent]) {
+                    columns[cell.id] = outerColumns.remove(columns[cell.id].element);
+                    columns.insert(columns[cell.id], 10000000);
+                } else {
+                    needsParent.push(columns[cell.id]);
+                }
+            }
+        }
+    )
+    needsParent.forEach(
+        function(cell, index, cells) {
+            if (columns[cell.parent]) {
+                columns[cell.id] = outerColumns.remove(columns[cell.id].element);
+                columns.insert(columns[cell.id], 10000000);
+            } 
+        }
+    )
+    console.log(columns)
+    console.log(needsParent)
+    
+    //graph.fromJSON(jsonString);
 }
+
+setInput();
 
 var newColour = function() {
     //DON'T DELETE!!! I might want it later.... Théa
