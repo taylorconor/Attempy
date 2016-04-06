@@ -70,7 +70,6 @@ def joint_to_json(arr, name):
                     itemDict = action(item)					
                 else:
                     itemDict = other(item)
-
                 if "parent" in item.keys():
                     if item["parent"] in processed.keys():
                         key = str(len(processed[item["parent"]].keys()))

@@ -340,7 +340,7 @@ function load_graphic_file(path){
     }
     var storedPath = path;
     $.ajax({
-        url: "/load_graphical_file",
+        url: "/get_pml_json",
         method: "POST",
         data: {
             data: path
