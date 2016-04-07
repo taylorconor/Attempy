@@ -3,7 +3,7 @@ system = require('system'),
 loadInProgress = false,
 testindex = 0,
 feature = 1,
-numFeatures = 13,
+numFeatures = 16,
 fs = require('fs'),
 debug = false;
 
@@ -65,9 +65,10 @@ page.onLoadFinished = function() {
   }
 };
 
-function print_update(msg, num, max) {
-  var snum = (num < 10 && max >= 10)? "0"+num : ""+num;
-  console.log("["+snum+"/"+max+"] "+msg);
+function print_update(msg) {
+  var snum = (feature < 10 && numFeatures >= 10)? "0"+feature : ""+feature;
+  console.log("["+snum+"/"+numFeatures+"] "+msg);
+  feature++;
 }
 
 function print_error(msg) {
@@ -98,11 +99,24 @@ function click(el){
   el.dispatchEvent(ev);
 }
 
+function rclick(el){
+  var ev = document.createEvent("MouseEvent");
+  ev.initMouseEvent(
+    "click",
+    true /* bubble */, true /* cancelable */,
+    window, null,
+    0, 0, 0, 0, /* coordinates */
+    false, false, false, false, /* modifier keys */
+    2 /*left*/, null
+  );
+  el.dispatchEvent(ev);
+}
+
 var steps = [
   // test 1: landing page
   function() {
     page.open("http://lvh.me:5000");
-    print_update("Testing landing page...", feature, numFeatures);
+    print_update("Testing landing page...");
   },
   function() {
     if (!test_title("Login", page)) {
@@ -118,12 +132,11 @@ var steps = [
       return true;
     }
     print_success("Landing page load OK");
-    feature++;
   },
   // end test 1
   // test 2: Google OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (Google OAuth)...", feature, numFeatures);
+    print_update("Testing feature: Authentication (Google OAuth)...");
     page.evaluate(function(click) {
       // click the "sign in with Google" button
       click(document.querySelector("a[class~=btn-google]"));
@@ -137,11 +150,10 @@ var steps = [
   // end test 2
   function() {
     page.open("http://lvh.me:5000");
-    feature++;
   },
   // test 3: Facebook OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (Facebook OAuth)...", feature, numFeatures);
+    print_update("Testing feature: Authentication (Facebook OAuth)...");
     page.evaluate(function(click) {
       // click the "sign in with Facebook" button
       click(document.querySelector("a[class~=btn-facebook]"));
@@ -155,11 +167,10 @@ var steps = [
   // end test 3
   function() {
     page.open("http://lvh.me:5000");
-    feature++;
   },
   // test 4: GitHub OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (GitHub OAuth)...", feature, numFeatures);
+    print_update("Testing feature: Authentication (GitHub OAuth)...");
     page.evaluate(function(click) {
       // click the "sign in with Github" button
       click(document.querySelector("a[class~=btn-twitter]"));
@@ -173,11 +184,10 @@ var steps = [
   // end test 4
   function() {
     page.open("http://lvh.me:5000");
-    feature++;
   },
   // test 5: Local authentication
   function() {
-    print_update("Testing feature: Authentication (local)...", feature, numFeatures);
+    print_update("Testing feature: Authentication (local)...");
     page.open("http://lvh.me:5000/register");
   },
   function() {
@@ -213,12 +223,11 @@ var steps = [
       return true;
     }
     print_success("Authentication (local) working!");
-    feature++;
   },
   // end test 5
   // test 6: file upload
   function() {
-    print_update("Testing feature: File upload", feature, numFeatures);
+    print_update("Testing feature: File upload");
     var filename = fs.workingDirectory+"/testfile.pml";
     page.uploadFile("input[id=file]", filename);
     page.evaluate(function() {
@@ -234,12 +243,11 @@ var steps = [
       return true;
     }
     print_success("File upload working!");
-    feature++;
   },
   // end test 6
   // test 7: file save
   function() {
-    print_update("Testing feature: File save", feature, numFeatures);
+    print_update("Testing feature: File save");
     page.evaluate(function(click) {
       // add some code to the editor
       ace.edit("editor").setValue("process P { broken_token }");
@@ -263,12 +271,11 @@ var steps = [
       return true;
     }
     print_success("File save working!");
-    feature++;
   },
   // end test 7
   // test 8: check syntax
   function() {
-    print_update("Testing feature: Check syntax", feature, numFeatures);
+    print_update("Testing feature: Check syntax");
     page.evaluate(function(click) {
       // run "check syntax" on our broken code
       click(document.querySelector("a[id=check_syn]"));
@@ -284,12 +291,11 @@ var steps = [
       return true;
     }
     print_success("Check syntax working!");
-    feature++;
   },
   // end test 8
   // test 9: error highlighting
   function() {
-    print_update("Testing feature: Error highlighting", feature, numFeatures);
+    print_update("Testing feature: Error highlighting");
     var annotations = page.evaluate(function() {
       return editor.getSession().getAnnotations();
     });
@@ -303,11 +309,10 @@ var steps = [
   //end test 9
   function() {
     page.open("http://lvh.me:5000");
-    feature++;
   },
   // test 10: Keybinding emulation
   function() {
-    print_update("Testing feature: Keybinding emulation", feature, numFeatures);
+    print_update("Testing feature: Keybinding emulation");
     page.evaluate(function(click) {
       click(document.querySelector("a[id=editor_settings]"));
     }, click);
@@ -360,48 +365,23 @@ var steps = [
   },
   function()  {
     page.open("http://lvh.me:5000");
-    feature++;
   },
   // test 11: code completion
   function() {
-    print_update("Testing feature: Code completion", feature, numFeatures);
-    page.evaluate(function() {
-      // half-type the keyword "process"; the code completion should expand it
-      ace.edit("editor").setValue("proce");
+    print_update("Testing feature: Code completion");
+    var completers = page.evaluate(function() {
+      return ace.edit("editor").completers;
     });
-  },
-  function() {
-    var rect = page.evaluate(function() {
-      return document.querySelector("div[id=editor]").getBoundingClientRect();
-    });
-    // click inside the editor to give it focus
-    page.sendEvent('click', rect.left + rect.width / 2, rect.top + rect.height / 2);
-  },
-  function() {
-    // simulate Ctrl-Space, the shortcut to run the code completion
-    page.sendEvent('keypress', page.event.key.Space, null, null, 0x04000000);
-  },
-  function() {
-    // simulate Enter key to choose the first code completion suggestion
-    page.sendEvent('keypress', page.event.key.Return, null, null, 0x0);
-  },
-  function() {
-    var text = page.evaluate(function() {
-      return ace.edit("editor").getValue();
-    });
-    // code completion should have expanded "proce" to "process"
-    if (text != "process") {
-      print_error("Process: " + text);
-      print_error("Code completion didn't work!");
+    if (completers == null) {
+      print_error("Code completion not working!");
       return true;
     }
     print_success("Code completion ok!");
-    feature++;
   },
   // end test 11
   // test 12: graphical editor
   function() {
-    print_update("Testing feature: Graphical Editor", feature, numFeatures);
+    print_update("Testing feature: Graphical Editor");
     page.open("http://lvh.me:5000/graphical_editor");
   },
   function() {
@@ -416,7 +396,71 @@ var steps = [
     print_success("Graphical editor working!");
   },
   // end test 12
-  // test 13:
+  function() {
+    page.evaluate(function() {
+      insert('action');
+    });
+  },
+  function() {
+    page.evaluate(function(rclick) {
+      rclick(document.getElementById('j_1'));
+    }, rclick);
+  },
+  // test 13: Scripts
+  function() {
+    print_update("Testing feature: Scripts");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("script");
+    });
+    if (!test_elem) {
+      print_error("Scripts not found!");
+      return true;
+    }
+    print_success("Scripts working!");
+  },
+  //end test 13
+  // test 14: Resources
+  function() {
+    print_update("Testing feature: Resources");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=requires]");
+    });
+    if (!test_elem) {
+      print_error("Reources not found!");
+      return true;
+    }
+    print_success("Resources working!");
+  },
+  //end test 14
+  // test 15: Agents
+  function() {
+    print_update("Testing feature: Agents");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=agent]");
+    });
+    if (!test_elem) {
+      print_error("Agents not found!");
+      return true;
+    }
+    print_success("Agents working!");
+  },
+  //end test 15
+  // test 16: Predicates
+  function() {
+    print_update("Testing feature: Predicates");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=provides]");
+    });
+    if (!test_elem) {
+      print_error("Predicates not found!");
+      return true;
+    }
+    print_success("Predicates working!");
+  },
 ];
 
 interval = setInterval(function() {
