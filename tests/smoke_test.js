@@ -2,6 +2,8 @@ var page = require('webpage').create(),
 system = require('system'),
 loadInProgress = false,
 testindex = 0,
+feature = 1,
+numFeatures = 13,
 fs = require('fs'),
 debug = false;
 
@@ -9,6 +11,12 @@ page.onConsoleMessage = function (msg) {
   if (debug) {
     console.log(msg);
   }
+};
+
+page.settings.resourceTimeout = 5000; // 5 seconds
+page.onResourceTimeout = function(e) {
+  // retry on timetout
+  page.open(e.url);
 };
 
 page.onError = function(msg, trace) {
@@ -57,16 +65,17 @@ page.onLoadFinished = function() {
   }
 };
 
-function print_update(msg) {
-  console.log("[..] "+msg);
+function print_update(msg, num, max) {
+  var snum = (num < 10 && max >= 10)? "0"+num : ""+num;
+  console.log("["+snum+"/"+max+"] "+msg);
 }
 
 function print_error(msg) {
-  console.log("[!!] "+msg);
+  console.log("[ !!! ] "+msg);
 }
 
 function print_success(msg) {
-  console.log("[OK] "+msg);
+  console.log("[ OK! ] "+msg);
 }
 
 function test_title(expected, page) {
@@ -93,7 +102,7 @@ var steps = [
   // test 1: landing page
   function() {
     page.open("http://lvh.me:5000");
-    print_update("Testing landing page...");
+    print_update("Testing landing page...", feature, numFeatures);
   },
   function() {
     if (!test_title("Login", page)) {
@@ -109,11 +118,12 @@ var steps = [
       return true;
     }
     print_success("Landing page load OK");
+    feature++;
   },
   // end test 1
   // test 2: Google OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (Google OAuth)...");
+    print_update("Testing feature: Authentication (Google OAuth)...", feature, numFeatures);
     page.evaluate(function(click) {
       // click the "sign in with Google" button
       click(document.querySelector("a[class~=btn-google]"));
@@ -127,10 +137,11 @@ var steps = [
   // end test 2
   function() {
     page.open("http://lvh.me:5000");
+    feature++;
   },
   // test 3: Facebook OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (Facebook OAuth)...");
+    print_update("Testing feature: Authentication (Facebook OAuth)...", feature, numFeatures);
     page.evaluate(function(click) {
       // click the "sign in with Facebook" button
       click(document.querySelector("a[class~=btn-facebook]"));
@@ -144,10 +155,11 @@ var steps = [
   // end test 3
   function() {
     page.open("http://lvh.me:5000");
+    feature++;
   },
   // test 4: GitHub OAuth authentication
   function() {
-    print_update("Testing feature: Authentication (GitHub OAuth)...");
+    print_update("Testing feature: Authentication (GitHub OAuth)...", feature, numFeatures);
     page.evaluate(function(click) {
       // click the "sign in with Github" button
       click(document.querySelector("a[class~=btn-twitter]"));
@@ -161,10 +173,11 @@ var steps = [
   // end test 4
   function() {
     page.open("http://lvh.me:5000");
+    feature++;
   },
   // test 5: Local authentication
   function() {
-    print_update("Testing feature: Authentication (local)...");
+    print_update("Testing feature: Authentication (local)...", feature, numFeatures);
     page.open("http://lvh.me:5000/register");
   },
   function() {
@@ -200,11 +213,12 @@ var steps = [
       return true;
     }
     print_success("Authentication (local) working!");
+    feature++;
   },
   // end test 5
   // test 6: file upload
   function() {
-    print_update("Testing feature: File upload");
+    print_update("Testing feature: File upload", feature, numFeatures);
     var filename = fs.workingDirectory+"/testfile.pml";
     page.uploadFile("input[id=file]", filename);
     page.evaluate(function() {
@@ -220,11 +234,12 @@ var steps = [
       return true;
     }
     print_success("File upload working!");
+    feature++;
   },
   // end test 6
   // test 7: file save
   function() {
-    print_update("Testing feature: File save");
+    print_update("Testing feature: File save", feature, numFeatures);
     page.evaluate(function(click) {
       // add some code to the editor
       ace.edit("editor").setValue("process P { broken_token }");
@@ -248,11 +263,12 @@ var steps = [
       return true;
     }
     print_success("File save working!");
+    feature++;
   },
   // end test 7
   // test 8: check syntax
   function() {
-    print_update("Testing feature: Check syntax");
+    print_update("Testing feature: Check syntax", feature, numFeatures);
     page.evaluate(function(click) {
       // run "check syntax" on our broken code
       click(document.querySelector("a[id=check_syn]"));
@@ -268,11 +284,12 @@ var steps = [
       return true;
     }
     print_success("Check syntax working!");
+    feature++;
   },
   // end test 8
   // test 9: error highlighting
   function() {
-    print_update("Testing feature: Error highlighting");
+    print_update("Testing feature: Error highlighting", feature, numFeatures);
     var annotations = page.evaluate(function() {
       return editor.getSession().getAnnotations();
     });
@@ -286,10 +303,11 @@ var steps = [
   //end test 9
   function() {
     page.open("http://lvh.me:5000");
+    feature++;
   },
   // test 10: Keybinding emulation
   function() {
-    print_update("Testing feature: Keybinding emulation");
+    print_update("Testing feature: Keybinding emulation", feature, numFeatures);
     page.evaluate(function(click) {
       click(document.querySelector("a[id=editor_settings]"));
     }, click);
@@ -340,12 +358,13 @@ var steps = [
       click(document.querySelector("button[id=settings_done]"));
     }, click);
   },
-  function()  {  
+  function()  {
     page.open("http://lvh.me:5000");
+    feature++;
   },
   // test 11: code completion
   function() {
-    print_update("Testing feature: Code completion");
+    print_update("Testing feature: Code completion", feature, numFeatures);
     page.evaluate(function() {
       // half-type the keyword "process"; the code completion should expand it
       ace.edit("editor").setValue("proce");
@@ -377,7 +396,27 @@ var steps = [
       return true;
     }
     print_success("Code completion ok!");
+    feature++;
   },
+  // end test 11
+  // test 12: graphical editor
+  function() {
+    print_update("Testing feature: Graphical Editor", feature, numFeatures);
+    page.open("http://lvh.me:5000/graphical_editor");
+  },
+  function() {
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("paper");
+    });
+    if (!test_elem) {
+      print_error("Unable to load graphical editor!");
+      return true;
+    }
+    print_success("Graphical editor working!");
+  },
+  // end test 12
+  // test 13:
 ];
 
 interval = setInterval(function() {
@@ -396,4 +435,4 @@ interval = setInterval(function() {
     print_success("All tests successful!");
     phantom.exit();
   }
-}, 1500);
+}, 2000);
