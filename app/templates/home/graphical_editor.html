@@ -35,7 +35,7 @@ Editor
 		</div>
 		<div class="modal-body text-center">
 	        <input class="full nameAction" type="text" placeholder="Enter Action Name"><br>
-	        <input class="full scriptInput" id="script" type="text" placeholder="Enter Script">
+	        <textarea class="full scriptInput" id="script" placeholder="Enter Script"></textarea>
 	        <!-- <button class="scrAdd">+</button> -->
 	        <!-- //requires -->
 	        <br>Requires:<br>
@@ -76,7 +76,7 @@ Editor
 	        <!-- //agents -->
 	        <br>Agents:<br>
 	        <div class="agent">
-	        	<input type="text" placeholder="Resource" />
+	        	<input id="agent_res" type="text" placeholder="Resource" />
 	        	.
 		        <input type="text" placeholder="Attribute" />
 		        <select>
@@ -112,7 +112,7 @@ Editor
 	    </div>
 	    <div class="modal-footer">
 	    	<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-	       	<button type="button" class="btn btn-primary submitData" >Submit</button>
+	       	<button id="submitAttrs" type="button" class="btn btn-primary submitData" >Submit</button>
 	    </div>
 	  </div>
 	</div>

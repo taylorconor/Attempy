@@ -194,7 +194,7 @@ def arr_to_json(orig_arr):
     glob_d = {"process": {"contains": {}, "type": "process", "name": ""}}
     glob_cur_path = glob_d["process"]["contains"]
     stack = []
-    count = 0
+    count = -1
     for item in arr:
         key = str(len(cur_path.keys()))
         if item["type"] == "devs.Coupled":

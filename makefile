@@ -36,7 +36,7 @@ test:
 	@echo "*************************"
 	@echo "** Running Smoke tests **"
 	@echo "*************************"
-	cd tests && phantomjs --ssl-protocol=any smoke_test.js
+	cd tests && phantomjs --ssl-protocol=any --ignore-ssl-errors=true smoke_test.js
 
 install:
 

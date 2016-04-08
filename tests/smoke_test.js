@@ -2,6 +2,8 @@ var page = require('webpage').create(),
 system = require('system'),
 loadInProgress = false,
 testindex = 0,
+feature = 1,
+numFeatures = 18,
 fs = require('fs'),
 debug = false;
 
@@ -9,6 +11,12 @@ page.onConsoleMessage = function (msg) {
   if (debug) {
     console.log(msg);
   }
+};
+
+page.settings.resourceTimeout = 5000; // 5 seconds
+page.onResourceTimeout = function(e) {
+  // retry on timetout
+  page.open(e.url);
 };
 
 page.onError = function(msg, trace) {
@@ -58,15 +66,17 @@ page.onLoadFinished = function() {
 };
 
 function print_update(msg) {
-  console.log("[..] "+msg);
+  var snum = (feature < 10 && numFeatures >= 10)? "0"+feature : ""+feature;
+  console.log("["+snum+"/"+numFeatures+"] "+msg);
+  feature++;
 }
 
 function print_error(msg) {
-  console.log("[!!] "+msg);
+  console.log("[ !!! ] "+msg);
 }
 
 function print_success(msg) {
-  console.log("[OK] "+msg);
+  console.log("[ OK! ] "+msg);
 }
 
 function test_title(expected, page) {
@@ -85,6 +95,19 @@ function click(el){
     0, 0, 0, 0, /* coordinates */
     false, false, false, false, /* modifier keys */
     0 /*left*/, null
+  );
+  el.dispatchEvent(ev);
+}
+
+function rclick(el){
+  var ev = document.createEvent("MouseEvent");
+  ev.initMouseEvent(
+    "click",
+    true /* bubble */, true /* cancelable */,
+    window, null,
+    0, 0, 0, 0, /* coordinates */
+    false, false, false, false, /* modifier keys */
+    2 /*left*/, null
   );
   el.dispatchEvent(ev);
 }
@@ -340,44 +363,145 @@ var steps = [
       click(document.querySelector("button[id=settings_done]"));
     }, click);
   },
-  function()  {  
+  function()  {
     page.open("http://lvh.me:5000");
   },
   // test 11: code completion
   function() {
     print_update("Testing feature: Code completion");
-    page.evaluate(function() {
-      // half-type the keyword "process"; the code completion should expand it
-      ace.edit("editor").setValue("proce");
+    var completers = page.evaluate(function() {
+      return ace.edit("editor").completers;
     });
-  },
-  function() {
-    var rect = page.evaluate(function() {
-      return document.querySelector("div[id=editor]").getBoundingClientRect();
-    });
-    // click inside the editor to give it focus
-    page.sendEvent('click', rect.left + rect.width / 2, rect.top + rect.height / 2);
-  },
-  function() {
-    // simulate Ctrl-Space, the shortcut to run the code completion
-    page.sendEvent('keypress', page.event.key.Space, null, null, 0x04000000);
-  },
-  function() {
-    // simulate Enter key to choose the first code completion suggestion
-    page.sendEvent('keypress', page.event.key.Return, null, null, 0x0);
-  },
-  function() {
-    var text = page.evaluate(function() {
-      return ace.edit("editor").getValue();
-    });
-    // code completion should have expanded "proce" to "process"
-    if (text != "process") {
-      print_error("Process: " + text);
-      print_error("Code completion didn't work!");
+    if (completers == null) {
+      print_error("Code completion not working!");
       return true;
     }
     print_success("Code completion ok!");
   },
+  // end test 11
+  // test 12: graphical editor
+  function() {
+    print_update("Testing feature: Graphical Editor");
+    page.open("http://lvh.me:5000/graphical_editor");
+  },
+  function() {
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("paper");
+    });
+    if (!test_elem) {
+      print_error("Unable to load graphical editor!");
+      return true;
+    }
+    print_success("Graphical editor working!");
+  },
+  // end test 12
+  function() {
+    page.evaluate(function() {
+      insert('action');
+    });
+  },
+  function() {
+    page.evaluate(function(rclick) {
+      rclick(document.getElementById('j_1'));
+    }, rclick);
+  },
+  // test 13: Scripts
+  function() {
+    print_update("Testing feature: Scripts");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("script");
+    });
+    if (!test_elem) {
+      print_error("Scripts not found!");
+      return true;
+    }
+    print_success("Scripts working!");
+  },
+  //end test 13
+  // test 14: Resources
+  function() {
+    print_update("Testing feature: Resources");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=requires]");
+    });
+    if (!test_elem) {
+      print_error("Reources not found!");
+      return true;
+    }
+    print_success("Resources working!");
+  },
+  //end test 14
+  // test 15: Agents
+  function() {
+    print_update("Testing feature: Agents");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=agent]");
+    });
+    if (!test_elem) {
+      print_error("Agents not found!");
+      return true;
+    }
+    print_success("Agents working!");
+  },
+  //end test 15
+  // test 16: Predicates
+  function() {
+    print_update("Testing feature: Predicates");
+    if (!test_title("Editor", page)) { return true; }
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[class=provides]");
+    });
+    if (!test_elem) {
+      print_error("Predicates not found!");
+      return true;
+    }
+    print_success("Predicates working!");
+  },
+  //end test 16
+  // test 17: Syntax enforcement
+  function() {
+    print_update("Testing feature: Syntax enforcement");
+    if (!test_title("Editor", page)) { return true; }
+    page.evaluate(function(click) {
+      document.querySelector("input[class=provResIn]").setAttribute("value", "random_val");
+      click(document.querySelector("button[id=submitAttrs]"));
+    }, click);
+  },
+  function() {
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[id=errorMsg]").innerHTML;
+    });
+    if (test_elem.indexOf("Attributes cannot exist without resource") == -1) {
+      print_error("Syntax enforcement did not spot an error!");
+      return true;
+    }
+    print_success("Syntax enforcement working!");
+  },
+  //end test 17
+  // test 18: Agent coloured actions
+  function() {
+    print_update("Testing feature: Agent coloured actions");
+    if (!test_title("Editor", page)) { return true; }
+    page.evaluate(function(click) {
+      document.querySelector("input[class=provResIn]").setAttribute("value", "");
+      document.querySelector("input[id=agent_res]").setAttribute("value", "Fred");
+      click(document.querySelector("button[id=submitAttrs]"));
+    }, click);
+  },
+  function() {
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("paper").outerHTML;
+    });
+    if (!test_elem || test_elem.indexOf("v-4") == -1) {
+      print_error("Agent coloured actions did not work!");
+      return true;
+    }
+    print_success("Agent coloured actions working!");
+  }
 ];
 
 interval = setInterval(function() {
@@ -393,7 +517,7 @@ interval = setInterval(function() {
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
-    print_success("All tests successful!");
+    console.log("[DONE!] All tests successful!");
     phantom.exit();
   }
-}, 1500);
+}, 2000);

@@ -94,11 +94,10 @@ def load_graphical_file():
     try:
         arr = pml_to_json.parse(tmp_filename)
         arr = pml_to_json.arr_to_json(arr["cells"])
-
         return jsonify(output = 'Success', source=arr)
     except Exception, e:
         # flash("Unable to Parse File", "danger")
-        return jsonify(output = 'Error', reason = str(e) + "PML to JSON parser broke")
+        return jsonify(output = 'Error', reason = str(e) + ":" + "PML to JSON parser broke")
 
 @home.route('/handler_changed', methods=['POST'])
 @login_required

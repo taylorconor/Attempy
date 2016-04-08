@@ -130,7 +130,7 @@ $('#submit_save').on('click', function() {
 });
 
 $('#submit_graphical_save').on('click', function(){
-    $('#getNewFileName').modal('show');
+    get_path_save_file();
 });
 
 $('#createNewGraphicalName').on('click', function(){
@@ -142,17 +142,21 @@ $('#createNewGraphicalName').on('click', function(){
     if(!name.match(/\.pml$/)){
         name += ".pml";
     }
-
-	var json = getJSON();
-	var info = {'path': name, 'json': json};
-	console.log(info);
-	$.ajax({
-		url: "/save_graphical_file",
-		method: "POST",
-		data: JSON.stringify(info),
-		contentType: 'application/json;charset=UTF-8',
-		success: function(data) {
-			if(data.output === "Error"){
+    var json = getJSON();
+    var info = {'path': name, 'json': json};
+    save_graphical_file(info);
+	
+	
+});
+function save_graphical_file(info){
+    console.log(info);
+    $.ajax({
+        url: "/save_graphical_file",
+        method: "POST",
+        data: JSON.stringify(info),
+        contentType: 'application/json;charset=UTF-8',
+        success: function(data) {
+            if(data.output === "Error"){
                 var elm = $('<div class="alert alert-danger alert-dismissible" role="alert">'+
                     '<button id="alert-close" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
                                     data.reason +
@@ -164,13 +168,16 @@ $('#createNewGraphicalName').on('click', function(){
                     });
                 }, 2000);      
             } 
-            file_saved = true;
-			loadSideBar();
-		}
-	});
-	
-});
-
+            else{
+                var paths = info['path'].split("/");
+                window.location.hash = "#" + paths[paths.length - 1];
+                $('#current_file_name').val(paths[paths.length - 1]);
+                file_saved = true;
+                loadSideBar();
+            }
+        }
+    });
+}
 $('#createNewName').on('click', function() {
     if(!checkIfInputFilled($(this))){
         return;
@@ -312,7 +319,14 @@ function get_path_save_file(){
         $('#getNewFileName').modal('show');
         return;
     }
-    save_file(path);
+    if ($('#editor').length){
+        save_file(path);
+    }
+    else if($('#paper').length){
+        var json = getJSON();
+        var info = {'path': path, 'json': json};
+        save_graphical_file(path);
+    }
 }
 
 function new_file(){
@@ -332,6 +346,8 @@ function load_graphic_file(path){
             data: path
         },
         success: function(data) {
+            console.log(data.reason);
+            console.log(data.output);
             //TODO make this do something
             if(data.output === "Success"){
                 setInput(data.source);

@@ -86,8 +86,8 @@ $("#paper").mousemove(function(event) {
     if (dragStartPosition) {
           var scale = V(paper.viewport).scale();
           paper.setOrigin(
-            Math.min(($('#paper').width() * (1-scale.sx)), event.offsetX - dragStartPosition.x),
-            Math.min(($('#paper').height() * (1-scale.sy)), event.offsetY - dragStartPosition.y)
+            Math.min(0, event.offsetX - dragStartPosition.x),
+            Math.min(0, event.offsetY - dragStartPosition.y)
           );
 
     }
@@ -700,9 +700,12 @@ Column.prototype.setSize = function(size) {
 
 
 var checkName = function(str){
-    var fstChar = str.charAt(0);
     if(!str.match(/([A-Z]|[a-z]|_)/)){
         addErr('All names must begin with either a letter or _');
+        return false;
+    }
+    if(str.search(/^[_a-zA-Z][_a-zA-Z\d]*$/)){
+        addErr('All names must only contain letters, numbers or _');
         return false;
     }
     return true;
@@ -717,30 +720,36 @@ var checkPred = function (targets){
     if(targets.length>4){
         offset = 2;
     }
-    var exists = [];
+    var existsR = false;
+    var existsA = false;
     var toCheck = targets[0 + offset].value;
     if(toCheck.length > 0){
-        exists.push(true);
+        existsR=true;
         if(!checkName(toCheck)){
             return false;
         }
     }
     toCheck = targets[1+offset].value;
-    if(!exists[0] && toCheck.length>0){
-        addErr("Attributes cannot exist without resource");
-        return false;
-    }
     if(toCheck.length>0){
+        if(!existsR ){
+            addErr("Attributes cannot exist without resource");
+            return false;
+        }
+        existsA=true;
         if(!checkName(toCheck)){
             return false;
         }
     }
     toCheck = targets[3+offset].value;
-    if(!exists[0] && toCheck.length>0){
-        addErr("Attributes cannot exist without resource");
-        return false;
-    }
     if(toCheck.length>0){
+        if((!existsR || !existsA) ){
+            addErr("Values cannot exist without resources and attributes");
+            return false;
+        }
+        if(targets[2+offset].value.length === 0 ){
+            addErr("Values cannot exist without an operator");
+            return false;
+        }
         if(!checkName(toCheck)){
             return false;
         }
@@ -754,6 +763,7 @@ var checkFilled = function(targets){
     }
     return true;
 }
+
 
 var getOutput = function() {
     var columns = [];
@@ -838,7 +848,10 @@ var newColour = function() {
     // }
     var index = Math.floor((Math.random() * 2) );
     var add = Math.floor((Math.random() * 240) + 20);
+    // var index2 = Math.floor((Math.random() * 2) );
+    // var add2 = Math.floor((Math.random() * 240) + 20);
     currentColour[index]=add;
+    // currentColour[index2]=add2;
     return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
 }
 
@@ -898,8 +911,27 @@ $('.submitData').on('click', function(){
         }
         currentRequiresVal.resource = targets[0 + offset].value;
         currentRequiresVal.attribute = targets[1 + offset].value;
-        currentRequiresVal.operator = targets[2 + offset].value;
-        currentRequiresVal.value = targets[3 + offset].value;
+        var temp = targets[3 + offset].value.length;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentRequiresVal.value = "";
+                currentRequiresVal.operator = "";
+            }
+            else{
+                currentRequiresVal.value = "true";
+                currentRequiresVal.operator = "==";
+            }
+        }
+        else{
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentRequiresVal.value = "";
+                currentRequiresVal.operator = "";
+            }
+            else{
+                currentRequiresVal.value = targets[3 + offset].value;
+                currentRequiresVal.operator = targets[2 + offset].value;
+            }
+        }
         if(!blank){
             requireVals.push(currentRequiresVal);
         }
@@ -922,8 +954,26 @@ $('.submitData').on('click', function(){
         }
         currentProvidesVal.resource = targets[0 + offset].value;
         currentProvidesVal.attribute = targets[1 + offset].value;
-        currentProvidesVal.operator = targets[2 + offset].value;
-        currentProvidesVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentProvidesVal.value = "";
+                currentProvidesVal.operator = "";
+            }
+            else{
+                currentProvidesVal.value = "true";
+                currentProvidesVal.operator = "==";
+            }
+        }
+        else{
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentProvidesVal.value = "";
+                currentProvidesVal.operator = "";
+            }
+            else{
+                currentProvidesVal.value = targets[3 + offset].value;
+                currentProvidesVal.operator = targets[2 + offset].value;
+            }
+        }
         if(!blank){
             providesVals.push(currentProvidesVal);
         }
@@ -947,8 +997,26 @@ $('.submitData').on('click', function(){
         }
         currentAgentsVal.resource = targets[0 + offset].value;
         currentAgentsVal.attribute = targets[1 + offset].value;
-        currentAgentsVal.operator = targets[2 + offset].value;
-        currentAgentsVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0  && targets[0 + offset].value.length>0){
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentAgentsVal.value = "";
+                currentAgentsVal.operator = "";
+            }
+            else{
+                currentAgentsVal.value = "true";
+                currentAgentsVal.operator = "==";
+            }
+        }
+        else{
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentAgentsVal.value = "";
+                currentAgentsVal.operator = "";
+            }
+            else{
+                currentAgentsVal.value = targets[3 + offset].value;
+                currentAgentsVal.operator = targets[2 + offset].value;
+            }
+        }
         if(!blank){
         // push agent with new colour to array
             if(currentAgentsVal.resource.length>0){
@@ -978,8 +1046,26 @@ $('.submitData').on('click', function(){
         }
         currentToolssVal.resource = targets[0 + offset].value;
         currentToolssVal.attribute = targets[1 + offset].value;
-        currentToolssVal.operator = targets[2 + offset].value;
-        currentToolssVal.value = targets[3 + offset].value;
+        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentToolssVal.value = "";
+                currentToolssVal.operator = "";
+            }
+            else{
+                currentToolssVal.value = "true";
+                currentToolssVal.operator = "==";
+            }
+        }
+        else{
+            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+                currentToolssVal.value = "";
+                currentToolssVal.operator = "";
+            }
+            else{
+                currentToolssVal.value = targets[3 + offset].value;
+                currentToolssVal.operator = targets[2 + offset].value;
+            }
+        }
         if(!blank){
             toolsVals.push(currentToolssVal);
         }
@@ -997,7 +1083,9 @@ $('.submitData').on('click', function(){
             var gap = 100/agentNames.length;
             for(var j=0; j<agentNames.length; j++){
                 var percent = j*gap;
+                var percentEnd = (j+1)*gap;
                 stops.push({offset:''+percent+'%',color:''+colourAgent[agentNames[j]]+''})
+                stops.push({offset:''+percentEnd+'%',color:''+colourAgent[agentNames[j]]+''})
             }
             collectioon[index].attr('rect/fill', {
                                                 type: 'linearGradient',
@@ -1078,8 +1166,8 @@ paper.$el.on('mousewheel DOMMouseScroll', function onMouseWheel(e) {
   var p = offsetToLocalPoint(offsetX, offsetY);
   var newScale = V(paper.viewport).scale().sx + delta;
   if (newScale > 0.4 && newScale < 1) {
-    paper.setOrigin(0, 0);
-    paper.scale(newScale, newScale, p.x, p.y);
+    // paper.setOrigin(0, 0);
+    paper.scale(newScale, newScale, 0, 0);
   }
 });
 
@@ -1092,3 +1180,32 @@ function offsetToLocalPoint(x, y) {
   var pointTransformed = svgPoint.matrixTransform(paper.viewport.getCTM().inverse());
   return pointTransformed;
 }
+
+
+//keybindings
+$( document ).keypress(function( e ) {
+  if ($(e.target).is('input, textarea, select')) { return; }
+  var a = 97, b = 98, i = 105, q = 113, s = 115;
+  switch(e.which){
+    case 97: //a
+    case 65: //A
+      insert('action');
+      break;
+    case 98: //b
+    case 66: //B
+      insert('branch');
+      break;
+    case 105: //i
+    case 73: //I
+      insert('iteration');
+      break;
+    case 113: //q
+    case 81: //Q
+      insert('sequence');
+      break;
+    case 115: //s
+    case 83: //S
+      insert('selection');
+      break;
+  }
+});
