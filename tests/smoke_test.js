@@ -3,7 +3,7 @@ system = require('system'),
 loadInProgress = false,
 testindex = 0,
 feature = 1,
-numFeatures = 17,
+numFeatures = 18,
 fs = require('fs'),
 debug = false;
 
@@ -480,8 +480,28 @@ var steps = [
       return true;
     }
     print_success("Syntax enforcement working!");
-  }
+  },
   //end test 17
+  // test 18: Agent coloured actions
+  function() {
+    print_update("Testing feature: Agent coloured actions");
+    if (!test_title("Editor", page)) { return true; }
+    page.evaluate(function(click) {
+      document.querySelector("input[class=provResIn]").setAttribute("value", "");
+      document.querySelector("input[id=agent_res]").setAttribute("value", "Fred");
+      click(document.querySelector("button[id=submitAttrs]"));
+    }, click);
+  },
+  function() {
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("paper").outerHTML;
+    });
+    if (!test_elem || test_elem.indexOf("v-4") == -1) {
+      print_error("Agent coloured actions did not work!");
+      return true;
+    }
+    print_success("Agent coloured actions working!");
+  }
 ];
 
 interval = setInterval(function() {
