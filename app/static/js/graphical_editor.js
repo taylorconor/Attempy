@@ -343,7 +343,8 @@ var outerColumns = new Columns();
 
 //for agent coloured actions
 var colourAgent = [];
-var currentColour = [20,20,20]
+var currentColour = [20,20,20];
+var element_counts = [];
 
 var grid = {
 
@@ -379,17 +380,21 @@ var grid = {
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
         var parent = parent || null;
+        if(typeof element_counts[type] === 'undefined'){
+            element_counts[type] = 0;
+        }
 
+        var new_name = type + "_" + element_counts[type]++;
         if (type == "action") {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
                 label: 'Action',
                 attrs: {
-                    text: { text: type },
+                    text: { text: type + ": " + new_name },
                     rect: { fill: 'rgb(255,255,255)' }
                 },
                 elType: type,
-                nameIn: '',
+                nameIn: new_name,
                 scriptIn: [],
                 RequiresIn: [],
                 ProvidesIn:[],
@@ -400,11 +405,11 @@ var grid = {
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
-                attrs: { text: { text: type, class: 'label ' + type },
+                attrs: { text: { text: type + ": " + new_name, class: 'label ' + type },
                     rect: { class: 'body ' + type, fill: '#ffffff' }
                 },
                 class: 'body ' + type,
-                nameIn: type,
+                nameIn: new_name,
                 elType: type,
                 verticalChildCount: 0
             });

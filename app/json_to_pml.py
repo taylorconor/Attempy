@@ -12,23 +12,32 @@ def joint_to_json(arr, name):
 	#keep track of processed ID's. map them to the path in the main dictionary
 	processed = {}
 	def actionString(items, action_type):
+        # if(len(item["resource"]) == 0):
+        #     return ""
 		res = ""
-		if(action_type is "agent"):
+		if(action_type is "agent" and len(items) > 0):
 				res += "\""
 		for item in items:
 			if("relOp" in item):
 				res += " " + item["relOp"] + " "
 			if(action_type is "requires" or action_type is "provides"):
-				res += item["resource"] + "." + item["attribute"] + " " + item["operator"] + " \"" + item["value"]	+ "\""	
+				res += item["resource"] 
+				if len(item["attribute"]):
+					res += "." + item["attribute"] + " " + item["operator"] + " \"" + item["value"]	+ "\""	
 			else:
-				res += item["resource"] + "." + item["attribute"] + " " + item["operator"] + " " + item["value"]		
-		if(action_type is "agent"):
+				res += item["resource"]
+				if len(item["attribute"]):
+					res += "." + item["attribute"] + " " + item["operator"] + " " + item["value"]
+		if(action_type is "agent" and len(items) > 0):
 				res += "\""
 		return res
 
 	def action(item):
-		script = "\"" + "".join(item["scriptIn"]) + "\"" #Expects string below, convert to string
-		# agents = ",".join(item["AgentsIn"]) #Expects string too... potential conflict with representations
+		if(len(item["scriptIn"]) > 0):
+			script = "\"" + "".join(item["scriptIn"]) + "\"" #Expects string below, convert to string
+		else:
+			script = ""
+        # agents = ",".join(item["AgentsIn"]) #Expects string too... potential conflict with representations
 				# requires = "".join(item["RequiresIn"])
 		# provides = "".join(item["ProvidesIn"])
 		agents = actionString(item["AgentsIn"], "agent") 
@@ -146,15 +155,15 @@ def parse_action(action_obj, indent_amt):
         return False,"Attribute 'name' missing from Action object"
 
     output += indent+"action "+action_obj["name"]+" {\n"
-    if action_obj.has_key("requires"):
+    if action_obj.has_key("requires") and len(action_obj["requires"]):
         output += indent+"\trequires {"+action_obj["requires"]+"}\n"
-    if action_obj.has_key("provides"):
+    if action_obj.has_key("provides") and len(action_obj["provides"]):
         output += indent+"\tprovides {"+action_obj["provides"]+"}\n"
-    if action_obj.has_key("agents"):
+    if action_obj.has_key("agents") and len(action_obj["agents"]):
         output += indent+"\tagent {"+action_obj["agents"]+"}\n"
-    if action_obj.has_key("script"):
+    if action_obj.has_key("script") and len(action_obj["script"]):
         output += indent+"\tscript {"+action_obj["script"]+"}\n"
-    if action_obj.has_key("tool"):
+    if action_obj.has_key("tool") and len(action_obj["tool"]):
         output += indent+"\ttool {"+action_obj["tool"]+"}\n"
     output += indent+"}\n"
     return True,output
