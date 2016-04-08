@@ -3,7 +3,7 @@ system = require('system'),
 loadInProgress = false,
 testindex = 0,
 feature = 1,
-numFeatures = 16,
+numFeatures = 17,
 fs = require('fs'),
 debug = false;
 
@@ -461,6 +461,27 @@ var steps = [
     }
     print_success("Predicates working!");
   },
+  //end test 16
+  // test 17: Syntax enforcement
+  function() {
+    print_update("Testing feature: Syntax enforcement");
+    if (!test_title("Editor", page)) { return true; }
+    page.evaluate(function(click) {
+      document.querySelector("input[class=provResIn]").setAttribute("value", "random_val");
+      click(document.querySelector("button[id=submitAttrs]"));
+    }, click);
+  },
+  function() {
+    var test_elem = page.evaluate(function() {
+      return document.querySelector("div[id=errorMsg]").innerHTML;
+    });
+    if (test_elem.indexOf("Attributes cannot exist without resource") == -1) {
+      print_error("Syntax enforcement did not spot an error!");
+      return true;
+    }
+    print_success("Syntax enforcement working!");
+  }
+  //end test 17
 ];
 
 interval = setInterval(function() {
@@ -476,7 +497,7 @@ interval = setInterval(function() {
     testindex++;
   }
   if (typeof steps[testindex] != "function") {
-    print_success("All tests successful!");
+    console.log("[DONE!] All tests successful!");
     phantom.exit();
   }
 }, 2000);
