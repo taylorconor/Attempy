@@ -15,12 +15,10 @@ def joint_to_json(arr, name):
         # if(len(item["resource"]) == 0):
         #     return ""
 		res = ""
-		if(action_type is "agent" and len(items) > 0):
-				res += "\""
 		for item in items:
 			if("relOp" in item):
 				res += " " + item["relOp"] + " "
-			if(action_type is "requires" or action_type is "provides"):
+			if(action_type is "requires" or action_type is "provides" or action_type is "agent"):
 				res += item["resource"] 
 				if len(item["attribute"]):
 					res += "." + item["attribute"] + " " + item["operator"] + " \"" + item["value"]	+ "\""	
@@ -28,8 +26,6 @@ def joint_to_json(arr, name):
 				res += item["resource"]
 				if len(item["attribute"]):
 					res += "." + item["attribute"] + " " + item["operator"] + " " + item["value"]
-		if(action_type is "agent" and len(items) > 0):
-				res += "\""
 		return res
 
 	def action(item):
