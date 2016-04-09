@@ -59,22 +59,22 @@ To authenticate, run the server as outlined in the above instructions and naviga
 Users should register with only one method, and continue logging in with this method every time they wish to use the system. Information regarding user accounts is held in “test.db” in the root directory.
 
 ###Boxes arrows
-The graphical editor can be accessed from the navigation bar view->graphical editor. Actions, Branches, Iterations and Sequences can be added from the insert menu in the navigation bar. Sequences, Iterations and Branches can contain sub modules. The diagram is read from left to right.
+The graphical editor can be accessed from the navigation bar View -> Graphical Editor. Elements can be added to the Graphical Editor using the 'Insert' menu. The graphical editor should be read from left to right; each vertical 'column' represents one program flow step. That's why elements inside Branches nest vertically, and element inside Iterations nest horizontally.
 
 ###Scripts
-Scripts can be filled in inside all action boxes.
+Scripts can be added to actions in the action modal menu, which is accessed by *right clicking* on an action.
 
 ###Resources
-Resources can be filled in in all action boxes. Resources are broken down into requires, provides and tools. Each field is filled in separately. To access double click on action, fill in required details then click submit.
+Resources can be filled in in all action boxes. Resources are broken down into requires, provides and tools. Each field is filled in separately. These can be accessed in the action modal menu.
 
 ###Agents
-Agents can  be filled in in all action boxes. To access double click on action, fill in required details then click submit.
+Agents can be filled in in all action boxes, in the action modal menu.
 
 ###Predicates
-Predicates can be added in Resources (requires, provides & tools) and Agents.
+Predicates can be added in Resources (requires, provides & tools) and Agents. They can be added in the action modal menu.
 
 ###Agent Coloured Actions
-Actions will be coloured based on the agents associated with them. If multiple agents are associated with an action multiple colours will be applied to that action in a linear gradient.
+Actions will be coloured based on the agents associated with them. If multiple agents are associated with an action, multiple colours will be applied.
 
 ###Syntax Enforcement
 The design of boxes and arrows makes illegal syntax impossible. Syntax is enforced on the input fields in that incorrect names (that do not begin with a letter or '_' are not allowed) and attributes cannot exist without resources. If an incorrect value is entered in a field the data will not be allowed to be submited and an error message will appear.
@@ -88,6 +88,4 @@ This generated a JSON representation of the PML source for use with the boxes an
 To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen
 
 ##Known issues
-A known issue with PhantomJS (which we use for smoke tests) may cause 'make test' to occasionaly hang when testing an ssl-enabled site (such as Facebook OAuth). Quitting the process (ctrl-c) and re-starting it by running 'make test' again should fix any issues.
-
 Deleting a recently "uploaded" file and then reloading the page will resurrect the file.
