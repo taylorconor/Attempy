@@ -263,7 +263,7 @@ def arr_to_json(orig_arr):
                 "contains": {}
             }
         else:
-            requires = ""
+            """requires = ""
             provides = ""
             for i in item["RequiresIn"]:
                 requires += i["relop"]
@@ -280,12 +280,12 @@ def arr_to_json(orig_arr):
                     provides +=  "." + i["attribute"]
                 if i["operator"] != "":
                     provides += i["operator"] + "\"" + i["value"] + "\""
-
+            """
             cur_path[key] = {
                 "type": "action",
                 "name": item["nameIn"],
-                "requires": requires,
-                "provides": provides,
+                "requires": item["RequiresIn"],
+                "provides": item["ProvidesIn"],
                 "agents": item["AgentsIn"],
                 "script": "".join(item["scriptIn"]),
                 "tools": []
