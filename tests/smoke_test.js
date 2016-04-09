@@ -3,7 +3,7 @@ system = require('system'),
 loadInProgress = false,
 testindex = 0,
 feature = 1,
-numFeatures = 18,
+numFeatures = 19,
 fs = require('fs'),
 debug = false;
 
@@ -501,7 +501,52 @@ var steps = [
       return true;
     }
     print_success("Agent coloured actions working!");
-  }
+  },
+  // end test 18
+  // test 19: PML generator
+  function() {
+    print_update("Testing feature: PML generator");
+    if (!test_title("Editor", page)) { return true; }
+    var test = page.evaluate(function(click) {
+      click(document.querySelector("a[id=submit_graphical_save]"));
+    }, click);
+  },
+  function() {
+    page.evaluate(function(click) {
+      // save the file as "pml_generator.pml"
+      document.querySelector("input[id=newFileName]").setAttribute("value", "pml_generator");
+      click(document.querySelector("button[id=createNewGraphicalName]"));
+    }, click);
+  },
+  function() {
+    var sidebar = page.evaluate(function(click) {
+      return document.querySelector("ul[class~=tree]").outerHTML;
+    });
+    // verify that "test_file.pml" is now shown in the sidebar
+    if (sidebar.indexOf("pml_generator.pml") == -1) {
+      print_error("File save in Graphical Editor didn't work!");
+      return true;
+    }
+  },
+  function()  {
+    page.open("http://lvh.me:5000");
+  },
+  function() {
+    var test = page.evaluate(function(click) {
+      click(document.querySelector("a[title^=pml_generator]"));
+      return document.querySelector("a[title^=pml_generator]");
+    }, click);
+  },
+  function() {
+    var text = page.evaluate(function() {
+      return ace.edit("editor").getValue();
+    });
+    if (!text || text.indexOf("action") == -1) {
+      print_error("PML generator did not work!");
+      return true;
+    }
+    print_success("PML generator working!");
+  },
 ];
 
 interval = setInterval(function() {

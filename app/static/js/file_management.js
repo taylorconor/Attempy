@@ -325,7 +325,7 @@ function get_path_save_file(){
     else if($('#paper').length){
         var json = getJSON();
         var info = {'path': path, 'json': json};
-        save_graphical_file(path);
+        save_graphical_file(info);
     }
 }
 

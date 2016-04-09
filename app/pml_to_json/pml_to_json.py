@@ -1,7 +1,5 @@
 from pyparsing import MatchFirst, cStyleComment, Suppress,Combine,ParseSyntaxException, ParseException,Forward, QuotedString, ZeroOrMore, OneOrMore, Optional, Word, Literal, Or, Keyword, Group, alphas, alphanums, nums, printables
-import sys
-import pprint
-import copy
+import sys, pprint, copy, re
 
 level = "1"
 
@@ -53,11 +51,72 @@ def add_action(string, loc, toks):
         if item[0] == "script":
             action["scriptIn"] = "".join(item[1])
         elif item[0] == "agent":
-            action["AgentsIn"].append("".join(item[1]))
-        elif item[0] == "requires":
-            action["RequiresIn"].append("".join(item[1]))
-        elif item[0] == "provides":
-            action["ProvidesIn"].append("".join(item[1]))
+            action["AgentsIn"].extend(item[1])
+        elif item[0] == "requires" or item[0] == "provides":
+            requires = "".join(item[1])
+            requires = re.split("(&&|\|\|)", requires)
+
+            prev = ""
+            for stmt in requires:
+                if stmt == "&&" or stmt == "||":
+                    prev = stmt
+                    continue
+                d = {}
+                resattr = stmt.split(".")
+                if len(resattr) > 1:
+
+                    if "==" in stmt:
+                        split = resattr[1].split("==")
+                        d["operator"] = "=="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "!=" in stmt:
+                        split = resattr[1].split("!=")
+                        d["operator"] = "!="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "<" in stmt:
+                        split = resattr[1].split("<")
+                        d["operator"] = "<"
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "<=" in stmt:
+                        split = resattr[1].split("<=")
+                        d["operator"] = "<="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif ">" in stmt:
+                        split = resattr[1].split(">")
+                        d["operator"] = ">"
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif ">=" in stmt:
+                        split = resattr[1].split(">=")
+                        d["operator"] = ">="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+
+                    d["resource"] = resattr[0]
+
+                else: 
+                    d = {
+                        "resource": resattr[0],
+                        "attribute": "",
+                        "value": "",
+                        "operator": ""
+                    }
+
+                d["relop"] = prev
+
+                if item[0] == "requires":
+                    action["RequiresIn"].append(copy.deepcopy(d))
+                else:
+                    action["ProvidesIn"].append(copy.deepcopy(d))
+
+
+            #action["RequiresIn"].append("".join(item[1]))
+        #elif item[0] == "provides":
+        #    action["ProvidesIn"].append("".join(item[1]))
 
     
     glob_arr.append(action)
