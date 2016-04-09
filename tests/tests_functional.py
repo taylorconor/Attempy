@@ -60,15 +60,14 @@ class StartingTestCase(TestCase):
         data = {
             'data': file_name
         }
-        return self.client.post('/pml_source_submit', data=data, follow_redirects=True)
+        return self.client.post('/pml_source_submit', data=data)
 
     def pml_save_file(self, path, text):
         data = {
-            "path":path,
-            "text":text
+            "path": path,
+            "text": text
         }
-        headers = {'contentType': 'application/json;charset=UTF-8'}
-        return self.client.post('/pml_save_file', data=data, headers=headers, follow_redirects=True) 
+        return self.client.post('/pml_save_file', data=data, follow_redirects=True) 
 
     def pml_load_file(self, path):
         data = {
@@ -90,6 +89,19 @@ class StartingTestCase(TestCase):
 
     def pml_load_file_sidebar(self):
         return self.client.get('/pml_load_file_sidebar')
+
+    def save_graphical_file(self, file_name, json_data):
+        data = {
+            'path': file_name,
+            'json': json_data
+        }
+        return self.client.post('/save_graphical_file', data=data, follow_redirects=True)
+
+    def deleteFile(self, file_name):
+        data = {
+            'data': file_name
+        }
+        return self.client.post('/deleteFile', data=data, follow_redirects=True)
 
     @print_test_time_elapsed
     def test_00_register_loads(self):
@@ -202,9 +214,43 @@ class StartingTestCase(TestCase):
         assert sample_strings.file_name in rv.data
     
     @print_test_time_elapsed
-    def test_11_pml_to_json(self):
+    def test_11_pml_source_submit(self):
+        self.login(sample_strings.valid_user, sample_strings.valid_password)
+        self.pml_save_file(sample_strings.bad_pml_file_name, sample_strings.bad_pml)
+        rv = self.pml_source_submit(sample_strings.bad_pml_file_name)
+        assert rv.status_code == 200
+        assert "syntax error at" in rv.data
+        rv = self.pml_source_submit(sample_strings.valid_pml)
+        assert rv.status_code == 200
+        assert "syntax error at" not in rv.data
+
+
+    @print_test_time_elapsed
+    def test_12_pml_to_json(self):
         rv = self.pml_to_json("commit_changes_testfile.pml")
         #TODO: finish this
+
+    @print_test_time_elapsed
+    def test_13_save_graphical_file(self):
+        self.login(sample_strings.valid_user, sample_strings.valid_password)
+        pml_json = sample_strings.valid_joint_json
+        file_name = "valid_json_to_pml.pml"
+        rv = self.save_graphical_file(file_name, pml_json)
+        assert rv.status_code == 200
+        peos = self.pml_source_submit(file_name)
+        assert rv.status_code == 200
+        assert "syntax error at" not in rv.data
+
+    def test_14_delete_file(self):
+        self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.pml_save_file(sample_strings.temp_file_name, sample_strings.valid_pml)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data
+        assert os.path.isfile("uploads/1/"+sample_strings.file_name)
+        rv = self.deleteFile(sample_strings.temp_file_name)
+        assert rv.status_code == 200
+        assert 'Success' in rv.data
+        assert not os.path.isfile("uploads/1/"+sample_strings.temp_file_name)
 
 if __name__ == '__main__':
     unittest.main()

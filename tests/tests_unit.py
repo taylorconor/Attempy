@@ -17,7 +17,7 @@ class TestCase(unittest.TestCase):
         pass
 
     @print_test_time_elapsed
-    def test_allowed_file(self):
+    def test_00_allowed_file(self):
         """
         Test allowed Filenames
         """
@@ -29,7 +29,7 @@ class TestCase(unittest.TestCase):
         assert not allowed_file("")
         assert not allowed_file(".........")
 
-    def test_pml_to_json(self):
+    def test_01_pml_to_json(self):
         pass
 
 

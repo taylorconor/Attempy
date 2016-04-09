@@ -118,8 +118,11 @@ def pml_source_submit():
     try:
         p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
-        return render_template("home/pml_res_fatal_error.html", error = e)
-
+        try:
+            #this is for running peos from test files
+            p = Popen(["../peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        except:
+            return render_template("home/pml_res_fatal_error.html", error = e)
     prog_out, error = p.communicate()
     return jsonify({"output": error if p.returncode > 0 else prog_out, "return_code": p.returncode})
     
@@ -127,15 +130,11 @@ def pml_source_submit():
 @home.route('/pml_save_file', methods=['POST'])
 @login_required
 def pml_save_file():
-    path = ""
     try:
         path = request.json["path"]
-    except:
-        path = request.form["path"]
-    text = ""
-    try:
         text = request.json["text"]
     except:
+        path = request.form["path"]
         text = request.form["text"]
     path = secure_filename(path)
     checkIfUserDirectoryExists()
@@ -152,10 +151,15 @@ def pml_save_file():
 @home.route('/save_graphical_file', methods=["POST"])
 @login_required
 def save_graphical_file():
-    path = secure_filename(request.json["path"])
+
+    try:
+        path = secure_filename(request.json["path"])
+        joint_json = json.loads(request.json["json"])
+    except:
+        path = secure_filename(request.form["path"])
+        joint_json = json.loads(request.form["json"])
     filename = path.split("/")[-1]
     filename = path.split(".")[0]
-    joint_json = json.loads(request.json["json"])
     joint_json = joint_json["cells"]
     
     (res, output) = json_to_pml.parse(joint_json, filename)
@@ -226,6 +230,7 @@ def deleteFile():
     if(len(file_name) < 1):
         return jsonify(output = "Failed", reason = "Invalid Filename")
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
+    print('Data: ' + tmp_filename, file=sys.stderr)
     try:
         os.remove(tmp_filename);
     except:
