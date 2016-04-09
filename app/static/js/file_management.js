@@ -340,15 +340,12 @@ function load_graphic_file(path){
     }
     var storedPath = path;
     $.ajax({
-        url: "/get_pml_json",
+        url: "/load_graphical_file",
         method: "POST",
         data: {
             data: path
         },
         success: function(data) {
-            console.log(data.reason);
-            console.log(data.output);
-            //TODO make this do something
             if(data.output === "Success"){
                 setInput(data.source);
             }

@@ -381,7 +381,6 @@ var grid = {
         var blockWidth = blockWidth || 1;
         var innerPos = innerPos === undefined ? -1 : innerPos;
         var parent = parent || null;
-        console.log(type);
         if (type == "action") {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
@@ -488,7 +487,7 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
     if (this.isVertical) return undefined;
 
     if (this.parent) {
-        var xPos = this.parent.position().x + grid.childPadding;
+        var xPos = this.parent.get("position").x + grid.childPadding;
     } else {
         var xPos = grid.outerPadding;
     }
@@ -543,7 +542,7 @@ Columns.prototype.insert = function(column, destinationXCoord) {
         //Get Column to insert into
         var insertionColumn = this.getColumnByXCoord(destinationXCoord);
 
-        //Move element
+        //Move element      
         column.changePos(this.getXCoordByColumn(insertionColumn), this.getHorizontalYCoord());
 
         //Rearrange data-structure
@@ -600,8 +599,9 @@ Columns.prototype.redraw = function() {
         var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
         var xAccumulator = start;
         var y = this.getHorizontalYCoord();
-        for (var i = 0; i < this.columns.length; i++) {
 
+        
+        for (var i = 0; i < this.columns.length; i++) {
             this.columns[i].changePos(xAccumulator, y);
             xAccumulator += this.columns[i].width;
         }
@@ -660,12 +660,14 @@ function Column(element, columns) {
 
 //Used only for a dragged element.
 Column.prototype.changePos = function(x, y, noTransition) {
+    
     var oldPos = this.element.position();
     var translation = {
-        x: x - oldPos.x,
-        y: y - oldPos.y
+        x: Math.round(x) - Math.round(oldPos.x),
+        y: Math.round(y) - Math.round(oldPos.y)
     }
-    this.element.translate(translation.x, translation.y, noTransition ? {} : {transition: this.transition});
+
+    this.element.translate(translation.x,  translation.y, noTransition ? {} : {transition: this.transition});
 
     if (this.columns) {
         this.moveChildren(translation);
@@ -780,9 +782,11 @@ var getOutput = function() {
     );
 }
 
+
 var getJSON = function() {
     var json = {};
 	var columns = [];
+    
     graph.attributes.cells.models.forEach(
         function(cell, index, cells) {
             columns.push(cells[index].get("column"));
@@ -798,49 +802,60 @@ var getJSON = function() {
 	return json;
 }
 
-var setInput = function(jsonString) {
+var setInput = function(input) {
     graph.clear();
+    outerColumns = new Columns();
 
-    var columns = {};
-    var needsParent = [];
-    jsonString.cells.forEach(
-        function(cell, index, cells) {
-            console.log(cell.attrs);
-            var type = cell.attrs.name || "action";
-            console.log(type);
-            columns[cell.id] = insert(type);
-            if (cell.parent) {
-                if (columns[cell.parent]) {
-                    columns[cell.id] = outerColumns.remove(columns[cell.id].element);
-                    columns.insert(columns[cell.id], 10000000);
-                } else {
-                    needsParent.push(columns[cell.id]);
-                }
-            }
-        }
-    )
-    needsParent.forEach(
-        function(cell, index, cells) {
-            if (columns[cell.parent]) {
-                columns[cell.id] = outerColumns.remove(columns[cell.id].element);
-                columns.insert(columns[cell.id], 10000000);
-            } 
-        }
-    )
-    console.log(columns)
-    console.log(needsParent)
-    
-    //graph.fromJSON(jsonString);
+    for (var object in input.process.contains) {
+        if (input.process.contains.hasOwnProperty(object)) {
+            timeoutHelper(input.process.contains[object], undefined, 100);
+        } 
+    }
 }
 
-setInput();
+var setInputHelper = function(object, parent, timeout) {
+    var inserted_column = insert(object.type);
+    if (object.type === "action") {
+        inserted_column.element.set("scriptIn", object.script);
+        inserted_column.element.set("RequiresIn", object.requires);
+        inserted_column.element.set("ProvidesIn", object.provides);
+        inserted_column.element.set("AgentsIn", object.agents);
+        inserted_column.element.set("ToolsIn", object.tools);
+
+    } 
+    inserted_column.element.set("nameIn", object.name || "");
+    inserted_column.element.set("elType", object.type);
+
+    if (object.name) {
+        inserted_column.element.attr('text/text', object.type + ": " + shortenLongNames(object.name));
+    }
+    
+    
+    if (parent) {
+        inserted_column = outerColumns.remove(inserted_column.element);
+        parent.insert(inserted_column, Number.MAX_VALUE);
+    }
+
+    for (var obj in object.contains) {
+        if (object.contains.hasOwnProperty(obj)) {
+            timeoutHelper(object.contains[obj], inserted_column.columns, timeout);
+        }
+    }
+
+}
+
+var timeoutHelper = function(object, parent, timeout) {
+    window.setTimeout(function(){
+        setInputHelper(object, parent, timeout + 1000);
+    }, timeout);
+}
 
 var newColour = function() {
     //DON'T DELETE!!! I might want it later.... Théa
     // var sumColour = 0;
     // for(var i=0; i<currentColour.length; i++){
     //     sumColour+=currentColour[i];
-    // }
+    // }`
     // if(sumColour>600){
     //     currentColour[0] = Math.floor((Math.random() * 50) + 25);
     //     currentColour[1] = Math.floor((Math.random() * 50) + 25);
