@@ -267,23 +267,28 @@ def arr_to_json(orig_arr):
             provides = ""
             for i in item["RequiresIn"]:
                 requires += i["relop"]
-                requires += i["resource"] + "." + i["attribute"]
+                requires += i["resource"]
+                if i["attribute"] != "":
+                    requires +=  "." + i["attribute"]
                 if i["operator"] != "":
-                    requires += i["operator"] + i["value"]
+                    requires += i["operator"] + "\"" +  i["value"] + "\""
 
             for i in item["ProvidesIn"]:
                 provides += i["relop"]
-                provides += i["resource"] + "." + i["attribute"]
+                provides += i["resource"]
+                if i["attribute"] != "":
+                    provides +=  "." + i["attribute"]
                 if i["operator"] != "":
-                    provides += i["operator"] + i["value"]
+                    provides += i["operator"] + "\"" + i["value"] + "\""
 
             cur_path[key] = {
                 "type": "action",
                 "name": item["nameIn"],
                 "requires": requires,
                 "provides": provides,
-                "agents": ",".join(item["AgentsIn"]),
-                "script": "".join(item["scriptIn"])
+                "agents": item["AgentsIn"],
+                "script": "".join(item["scriptIn"]),
+                "tools": []
             }
 
         if "embeds" in item.keys():
