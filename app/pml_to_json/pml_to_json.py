@@ -18,7 +18,7 @@ template = {
 glob_d = {"process": {
     "name": "",
     "type": "process",
-    "contains": {}  
+    "contains": {}
 }}
 glob_arr = []
 glob_cur_path = glob_d["process"]["contains"]
@@ -98,7 +98,7 @@ def add_action(string, loc, toks):
 
                     d["resource"] = resattr[0]
 
-                else: 
+                else:
                     d = {
                         "resource": resattr[0],
                         "attribute": "",
@@ -118,10 +118,10 @@ def add_action(string, loc, toks):
         #elif item[0] == "provides":
         #    action["ProvidesIn"].append("".join(item[1]))
 
-    
+
     glob_arr.append(action)
     increment_level()
-    
+
 
 def add_primary(string, loc, toks):
     global glob_arr
@@ -148,7 +148,7 @@ def add_primary(string, loc, toks):
     primary["attrs"]["name"] = toks[0]
     primary["size"]["width"] = 300
     primary["size"]["height"] = 50
-    
+
 
     glob_arr.append(primary)
 
@@ -249,7 +249,7 @@ def arr_to_json(orig_arr):
     global glob_cur_path
     global glob_d
     d = copy.deepcopy(glob_d)
-    cur_path = d["process"]["contains"] 
+    cur_path = d["process"]["contains"]
     glob_d = {"process": {"contains": {}, "type": "process", "name": ""}}
     glob_cur_path = glob_d["process"]["contains"]
     stack = []
@@ -263,11 +263,25 @@ def arr_to_json(orig_arr):
                 "contains": {}
             }
         else:
+            requires = ""
+            provides = ""
+            for i in item["RequiresIn"]:
+                requires += i["relop"]
+                requires += i["resource"] + "." + i["attribute"]
+                if i["operator"] != "":
+                    requires += i["operator"] + i["value"]
+
+            for i in item["ProvidesIn"]:
+                provides += i["relop"]
+                provides += i["resource"] + "." + i["attribute"]
+                if i["operator"] != "":
+                    provides += i["operator"] + i["value"]
+
             cur_path[key] = {
                 "type": "action",
                 "name": item["nameIn"],
-                "requires": ",".join(item["RequiresIn"]),
-                "provides": ",".join(item["ProvidesIn"]),
+                "requires": requires,
+                "provides": provides,
                 "agents": ",".join(item["AgentsIn"]),
                 "script": "".join(item["scriptIn"])
             }
@@ -280,9 +294,9 @@ def arr_to_json(orig_arr):
             cur_path = stack.pop()
 
         count -= 1
-        
 
-    return d 
+
+    return d
 
 def parse(filename):
     global glob_arr
@@ -292,7 +306,7 @@ def parse(filename):
 
     process_decl.ignore(cStyleComment)
     process_decl.parseString(pml)
-    
+
     #pp = pprint.PrettyPrinter(indent=2)
     #pp.pprint(arr_to_json(glob_arr))
 
