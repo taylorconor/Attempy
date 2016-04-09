@@ -851,7 +851,7 @@ var setInputHelper = function(object, parent, timeout) {
 
 var timeoutHelper = function(object, parent, timeout) {
     window.setTimeout(function(){
-        setInputHelper(object, parent, timeout + 1000);
+        setInputHelper(object, parent, timeout + 100);
     }, timeout);
 }
 
