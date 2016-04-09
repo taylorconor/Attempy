@@ -106,7 +106,7 @@ def add_action(string, loc, toks):
                         "operator": ""
                     }
 
-                d["relop"] = prev
+                d["relOp"] = prev
 
                 if item[0] == "requires":
                     action["RequiresIn"].append(copy.deepcopy(d))
@@ -266,7 +266,7 @@ def arr_to_json(orig_arr):
             """requires = ""
             provides = ""
             for i in item["RequiresIn"]:
-                requires += i["relop"]
+                requires += i["relOp"]
                 requires += i["resource"]
                 if i["attribute"] != "":
                     requires +=  "." + i["attribute"]
@@ -274,7 +274,7 @@ def arr_to_json(orig_arr):
                     requires += i["operator"] + "\"" +  i["value"] + "\""
 
             for i in item["ProvidesIn"]:
-                provides += i["relop"]
+                provides += i["relOp"]
                 provides += i["resource"]
                 if i["attribute"] != "":
                     provides +=  "." + i["attribute"]
