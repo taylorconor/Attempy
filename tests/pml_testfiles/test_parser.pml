@@ -1,7 +1,7 @@
 process p {
     action a1 {
         requires { require1 }
-        provides { provide1 }
+        provides { provide1.attr == "val" && provide2.attr == "val2" }
         script { "script1" }
     }
 

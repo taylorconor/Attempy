@@ -46,8 +46,27 @@ class TestCase(unittest.TestCase):
             assert "cells" in output.keys()
             assert output["cells"][0]["type"] == "html.Element"
             assert output["cells"][0]["nameIn"] == "a1"
-            assert output["cells"][0]["ProvidesIn"] == ["provide1"]
-            assert output["cells"][0]["RequiresIn"] == ["require1"]
+            assert output["cells"][0]["RequiresIn"][0] == {
+                "attribute": "",
+                "operator": "",
+                "relOp": "",
+                "resource": "require1",
+                "value": ""
+            }
+            assert output["cells"][0]["ProvidesIn"][0] == {
+                "resource": "provide1",
+                "attribute": "attr",
+                "operator": "==",
+                "value": "val",
+                "relOp": ""
+            }
+            assert output["cells"][0]["ProvidesIn"][1] == {
+                "resource": "provide2",
+                "attribute": "attr",
+                "operator": "==",
+                "value": "val2",
+                "relOp": "&&"
+            }
 
             #test that it has only one child
             assert len(output["cells"][1]["embeds"]) == 1
@@ -60,7 +79,7 @@ class TestCase(unittest.TestCase):
 
             #test that last action is correct
             assert output["cells"][-1]["nameIn"] == "a5"
-            assert output["cells"][-1]["RequiresIn"] == ["require2"]
+            assert output["cells"][-1]["RequiresIn"][0]["resource"] == "require2"
             assert output["cells"][-1]["AgentsIn"] == ["carer"]
 
         except:
