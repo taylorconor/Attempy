@@ -86,7 +86,9 @@ Open a PML file from the file explorer at the side of the graphical editor to co
 In the graphical editor, saving a file (using File > Save) will convert it to PML and save it as a PML source file.
 
 ##Notes
-To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen
+To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen.
+
+When running tests, all Facebook, GitHub and Google accounts **must** be signed out of before running the smoke test.
 
 ##Known issues
 Deleting a recently "uploaded" file and then reloading the page will resurrect the file.
