@@ -1,7 +1,5 @@
 from pyparsing import MatchFirst, cStyleComment, Suppress,Combine,ParseSyntaxException, ParseException,Forward, QuotedString, ZeroOrMore, OneOrMore, Optional, Word, Literal, Or, Keyword, Group, alphas, alphanums, nums, printables
-import sys
-import pprint
-import copy
+import sys, pprint, copy, re
 
 level = "1"
 
@@ -20,7 +18,7 @@ template = {
 glob_d = {"process": {
     "name": "",
     "type": "process",
-    "contains": {}  
+    "contains": {}
 }}
 glob_arr = []
 glob_cur_path = glob_d["process"]["contains"]
@@ -52,17 +50,95 @@ def add_action(string, loc, toks):
             continue
         if item[0] == "script":
             action["scriptIn"] = "".join(item[1])
-        elif item[0] == "agent":
-            action["AgentsIn"].append("".join(item[1]))
-        elif item[0] == "requires":
-            action["RequiresIn"].append("".join(item[1]))
-        elif item[0] == "provides":
-            action["ProvidesIn"].append("".join(item[1]))
+#        elif item[0] == "agent":
+            #action["AgentsIn"].extend(item[1])
+#            agents = "".join(item[1])
+#            print agents
 
-    
+
+        elif item[0] == "requires" or item[0] == "provides" or item[0] == "agent":
+
+            elements = "".join(item[1])
+            elements = re.split("(&&|\|\|)", elements)
+
+            prev = ""
+            for stmt in elements:
+                if stmt == "&&" or stmt == "||":
+                    prev = stmt
+                    continue
+                d = {}
+
+                resattr = stmt.split(".")
+
+                if stmt[0] == "\"" and stmt[-1] == "\"": #agents in quotes
+                    d = {
+                        "resource": stmt[1:-1],
+                        "operator": "",
+                        "attribute": "",
+                        "value": ""
+                    }
+
+                elif len(resattr) > 1:
+
+                    if "==" in stmt:
+                        split = resattr[1].split("==")
+                        d["operator"] = "=="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "!=" in stmt:
+                        split = resattr[1].split("!=")
+                        d["operator"] = "!="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "<" in stmt:
+                        split = resattr[1].split("<")
+                        d["operator"] = "<"
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif "<=" in stmt:
+                        split = resattr[1].split("<=")
+                        d["operator"] = "<="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif ">" in stmt:
+                        split = resattr[1].split(">")
+                        d["operator"] = ">"
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+                    elif ">=" in stmt:
+                        split = resattr[1].split(">=")
+                        d["operator"] = ">="
+                        d["attribute"] = split[0]
+                        d["value"] = split[1][1:-1]
+
+                    d["resource"] = resattr[0]
+
+                else:
+                    d = {
+                        "resource": resattr[0],
+                        "attribute": "",
+                        "value": "",
+                        "operator": ""
+                    }
+
+                d["relOp"] = prev
+
+
+                if item[0] == "requires":
+                    action["RequiresIn"].append(copy.deepcopy(d))
+                elif item[0] == "provides":
+                    action["ProvidesIn"].append(copy.deepcopy(d))
+                else:
+                    action["AgentsIn"].append(copy.deepcopy(d))
+
+            #action["RequiresIn"].append("".join(item[1]))
+        #elif item[0] == "provides":
+        #    action["ProvidesIn"].append("".join(item[1]))
+
+
     glob_arr.append(action)
     increment_level()
-    
+
 
 def add_primary(string, loc, toks):
     global glob_arr
@@ -89,7 +165,7 @@ def add_primary(string, loc, toks):
     primary["attrs"]["name"] = toks[0]
     primary["size"]["width"] = 300
     primary["size"]["height"] = 50
-    
+
 
     glob_arr.append(primary)
 
@@ -190,7 +266,7 @@ def arr_to_json(orig_arr):
     global glob_cur_path
     global glob_d
     d = copy.deepcopy(glob_d)
-    cur_path = d["process"]["contains"] 
+    cur_path = d["process"]["contains"]
     glob_d = {"process": {"contains": {}, "type": "process", "name": ""}}
     glob_cur_path = glob_d["process"]["contains"]
     stack = []
@@ -204,13 +280,32 @@ def arr_to_json(orig_arr):
                 "contains": {}
             }
         else:
+            """requires = ""
+            provides = ""
+            for i in item["RequiresIn"]:
+                requires += i["relOp"]
+                requires += i["resource"]
+                if i["attribute"] != "":
+                    requires +=  "." + i["attribute"]
+                if i["operator"] != "":
+                    requires += i["operator"] + "\"" +  i["value"] + "\""
+
+            for i in item["ProvidesIn"]:
+                provides += i["relOp"]
+                provides += i["resource"]
+                if i["attribute"] != "":
+                    provides +=  "." + i["attribute"]
+                if i["operator"] != "":
+                    provides += i["operator"] + "\"" + i["value"] + "\""
+            """
             cur_path[key] = {
                 "type": "action",
                 "name": item["nameIn"],
-                "requires": ",".join(item["RequiresIn"]),
-                "provides": ",".join(item["ProvidesIn"]),
-                "agents": ",".join(item["AgentsIn"]),
-                "script": "".join(item["scriptIn"])
+                "requires": item["RequiresIn"],
+                "provides": item["ProvidesIn"],
+                "agents": item["AgentsIn"],
+                "script": "".join(item["scriptIn"]),
+                "tools": []
             }
 
         if "embeds" in item.keys():
@@ -221,9 +316,9 @@ def arr_to_json(orig_arr):
             cur_path = stack.pop()
 
         count -= 1
-        
 
-    return d 
+
+    return d
 
 def parse(filename):
     global glob_arr
@@ -233,7 +328,7 @@ def parse(filename):
 
     process_decl.ignore(cStyleComment)
     process_decl.parseString(pml)
-    
+
     #pp = pprint.PrettyPrinter(indent=2)
     #pp.pprint(arr_to_json(glob_arr))
 

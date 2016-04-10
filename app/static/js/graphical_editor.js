@@ -155,21 +155,21 @@ paper.on('cell:contextmenu',
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
                 }
             }
-            var tools = self.model.get('ToolsIn');
-            for(var i=0; i<tools.length; i++){
-                if(i===0){
-                    var targets = myModal.find('.tools').children();
-                    targets[0].value = tools[i].resource;
-                    targets[1].value = tools[i].attribute;
-                    targets[2].value = tools[i].operator;
-                    targets[3].value = tools[i].value;
-                }
-                else{
-                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
-                    myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
-                    myModal.find('.tool:last').find('select:last').val(tools[i].operator);
-                }
-            }
+            // var tools = self.model.get('ToolsIn');
+            // for(var i=0; i<tools.length; i++){
+            //     if(i===0){
+            //         var targets = myModal.find('.tools').children();
+            //         targets[0].value = tools[i].resource;
+            //         targets[1].value = tools[i].attribute;
+            //         targets[2].value = tools[i].operator;
+            //         targets[3].value = tools[i].value;
+            //     }
+            //     else{
+            //         $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+            //         myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
+            //         myModal.find('.tool:last').find('select:last').val(tools[i].operator);
+            //     }
+            // }
             $('#myModal').modal('show');
             break;
         default:
@@ -336,7 +336,9 @@ var pointerup = function(cellView, evt, x, y) {
 var insert = function(type) {
     type = type || "branch";
     $("#overlay").css("display","none");
-    graph.addCell(grid.addElement(type));
+    var column = grid.addElement(type);
+    graph.addCell(column.element);
+    return column;
 }
 
 var outerColumns = new Columns();
@@ -383,7 +385,6 @@ var grid = {
         if(typeof element_counts[type] === 'undefined'){
             element_counts[type] = 0;
         }
-
         var new_name = type + "_" + element_counts[type]++;
         if (type == "action") {
             var el = new joint.shapes.devs.Coupled({
@@ -401,7 +402,7 @@ var grid = {
                 AgentsIn:[],
                 ToolsIn:[]
             });
-            outerColumns.push(el, false);
+            var newCol = outerColumns.push(el, false);
         } else {
             var el = new joint.shapes.devs.Coupled({
                 size: self.minSize,
@@ -413,10 +414,10 @@ var grid = {
                 elType: type,
                 verticalChildCount: 0
             });
-            outerColumns.push(el);
+            var newCol = outerColumns.push(el);
         }
         svgResize();
-        return el;
+        return newCol;
     }
 }
 
@@ -491,7 +492,7 @@ Columns.prototype.getXCoordByColumn = function(columnNum) {
     if (this.isVertical) return undefined;
 
     if (this.parent) {
-        var xPos = this.parent.position().x + grid.childPadding;
+        var xPos = this.parent.get("position").x + grid.childPadding;
     } else {
         var xPos = grid.outerPadding;
     }
@@ -507,10 +508,12 @@ Columns.prototype.push = function(element) {
     if (this.parent) {
         return undefined;
     }
+    var newCol = new Column(element, this);
     //Update Data structure
-    var length = this.columns.push(new Column(element, this));
+    var length = this.columns.push(newCol);
     //Set position of new element
-    this.columns[length - 1].changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);
+    newCol.changePos(this.getXCoordByColumn(length - 1), this.getHorizontalYCoord(), true);  
+    return newCol;  
 }
 
 //This function is only for sequence and iteration
@@ -544,7 +547,7 @@ Columns.prototype.insert = function(column, destinationXCoord) {
         //Get Column to insert into
         var insertionColumn = this.getColumnByXCoord(destinationXCoord);
 
-        //Move element
+        //Move element      
         column.changePos(this.getXCoordByColumn(insertionColumn), this.getHorizontalYCoord());
 
         //Rearrange data-structure
@@ -601,8 +604,9 @@ Columns.prototype.redraw = function() {
         var start = this.parent ? this.parent.position().x + grid.childPadding : grid.outerPadding;
         var xAccumulator = start;
         var y = this.getHorizontalYCoord();
-        for (var i = 0; i < this.columns.length; i++) {
 
+        
+        for (var i = 0; i < this.columns.length; i++) {
             this.columns[i].changePos(xAccumulator, y);
             xAccumulator += this.columns[i].width;
         }
@@ -661,12 +665,14 @@ function Column(element, columns) {
 
 //Used only for a dragged element.
 Column.prototype.changePos = function(x, y, noTransition) {
+    
     var oldPos = this.element.position();
     var translation = {
-        x: x - oldPos.x,
-        y: y - oldPos.y
+        x: Math.round(x) - Math.round(oldPos.x),
+        y: Math.round(y) - Math.round(oldPos.y)
     }
-    this.element.translate(translation.x, translation.y, noTransition ? {} : {transition: this.transition});
+
+    this.element.translate(translation.x,  translation.y, noTransition ? {} : {transition: this.transition});
 
     if (this.columns) {
         this.moveChildren(translation);
@@ -781,9 +787,11 @@ var getOutput = function() {
     );
 }
 
+
 var getJSON = function() {
     var json = {};
 	var columns = [];
+    
     graph.attributes.cells.models.forEach(
         function(cell, index, cells) {
             columns.push(cells[index].get("column"));
@@ -799,9 +807,74 @@ var getJSON = function() {
 	return json;
 }
 
-var setInput = function(jsonString) {
+var setInput = function(input) {
     graph.clear();
-    graph.fromJSON(jsonString);
+    outerColumns = new Columns();
+
+    for (var object in input.process.contains) {
+        if (input.process.contains.hasOwnProperty(object)) {
+            timeoutHelper(input.process.contains[object], undefined, 100);
+        } 
+    }
+}
+
+var setInputHelper = function(object, parent, timeout) {
+    var inserted_column = insert(object.type);
+    if (object.type === "action") {
+        inserted_column.element.set("scriptIn", object.script);
+        inserted_column.element.set("RequiresIn", object.requires);
+        inserted_column.element.set("ProvidesIn", object.provides);
+        inserted_column.element.set("AgentsIn", object.agents);
+        inserted_column.element.set("ToolsIn", object.tools);
+        var ageRes = [];
+        for(var i =0; i< object.agents.length; i++){
+            ageRes.push(object.agents[i].resource);
+            if(colourAgent[ageRes[i]] === undefined){
+                colourAgent[ageRes[i]] = newColour();
+            }
+        }
+        if(ageRes.length>0){
+            // collectioon[index].attr('rect/fill', colourAgent[ageRes[0]]);
+            var stops = [];
+            var gap = 100/ageRes.length;
+            for(var j=0; j<ageRes.length; j++){
+                var percent = j*gap;
+                var percentEnd = (j+1)*gap;
+                stops.push({offset:''+percent+'%',color:''+colourAgent[ageRes[j]]+''})
+                stops.push({offset:''+percentEnd+'%',color:''+colourAgent[ageRes[j]]+''})
+            }
+            inserted_column.element.attr('rect/fill', {
+                                                type: 'linearGradient',
+                                                stops: stops
+                                            });
+        }
+
+    } 
+    inserted_column.element.set("nameIn", object.name || "");
+    inserted_column.element.set("elType", object.type);
+
+    if (object.name) {
+        inserted_column.element.attr('text/text', object.type + ": " + shortenLongNames(object.name));
+    }
+    
+    
+    if (parent) {
+        inserted_column = outerColumns.remove(inserted_column.element);
+        parent.insert(inserted_column, Number.MAX_VALUE);
+    }
+
+    for (var obj in object.contains) {
+        if (object.contains.hasOwnProperty(obj)) {
+            timeoutHelper(object.contains[obj], inserted_column.columns, timeout);
+        }
+    }
+
+}
+
+var timeoutHelper = function(object, parent, timeout) {
+    window.setTimeout(function(){
+        setInputHelper(object, parent, timeout + 100);
+    }, timeout);
 }
 
 var newColour = function() {
@@ -809,18 +882,22 @@ var newColour = function() {
     // var sumColour = 0;
     // for(var i=0; i<currentColour.length; i++){
     //     sumColour+=currentColour[i];
-    // }
+    // }`
     // if(sumColour>600){
     //     currentColour[0] = Math.floor((Math.random() * 50) + 25);
     //     currentColour[1] = Math.floor((Math.random() * 50) + 25);
     //     currentColour[2] = Math.floor((Math.random() * 50) + 25);
     // }
     var index = Math.floor((Math.random() * 2) );
-    var add = Math.floor((Math.random() * 240) + 20);
-    // var index2 = Math.floor((Math.random() * 2) );
-    // var add2 = Math.floor((Math.random() * 240) + 20);
+    do {
+        var add = Math.floor((Math.random() * 240) + 20);
+    }while (Math.abs(currentColour[index] - add) < 30)
+    var index2 = Math.floor((Math.random() * 2) );
+    do {
+        var add2 = Math.floor((Math.random() * 240) + 20);
+    }while (Math.abs(currentColour[index] - add) < 30)
     currentColour[index]=add;
-    // currentColour[index2]=add2;
+    currentColour[index2]=add2;
     return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
 }
 
@@ -997,48 +1074,48 @@ $('.submitData').on('click', function(){
             agentsVals.push(currentAgentsVal);
         }
     });
-    var toolsVals = [];
-    $(this).parents('#myModal').find('.tools').each(function (){
-        var currentToolssVal = {};
-        var targets = $(this).children();
-        if(!checkPred(targets)){
-            submitOk=false;
-        }
-        var offset = 0;
-        var blank = false;
-        if(targets.length > 4){
-            if(!checkFilled(targets)){
-                blank = true;
-            }
-            currentToolssVal.relOp = targets[0].value;
-            offset = 2; //includes op_1 and <br>
-        }
-        currentToolssVal.resource = targets[0 + offset].value;
-        currentToolssVal.attribute = targets[1 + offset].value;
-        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
-            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
-                currentToolssVal.value = "";
-                currentToolssVal.operator = "";
-            }
-            else{
-                currentToolssVal.value = "true";
-                currentToolssVal.operator = "==";
-            }
-        }
-        else{
-            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
-                currentToolssVal.value = "";
-                currentToolssVal.operator = "";
-            }
-            else{
-                currentToolssVal.value = targets[3 + offset].value;
-                currentToolssVal.operator = targets[2 + offset].value;
-            }
-        }
-        if(!blank){
-            toolsVals.push(currentToolssVal);
-        }
-    });
+    // var toolsVals = [];
+    // $(this).parents('#myModal').find('.tools').each(function (){
+    //     var currentToolssVal = {};
+    //     var targets = $(this).children();
+    //     if(!checkPred(targets)){
+    //         submitOk=false;
+    //     }
+    //     var offset = 0;
+    //     var blank = false;
+    //     if(targets.length > 4){
+    //         if(!checkFilled(targets)){
+    //             blank = true;
+    //         }
+    //         currentToolssVal.relOp = targets[0].value;
+    //         offset = 2; //includes op_1 and <br>
+    //     }
+    //     currentToolssVal.resource = targets[0 + offset].value;
+    //     currentToolssVal.attribute = targets[1 + offset].value;
+    //     if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+    //         if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+    //             currentToolssVal.value = "";
+    //             currentToolssVal.operator = "";
+    //         }
+    //         else{
+    //             currentToolssVal.value = "true";
+    //             currentToolssVal.operator = "==";
+    //         }
+    //     }
+    //     else{
+    //         if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+    //             currentToolssVal.value = "";
+    //             currentToolssVal.operator = "";
+    //         }
+    //         else{
+    //             currentToolssVal.value = targets[3 + offset].value;
+    //             currentToolssVal.operator = targets[2 + offset].value;
+    //         }
+    //     }
+    //     if(!blank){
+    //         toolsVals.push(currentToolssVal);
+    //     }
+    // });
     if(submitOk){
         if(nameVal.length > 0){
             collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(nameVal));
@@ -1064,7 +1141,7 @@ $('.submitData').on('click', function(){
         collectioon[index].set('RequiresIn', requireVals);
         collectioon[index].set('ProvidesIn', providesVals);
         collectioon[index].set('AgentsIn', agentsVals);
-        collectioon[index].set('ToolsIn', toolsVals);
+        // collectioon[index].set('ToolsIn', toolsVals);
         collectioon[index].set('nameIn', nameVal);
         collectioon[index].set('scriptIn', scriptVal);
         $('#myModal').modal('hide');
@@ -1085,7 +1162,7 @@ $('#myModal').on('hidden.bs.modal', function () {
     $(this).find('.requires').not(':first').remove();
     $(this).find('.provides').not(':first').remove();
     $(this).find('.agent').not(':first').remove();
-    $(this).find('.tools').not(':first').remove();
+    // $(this).find('.tools').not(':first').remove();
 });
 
 
