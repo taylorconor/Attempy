@@ -80,9 +80,10 @@ Actions will be coloured based on the agents associated with them. If multiple a
 The design of boxes and arrows makes illegal syntax impossible. Syntax is enforced on the input fields in that incorrect names (that do not begin with a letter or '_' are not allowed) and attributes cannot exist without resources. If an incorrect value is entered in a field the data will not be allowed to be submited and an error message will appear.
 
 ###Basic PML Display
-This generated a JSON representation of the PML source for use with the boxes and arrows component. Unit tests for this are run by running make test. Basic implementation of it currently present.
+Open a PML file from the file explorer at the side of the graphical editor to convert that source to a graphical model and display it in the graphical editor.
 
 ###PML generator
+In the graphical editor, saving a file (using File > Save) will convert it to PML and save it as a PML source file.
 
 ##Notes
 To create a new, empty, file, click the file button next to Your Files on the left hand side of the screen
