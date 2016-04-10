@@ -50,20 +50,35 @@ def add_action(string, loc, toks):
             continue
         if item[0] == "script":
             action["scriptIn"] = "".join(item[1])
-        elif item[0] == "agent":
-            action["AgentsIn"].extend(item[1])
-        elif item[0] == "requires" or item[0] == "provides":
-            requires = "".join(item[1])
-            requires = re.split("(&&|\|\|)", requires)
+#        elif item[0] == "agent":
+            #action["AgentsIn"].extend(item[1])
+#            agents = "".join(item[1])
+#            print agents
+
+
+        elif item[0] == "requires" or item[0] == "provides" or item[0] == "agent":
+
+            elements = "".join(item[1])
+            elements = re.split("(&&|\|\|)", elements)
 
             prev = ""
-            for stmt in requires:
+            for stmt in elements:
                 if stmt == "&&" or stmt == "||":
                     prev = stmt
                     continue
                 d = {}
+
                 resattr = stmt.split(".")
-                if len(resattr) > 1:
+
+                if stmt[0] == "\"" and stmt[-1] == "\"": #agents in quotes
+                    d = {
+                        "resource": stmt[1:-1],
+                        "operator": "",
+                        "attribute": "",
+                        "value": ""
+                    }
+
+                elif len(resattr) > 1:
 
                     if "==" in stmt:
                         split = resattr[1].split("==")
@@ -108,11 +123,13 @@ def add_action(string, loc, toks):
 
                 d["relOp"] = prev
 
+
                 if item[0] == "requires":
                     action["RequiresIn"].append(copy.deepcopy(d))
-                else:
+                elif item[0] == "provides":
                     action["ProvidesIn"].append(copy.deepcopy(d))
-
+                else:
+                    action["AgentsIn"].append(copy.deepcopy(d))
 
             #action["RequiresIn"].append("".join(item[1]))
         #elif item[0] == "provides":

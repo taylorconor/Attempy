@@ -80,8 +80,7 @@ class TestCase(unittest.TestCase):
             #test that last action is correct
             assert output["cells"][-1]["nameIn"] == "a5"
             assert output["cells"][-1]["RequiresIn"][0]["resource"] == "require2"
-            assert output["cells"][-1]["AgentsIn"] == ["carer"]
-
+            assert output["cells"][-1]["AgentsIn"][0]["resource"] == "carer"
         except:
             self.fail("Parser output does not match expected output")
 
