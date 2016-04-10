@@ -826,6 +826,28 @@ var setInputHelper = function(object, parent, timeout) {
         inserted_column.element.set("ProvidesIn", object.provides);
         inserted_column.element.set("AgentsIn", object.agents);
         inserted_column.element.set("ToolsIn", object.tools);
+        var ageRes = [];
+        for(var i =0; i< object.agents.length; i++){
+            ageRes.push(object.agents[i].resource);
+            if(colourAgent[ageRes[i]] === undefined){
+                colourAgent[ageRes[i]] = newColour();
+            }
+        }
+        if(ageRes.length>0){
+            // collectioon[index].attr('rect/fill', colourAgent[ageRes[0]]);
+            var stops = [];
+            var gap = 100/ageRes.length;
+            for(var j=0; j<ageRes.length; j++){
+                var percent = j*gap;
+                var percentEnd = (j+1)*gap;
+                stops.push({offset:''+percent+'%',color:''+colourAgent[ageRes[j]]+''})
+                stops.push({offset:''+percentEnd+'%',color:''+colourAgent[ageRes[j]]+''})
+            }
+            inserted_column.element.attr('rect/fill', {
+                                                type: 'linearGradient',
+                                                stops: stops
+                                            });
+        }
 
     } 
     inserted_column.element.set("nameIn", object.name || "");
