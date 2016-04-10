@@ -106,9 +106,13 @@ paper.on('cell:contextmenu',
             myModal.find('.nameAction').val(self.model.get('nameIn'));
 
             var scripts = self.model.get('scriptIn');
-            if(scripts.length>0){
-                //TODO will we only ever have one script?
-                myModal.find('.scriptInput').val(scripts[0]);
+            if (typeof scripts === 'string' || scripts instanceof String)
+                myModal.find('.scriptInput').val(scripts);
+            else{
+                if(scripts.length>0){
+                    //TODO will we only ever have one script?
+                    myModal.find('.scriptInput').val(scripts[0]);
+                }
             }
             var reqs = self.model.get('RequiresIn');
             for(var i=0; i<reqs.length; i++){
