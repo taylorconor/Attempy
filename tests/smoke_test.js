@@ -3,7 +3,7 @@ system = require('system'),
 loadInProgress = false,
 testindex = 0,
 feature = 1,
-numFeatures = 19,
+numFeatures = 20,
 fs = require('fs'),
 debug = false;
 
@@ -532,9 +532,8 @@ var steps = [
     page.open("http://lvh.me:5000");
   },
   function() {
-    var test = page.evaluate(function(click) {
+    page.evaluate(function(click) {
       click(document.querySelector("a[title^=pml_generator]"));
-      return document.querySelector("a[title^=pml_generator]");
     }, click);
   },
   function() {
@@ -547,6 +546,35 @@ var steps = [
     }
     print_success("PML generator working!");
   },
+  // end test 19
+  // test 20: Basic PML display
+  function() {
+    print_update("Testing feature: Basic PML display");
+  },
+  function() {
+    page.evaluate(function(click) {
+      click(document.querySelector("a[id=submit_save]"));
+    }, click);
+  },
+  function() {
+    page.open("http://lvh.me:5000/graphical_editor");
+  },
+  function() {
+    if (!test_title("Editor", page)) { return true; }
+    page.evaluate(function(click) {
+      click(document.querySelector("a[title^=pml_generator]"));
+    }, click);
+  },
+  function() {
+    var test_elem = page.evaluate(function() {
+      return document.getElementById("paper").outerHTML;
+    });
+    if (!test_elem || test_elem.indexOf("v-3") == -1) {
+      print_error("Basic PML display did not display any elements!");
+      return true;
+    }
+    print_success("Basic PML display working!");
+  }
 ];
 
 interval = setInterval(function() {
