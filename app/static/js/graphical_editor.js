@@ -155,21 +155,21 @@ paper.on('cell:contextmenu',
                     myModal.find('.agent:last').find('select:last').val(agents[i].operator);
                 }
             }
-            var tools = self.model.get('ToolsIn');
-            for(var i=0; i<tools.length; i++){
-                if(i===0){
-                    var targets = myModal.find('.tools').children();
-                    targets[0].value = tools[i].resource;
-                    targets[1].value = tools[i].attribute;
-                    targets[2].value = tools[i].operator;
-                    targets[3].value = tools[i].value;
-                }
-                else{
-                    $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
-                    myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
-                    myModal.find('.tool:last').find('select:last').val(tools[i].operator);
-                }
-            }
+            // var tools = self.model.get('ToolsIn');
+            // for(var i=0; i<tools.length; i++){
+            //     if(i===0){
+            //         var targets = myModal.find('.tools').children();
+            //         targets[0].value = tools[i].resource;
+            //         targets[1].value = tools[i].attribute;
+            //         targets[2].value = tools[i].operator;
+            //         targets[3].value = tools[i].value;
+            //     }
+            //     else{
+            //         $('<div class="tools"><select><option>||</option><option>&&</option></select><br><input value="'+ tools[i].resource +'" type="text" placeholder="Resource" /> . <input value="'+tools[i].attribute+'" type="text" placeholder="Attribute" /> <select><option>==</option><option>!=</option><option><</option><option><=</option><option>></option><option>>=</option></select> <input value="'+tools[i].value+'"type="text" placeholder="Value" /></div>').insertBefore('.toolAdd');
+            //         myModal.find('.tool:last').find('select:first').val(tools[i].relOp);
+            //         myModal.find('.tool:last').find('select:last').val(tools[i].operator);
+            //     }
+            // }
             $('#myModal').modal('show');
             break;
         default:
@@ -1048,48 +1048,48 @@ $('.submitData').on('click', function(){
             agentsVals.push(currentAgentsVal);
         }
     });
-    var toolsVals = [];
-    $(this).parents('#myModal').find('.tools').each(function (){
-        var currentToolssVal = {};
-        var targets = $(this).children();
-        if(!checkPred(targets)){
-            submitOk=false;
-        }
-        var offset = 0;
-        var blank = false;
-        if(targets.length > 4){
-            if(!checkFilled(targets)){
-                blank = true;
-            }
-            currentToolssVal.relOp = targets[0].value;
-            offset = 2; //includes op_1 and <br>
-        }
-        currentToolssVal.resource = targets[0 + offset].value;
-        currentToolssVal.attribute = targets[1 + offset].value;
-        if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
-            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
-                currentToolssVal.value = "";
-                currentToolssVal.operator = "";
-            }
-            else{
-                currentToolssVal.value = "true";
-                currentToolssVal.operator = "==";
-            }
-        }
-        else{
-            if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
-                currentToolssVal.value = "";
-                currentToolssVal.operator = "";
-            }
-            else{
-                currentToolssVal.value = targets[3 + offset].value;
-                currentToolssVal.operator = targets[2 + offset].value;
-            }
-        }
-        if(!blank){
-            toolsVals.push(currentToolssVal);
-        }
-    });
+    // var toolsVals = [];
+    // $(this).parents('#myModal').find('.tools').each(function (){
+    //     var currentToolssVal = {};
+    //     var targets = $(this).children();
+    //     if(!checkPred(targets)){
+    //         submitOk=false;
+    //     }
+    //     var offset = 0;
+    //     var blank = false;
+    //     if(targets.length > 4){
+    //         if(!checkFilled(targets)){
+    //             blank = true;
+    //         }
+    //         currentToolssVal.relOp = targets[0].value;
+    //         offset = 2; //includes op_1 and <br>
+    //     }
+    //     currentToolssVal.resource = targets[0 + offset].value;
+    //     currentToolssVal.attribute = targets[1 + offset].value;
+    //     if(targets[3 + offset].value.length === 0 && targets[0 + offset].value.length>0){
+    //         if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+    //             currentToolssVal.value = "";
+    //             currentToolssVal.operator = "";
+    //         }
+    //         else{
+    //             currentToolssVal.value = "true";
+    //             currentToolssVal.operator = "==";
+    //         }
+    //     }
+    //     else{
+    //         if(targets[0 + offset].value.length===0 || targets[1 + offset].value.length===0){
+    //             currentToolssVal.value = "";
+    //             currentToolssVal.operator = "";
+    //         }
+    //         else{
+    //             currentToolssVal.value = targets[3 + offset].value;
+    //             currentToolssVal.operator = targets[2 + offset].value;
+    //         }
+    //     }
+    //     if(!blank){
+    //         toolsVals.push(currentToolssVal);
+    //     }
+    // });
     if(submitOk){
         if(nameVal.length > 0){
             collectioon[index].attr('text/text', collectioon[index].get('elType') + ": " + shortenLongNames(nameVal));
@@ -1115,7 +1115,7 @@ $('.submitData').on('click', function(){
         collectioon[index].set('RequiresIn', requireVals);
         collectioon[index].set('ProvidesIn', providesVals);
         collectioon[index].set('AgentsIn', agentsVals);
-        collectioon[index].set('ToolsIn', toolsVals);
+        // collectioon[index].set('ToolsIn', toolsVals);
         collectioon[index].set('nameIn', nameVal);
         collectioon[index].set('scriptIn', scriptVal);
         $('#myModal').modal('hide');
@@ -1136,7 +1136,7 @@ $('#myModal').on('hidden.bs.modal', function () {
     $(this).find('.requires').not(':first').remove();
     $(this).find('.provides').not(':first').remove();
     $(this).find('.agent').not(':first').remove();
-    $(this).find('.tools').not(':first').remove();
+    // $(this).find('.tools').not(':first').remove();
 });
 
 
