@@ -85,7 +85,11 @@ def load_graphical_file():
     try:
         p = Popen(["peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except OSError as e:
-        return jsonify(output="Error", reason = str(e))
+        try:
+            #this is for running peos from test files
+            p = Popen(["../peos/pml/check/pmlcheck", tmp_filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        except:
+            return jsonify(output="Error", reason = str(e))
     prog_out, error = p.communicate()
     if p.returncode > 0:
         return jsonify(output="Error", reason = error)
@@ -230,7 +234,7 @@ def deleteFile():
     if(len(file_name) < 1):
         return jsonify(output = "Failed", reason = "Invalid Filename")
     tmp_filename = os.path.join('.' + app.config["UPLOAD_DIR"] + '/' + current_user.get_id(), file_name)
-    print('Data: ' + tmp_filename, file=sys.stderr)
+    # print('Data: ' + tmp_filename, file=sys.stderr)
     try:
         os.remove(tmp_filename);
     except:

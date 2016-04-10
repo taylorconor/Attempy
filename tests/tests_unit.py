@@ -3,13 +3,14 @@
 
 import os
 import unittest
-import sys
+import sys, json
 sys.path.append('..')
 import sample_strings
+import json_strings
 from app.views.home import allowed_file
 from utils import print_test_time_elapsed
 import app.pml_to_json.pml_to_json as pml_to_json
-
+import app.json_to_pml as json_to_pml
 class TestCase(unittest.TestCase):
 
 
@@ -29,6 +30,7 @@ class TestCase(unittest.TestCase):
         assert not allowed_file("")
         assert not allowed_file(".........")
 
+    @print_test_time_elapsed
     def test_01_pml_to_json(self):
         test_dir = "pml_testfiles"
         for i in os.listdir(test_dir):
@@ -84,6 +86,11 @@ class TestCase(unittest.TestCase):
         except:
             self.fail("Parser output does not match expected output")
 
-
+    @print_test_time_elapsed
+    def test_02_json_to_pml(self):
+        print(json_strings.file_0_data)
+        joint_json = json.loads(json_strings.file_0_data)
+        joint_json = joint_json["cells"]
+        (res, output) = json_to_pml.parse(joint_json, json_strings.file_0_name)
 if __name__ == '__main__':
     unittest.main()

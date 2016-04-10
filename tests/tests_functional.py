@@ -103,6 +103,12 @@ class StartingTestCase(TestCase):
         }
         return self.client.post('/deleteFile', data=data, follow_redirects=True)
 
+    def load_graphical_file(self, file_name):
+        data = {
+            'data': file_name
+        }
+        return self.client.post('/load_graphical_file', data=data, follow_redirects=True)
+
     @print_test_time_elapsed
     def test_00_register_loads(self):
         rv = self.client.get('/register')
@@ -241,6 +247,7 @@ class StartingTestCase(TestCase):
         assert rv.status_code == 200
         assert "syntax error at" not in rv.data
 
+    @print_test_time_elapsed
     def test_14_delete_file(self):
         self.login(sample_strings.valid_user, sample_strings.valid_password)
         rv = self.pml_save_file(sample_strings.temp_file_name, sample_strings.valid_pml)
@@ -251,6 +258,17 @@ class StartingTestCase(TestCase):
         assert rv.status_code == 200
         assert 'Success' in rv.data
         assert not os.path.isfile("uploads/1/"+sample_strings.temp_file_name)
+
+    @print_test_time_elapsed
+    def tests_15_load_graphical_file(self):
+        self.login(sample_strings.valid_user, sample_strings.valid_password)
+        rv = self.load_graphical_file(sample_strings.file_name)
+        assert rv.status_code == 200
+        assert '"output": "Success",' in rv.data
+        rv = self.load_graphical_file(sample_strings.bad_pml_file_name)
+        assert rv.status_code == 200
+        assert '"output": "Error",' in rv.data
+        
 
 if __name__ == '__main__':
     unittest.main()
