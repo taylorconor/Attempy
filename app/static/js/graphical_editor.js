@@ -889,11 +889,15 @@ var newColour = function() {
     //     currentColour[2] = Math.floor((Math.random() * 50) + 25);
     // }
     var index = Math.floor((Math.random() * 2) );
-    var add = Math.floor((Math.random() * 240) + 20);
-    // var index2 = Math.floor((Math.random() * 2) );
-    // var add2 = Math.floor((Math.random() * 240) + 20);
+    do {
+        var add = Math.floor((Math.random() * 240) + 20);
+    }while (Math.abs(currentColour[index] - add) < 30)
+    var index2 = Math.floor((Math.random() * 2) );
+    do {
+        var add2 = Math.floor((Math.random() * 240) + 20);
+    }while (Math.abs(currentColour[index] - add) < 30)
     currentColour[index]=add;
-    // currentColour[index2]=add2;
+    currentColour[index2]=add2;
     return 'rgb('+currentColour[0]+','+currentColour[1]+','+currentColour[2]+')';
 }
 
