@@ -228,14 +228,11 @@ paper.on('cell:pointermove', function(cellView, evt, x, y) {
     }
 });
 
-var movingColumn = undefined;
-
 paper.on('cell:pointerdown',
     function(cellView, evt, x, y) {
         window.setTimeout(function(){
             if (!isDoubleClick) {
                 setZ(cellView.model, 900);
-                movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
                 addElementClass(cellView.model, "dragging", true);
             }
         },
@@ -288,6 +285,7 @@ paper.on('cell:pointerup', function(cellView, evt, x, y) {
             isDoubleClick = false;
         } else {
             pointerup(cellView, evt, x, y);
+            updateColumns();
         }
     },
     11);
@@ -320,7 +318,7 @@ var pointerup = function(cellView, evt, x, y) {
             break;
         }
     }
-
+    var movingColumn =  movingColumn = cellView.model.get("column").parentColumns.remove(cellView.model);
     if (!embedded) {
         outerColumns.insert(movingColumn, cellView.model.get('position').x);
         setZ(cellView.model, 1);
@@ -328,8 +326,6 @@ var pointerup = function(cellView, evt, x, y) {
         setZ(cellView.model, embeddedInto.get("z") + 1);
         embeddedInto.get("column").columns.insert(movingColumn, cellView.model.get('position').x);
     }
-
-    movingColumn = undefined;
 }
 
 //Called by user when clicking menu option
@@ -661,7 +657,10 @@ function Column(element, columns) {
         timingFunction: function(t) { return t*t; },
         valueFunction: function(a, b) { return function(t) { return a + (b - a) * t }}
     };
+    this.translation = {};
 };
+
+var updatePosition = {};
 
 //Used only for a dragged element.
 Column.prototype.changePos = function(x, y, noTransition) {
@@ -672,11 +671,21 @@ Column.prototype.changePos = function(x, y, noTransition) {
         y: Math.round(y) - Math.round(oldPos.y)
     }
 
-    this.element.translate(translation.x,  translation.y, noTransition ? {} : {transition: this.transition});
-
+    this.translation = { x: translation.x, y: translation.y, transition: !noTransition };
+    updatePosition[this.element.id] = this;
     if (this.columns) {
         this.moveChildren(translation);
     }
+}
+
+var updatePositions = function() {
+    console.log(updatePosition)
+    for (var columnId in updatePosition) {
+        if (updatePosition.hasOwnProperty(columnId)) {
+            updatePosition[columnId].element.translate(updatePosition[columnId].translation.x, updatePosition[columnId].translation.y, updatePosition[columnId].translation.translation ? {transition: this.transition} : {});
+        }
+    }
+    updatePosition = {};
 }
 
 //Used only for a dragged element.
@@ -684,24 +693,36 @@ Column.prototype.moveChildren = function(translation) {
     translation = {x: Math.round(translation.x), y: Math.round(translation.y)};
     for (var i = 0; i < this.columns.columns.length; i++) {
         if (this.columns.columns[i]) {
-            this.columns.columns[i].element.translate(translation.x, translation.y, {transition: this.transition});
+            this.newPos = { x: translation.x, y: translation.y, transition: true };
             this.columns.columns[i].moveChildren(translation);
         }
     }
 }
 
-Column.prototype.pushUp = function(width) {
-    this.element.translate(width, 0);
+var updateSize = {};
+
+var updateSizes = function() {
+    for (var columnId in updateSize) {
+        if (updateSize.hasOwnProperty(columnId)) {
+            updateSize[columnId].element.resize(updateSize[columnId].width - grid.outerPadding, updateSize[columnId].height - grid.childPadding);
+        }
+    }
+    updateSize = {};
 }
 
-Column.prototype.pushDown = function(width) {
-    this.element.translate(-1 * width, 0);
+var updateColumns = function() {
+    updateSizes();
+    updatePositions();
 }
+
 
 Column.prototype.setSize = function(size) {
+    var elSize = this.element.get("size");
+    if (elSize.width !== size.width || elSize.height !== size.height) {
+        updateSize[this.element.id] = this;
+    }
     this.width = size.width;
     this.height = size.height;
-    this.element.set("size", {width: size.width - grid.outerPadding, height: size.height - grid.childPadding});
 }
 
 
@@ -813,9 +834,10 @@ var setInput = function(input) {
 
     for (var object in input.process.contains) {
         if (input.process.contains.hasOwnProperty(object)) {
-            timeoutHelper(input.process.contains[object], undefined, 100);
+            timeoutHelper(input.process.contains[object], undefined, 0);
         } 
     }
+    updateColumns();
 }
 
 var setInputHelper = function(object, parent, timeout) {
@@ -850,9 +872,9 @@ var setInputHelper = function(object, parent, timeout) {
 }
 
 var timeoutHelper = function(object, parent, timeout) {
-    window.setTimeout(function(){
-        setInputHelper(object, parent, timeout + 100);
-    }, timeout);
+    // window.setTimeout(function(){
+        setInputHelper(object, parent, timeout);
+    // }, timeout);
 }
 
 var newColour = function() {
